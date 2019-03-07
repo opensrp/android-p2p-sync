@@ -37,4 +37,7 @@ script:
   # Enable the line below once we get all the test passing, currently most of the tests are failing
   # so we'll just if the project compiles
   #Run All tests Unit and Instrumentation
+
+  # Make sure that even the sample module builds OK
   - travis_wait ./gradlew build --stacktrace
+  - travis_wait ./gradlew :p2p-sync:jacocoTestReport
