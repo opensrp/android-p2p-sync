@@ -29,6 +29,7 @@ ext {
     group = 'org.smartregister'
     version = "0.1.0"
 
+    androidBuildToolsVersion = "28.0.3"
     androidMinSdkVersion = 18
     androidCompileSdkVersion = 28
     androidTargetSdkVersion = 28
