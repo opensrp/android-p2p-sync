@@ -1,6 +1,5 @@
 package org.smartregister.p2p.presenter;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
