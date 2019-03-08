@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
@@ -12,9 +13,11 @@ import org.smartregister.p2p.contract.P2pModeSelectContract;
 public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
 
     private P2pModeSelectContract.View view;
+    private P2pModeSelectContract.Interactor interactor;
 
     public P2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view) {
         this.view = view;
+        this.interactor = new P2pModeSelectInteractor(view.getContext());
     }
 
     @Override
@@ -32,5 +35,6 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                 view.enableSendReceiveButtons(true);
             }
         });
+        interactor.startAdvertising();
     }
 }

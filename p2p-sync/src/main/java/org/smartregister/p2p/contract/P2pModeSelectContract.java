@@ -1,6 +1,6 @@
 package org.smartregister.p2p.contract;
 
-import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
@@ -31,6 +31,17 @@ public interface P2pModeSelectContract {
 
     interface Interactor {
 
+        void requestAdvertisingPermissions();
+
         void startAdvertising();
+
+        @NonNull
+        String getAppPackageName();
+
+        @NonNull
+        String getAdvertisingUsername();
+
+        @NonNull
+        Context getContext();
     }
 }
