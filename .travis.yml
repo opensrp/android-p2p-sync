@@ -56,3 +56,4 @@ script:
   # Make sure that even the sample module builds OK
   - travis_wait ./gradlew build --stacktrace
   - travis_wait ./gradlew :p2p-sync:jacocoTestReport
+  - travis_wait ./gradlew :p2p-sync:coveralls
