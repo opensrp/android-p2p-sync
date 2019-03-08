@@ -17,11 +17,13 @@ public class P2pModeSelectPresenterTest {
 
     @Mock
     private P2pModeSelectContract.View view;
+    @Mock
+    private P2pModeSelectContract.Interactor interactor;
     private P2pModeSelectContract.Presenter presenter;
 
     @Before
     public void setUp() throws Exception {
-        presenter = new P2pModeSelectPresenter(view);
+        presenter = new P2pModeSelectPresenter(view, interactor);
     }
 
     @Test

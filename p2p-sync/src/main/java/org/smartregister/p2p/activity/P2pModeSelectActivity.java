@@ -11,6 +11,7 @@ import android.widget.Button;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
+import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
 import org.smartregister.p2p.presenter.P2pModeSelectPresenter;
 
 public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeSelectContract.View {
@@ -68,6 +69,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public void initializePresenter() {
-        presenter = new P2pModeSelectPresenter(this);
+        presenter = new P2pModeSelectPresenter(this, new P2pModeSelectInteractor(this));
     }
 }

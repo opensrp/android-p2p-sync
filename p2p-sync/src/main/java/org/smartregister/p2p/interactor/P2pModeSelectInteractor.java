@@ -2,7 +2,6 @@ package org.smartregister.p2p.interactor;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
@@ -41,14 +40,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     @Override
     public String getAdvertisingUsername() {
         P2PLibrary p2PLibrary = P2PLibrary.getInstance();
-        if (p2PLibrary != null) {
-            String name = p2PLibrary.getAdvertisingName();
-            if (name != null) {
-                return name;
-            }
-        }
-
-        return "";
+        return p2PLibrary.getUsername();
     }
 
     @NonNull
