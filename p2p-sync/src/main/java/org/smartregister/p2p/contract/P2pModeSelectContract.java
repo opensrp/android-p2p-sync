@@ -4,9 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
-import org.smartregister.p2p.handlers.ActivityResultHandler;
-import org.smartregister.p2p.handlers.ActivityResumeHandler;
-
 import java.util.List;
 
 /**
@@ -15,7 +12,7 @@ import java.util.List;
 
 public interface P2pModeSelectContract {
 
-    interface View extends BaseView, ActivityResultHandler, ActivityResumeHandler {
+    interface View extends BaseView {
 
         void enableSendReceiveButtons(boolean enable);
 
