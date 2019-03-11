@@ -47,6 +47,10 @@ dependencies {
     implementation ('com.google.android.gms:play-services-nearby:16.0.0') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
+    implementation ('com.google.android.gms:play-services-location:16.0.0') {
+        exclude group: 'com.android.support', module: 'support-v4'
+    }
+
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     testImplementation 'junit:junit:4.12'
