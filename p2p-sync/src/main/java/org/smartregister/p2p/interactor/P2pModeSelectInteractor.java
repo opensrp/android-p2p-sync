@@ -3,11 +3,13 @@ package org.smartregister.p2p.interactor;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -25,15 +27,11 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     private Context context;
     private String appPackageName;
+    private boolean advertising;
 
     public P2pModeSelectInteractor(@NonNull Context context) {
         this.context = context;
         this.appPackageName = context.getApplicationContext().getPackageName();
-    }
-
-    @Override
-    public void requestAdvertisingPermissions() {
-
     }
 
     @NonNull
@@ -60,6 +58,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
+                        advertising = true;
                         // For now this issue does not deal with this
                         Timber.i("Advertising has been started successfully");
                     }
@@ -67,9 +66,27 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        if (!(e instanceof ApiException &&
+                                ((ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_ADVERTISING)) {
+                            advertising = false;
+                        }
                         Timber.e(e, "Advertising could not be started failed");
                     }
                 });
+    }
+
+    @Override
+    public void stopAdvertising() {
+        if (advertising) {
+            advertising = false;
+            Nearby.getConnectionsClient(context)
+                    .stopAdvertising();
+        }
+    }
+
+    @Override
+    public boolean isAdvertising() {
+        return advertising;
     }
 
     @NonNull
