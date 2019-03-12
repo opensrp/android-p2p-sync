@@ -1,4 +1,4 @@
-package org.smartregister.p2p.handlers;
+package org.smartregister.p2p.handler;
 
 import android.content.Intent;
 

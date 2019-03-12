@@ -18,6 +18,8 @@ public interface P2pModeSelectContract {
 
         void showReceiveProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
+        void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
+
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
         @NonNull
@@ -45,6 +47,10 @@ public interface P2pModeSelectContract {
         void prepareForAdvertising(boolean returningFromRequestingPermissions);
 
         void startAdvertisingMode();
+
+        void prepareForDiscovering(boolean returningFromRequestingPermissions);
+
+        void startDiscoveringMode();
     }
 
     interface Interactor {
@@ -54,6 +60,12 @@ public interface P2pModeSelectContract {
         void stopAdvertising();
 
         boolean isAdvertising();
+
+        void startDiscovering();
+
+        void stopDiscovering();
+
+        boolean isDiscovering();
 
         @NonNull
         String getAppPackageName();
