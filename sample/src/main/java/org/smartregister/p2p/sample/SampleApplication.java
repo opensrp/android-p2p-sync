@@ -13,6 +13,6 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        P2PLibrary.init(this, new P2PLibrary.ReceiverOptions("John Doe"));
+        P2PLibrary.init(new P2PLibrary.ReceiverOptions("John Doe"));
     }
 }

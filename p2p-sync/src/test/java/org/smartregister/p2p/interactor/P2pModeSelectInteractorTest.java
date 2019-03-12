@@ -45,7 +45,7 @@ public class P2pModeSelectInteractorTest {
 
     @Test
     public void startAdvertisingShouldChangeAdvertisingFlag() {
-        P2PLibrary.init(RuntimeEnvironment.application, new P2PLibrary.ReceiverOptions(""));
+        P2PLibrary.init(new P2PLibrary.ReceiverOptions(""));
         interactor.startAdvertising();
 
         assertTrue((boolean) ReflectionHelpers.getField(interactor, "advertising"));

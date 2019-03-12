@@ -1,8 +1,6 @@
 package org.smartregister.p2p;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import timber.log.Timber;
 
@@ -13,8 +11,6 @@ import timber.log.Timber;
 public final class P2PLibrary {
 
     private static P2PLibrary instance;
-    private Context context;
-    private ReceiverOptions receiverOptions;
     private BasicOptions basicOptions;
 
     @NonNull
@@ -28,14 +24,12 @@ public final class P2PLibrary {
         return instance;
     }
 
-    public static void init(@NonNull Context context, @NonNull ReceiverOptions receiverOptions) {
-        instance = new P2PLibrary(context, receiverOptions);
+    public static void init(@NonNull BasicOptions basicOptions) {
+        instance = new P2PLibrary(basicOptions);
     }
 
-    private P2PLibrary(@NonNull Context context, @NonNull ReceiverOptions receiverOptions) {
-        this.context = context;
-        this.receiverOptions = receiverOptions;
-        this.basicOptions = receiverOptions;
+    private P2PLibrary(@NonNull BasicOptions basicOptions) {
+        this.basicOptions = basicOptions;
 
         // We should not override the host applications Timber trees
         if (Timber.treeCount() == 0) {
@@ -50,11 +44,8 @@ public final class P2PLibrary {
 
     public static class ReceiverOptions extends BasicOptions {
 
-        private String advertisingName;
-
         public ReceiverOptions(@NonNull String advertisingName) {
             super(advertisingName);
-            this.advertisingName = advertisingName;
         }
 
     }

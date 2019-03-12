@@ -3,4 +3,6 @@
     <string name="send">Send</string>
     <string name="receive">Receive</string>
     <string name="waiting_for_devices_to_connect">Waiting for devices to connect...</string>
+    <string name="location_service_disabled">Location service disabled</string>
+    <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
 </resources>
