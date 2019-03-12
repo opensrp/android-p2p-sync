@@ -4,6 +4,8 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.util.Constants;
 
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
 
     @Override
     public void onSendButtonClicked() {
-        view.enableSendReceiveButtons(false);
+        prepareForDiscovering(false);
     }
 
     @Override
@@ -44,6 +46,18 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
             if (view.isLocationEnabled()) {
                 startAdvertisingMode();
             } else {
+                view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
+                    @Override
+                    public int getRequestCode() {
+                        return Constants.RQ_CODE.PERMISSIONS;
+                    }
+
+                    @Override
+                    public void handlePermissionResult(@NonNull String[] permissions, @NonNull int[] grantResults) {
+                        view.removeOnActivityRequestPermissionHandler(this);
+                        P2pModeSelectPresenter.this.prepareForAdvertising(true);
+                    }
+                });
                 view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
                     @Override
                     public void locationEnabled() {
@@ -74,5 +88,55 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
         }
     }
 
+    @Override
+    public void prepareForDiscovering(boolean returningFromRequestingPermissions) {
+        List<String> unauthorisedPermissions = view.getUnauthorisedPermissions();
+        // Are all required permissions given
+        if (unauthorisedPermissions.size() == 0) {
+            // Check if location is enabled
+            if (view.isLocationEnabled()) {
+                startDiscoveringMode();
+            } else {
+                view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
+                    @Override
+                    public int getRequestCode() {
+                        return Constants.RQ_CODE.PERMISSIONS;
+                    }
+
+                    @Override
+                    public void handlePermissionResult(@NonNull String[] permissions, @NonNull int[] grantResults) {
+                        view.removeOnActivityRequestPermissionHandler(this);
+                        P2pModeSelectPresenter.this.prepareForDiscovering(true);
+                    }
+                });
+                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
+                    @Override
+                    public void locationEnabled() {
+                        startDiscoveringMode();
+                    }
+                });
+            }
+        } else {
+            if (!returningFromRequestingPermissions) {
+                view.requestPermissions(unauthorisedPermissions);
+            }
+        }
+    }
+
+    @Override
+    public void startDiscoveringMode() {
+        if (!interactor.isDiscovering()) {
+            view.enableSendReceiveButtons(false);
+            view.showDiscoveringProgressDialog (new P2pModeSelectContract.View.DialogCancelCallback() {
+                @Override
+                public void onCancelClicked(DialogInterface dialogInterface) {
+                    interactor.stopDiscovering();
+                    dialogInterface.dismiss();
+                    view.enableSendReceiveButtons(true);
+                }
+            });
+            interactor.startDiscovering();
+        }
+    }
 
 }

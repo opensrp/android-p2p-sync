@@ -28,8 +28,10 @@ import com.google.android.gms.tasks.Task;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
-import org.smartregister.p2p.handlers.OnActivityResultHandler;
-import org.smartregister.p2p.handlers.OnResumeHandler;
+import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
+import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.handler.OnActivityResultHandler;
+import org.smartregister.p2p.handler.OnResumeHandler;
 import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
 import org.smartregister.p2p.presenter.P2pModeSelectPresenter;
 import org.smartregister.p2p.util.Constants;
@@ -48,6 +50,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     private P2pModeSelectContract.Presenter presenter;
     private ArrayList<OnActivityResultHandler> onActivityResultHandlers = new ArrayList<>();
     private ArrayList<OnResumeHandler> onResumeHandlers = new ArrayList<>();
+    private ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +89,16 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         StartReceiveModeProgressDialog newFragment = new StartReceiveModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
 
-        newFragment.show(fragmentManager, "dialog_receive_progress");
+        newFragment.show(fragmentManager, "dialog_start_receive_mode_progress");
+    }
+
+    @Override
+    public void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        StartDiscoveringModeProgressDialog newFragment = new StartDiscoveringModeProgressDialog();
+        newFragment.setDialogCancelCallback(dialogCancelCallback);
+
+        newFragment.show(fragmentManager, "dialog_start_send_mode_progress");
     }
 
     @Override
@@ -238,8 +250,10 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == Constants.RQ_CODE.PERMISSIONS) {
-            presenter.prepareForAdvertising(true);
+        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler: onActivityRequestPermissionHandlers) {
+            if (requestCode == onActivityRequestPermissionHandler.getRequestCode()) {
+                onActivityRequestPermissionHandler.handlePermissionResult(permissions, grantResults);
+            }
         }
     }
 
@@ -263,5 +277,16 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     public void initializePresenter() {
         presenter = new P2pModeSelectPresenter(this, new P2pModeSelectInteractor(this));
+    }
+
+    @Override
+    public boolean addOnActivityRequestPermissionHandler(@NonNull OnActivityRequestPermissionHandler onActivityRequestPermissionHandler) {
+        return !onActivityRequestPermissionHandlers.contains(onActivityRequestPermissionHandler)
+                && onActivityRequestPermissionHandlers.add(onActivityRequestPermissionHandler);
+    }
+
+    @Override
+    public boolean removeOnActivityRequestPermissionHandler(@NonNull OnActivityRequestPermissionHandler onActivityRequestPermissionHandler) {
+        return onActivityRequestPermissionHandlers.remove(onActivityRequestPermissionHandler);
     }
 }
