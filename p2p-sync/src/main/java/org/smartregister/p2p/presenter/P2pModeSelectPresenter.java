@@ -46,6 +46,15 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
             if (view.isLocationEnabled()) {
                 startAdvertisingMode();
             } else {
+                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
+                    @Override
+                    public void locationEnabled() {
+                        startAdvertisingMode();
+                    }
+                });
+            }
+        } else {
+            if (!returningFromRequestingPermissions) {
                 view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
                     @Override
                     public int getRequestCode() {
@@ -58,15 +67,6 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                         P2pModeSelectPresenter.this.prepareForAdvertising(true);
                     }
                 });
-                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
-                    @Override
-                    public void locationEnabled() {
-                        startAdvertisingMode();
-                    }
-                });
-            }
-        } else {
-            if (!returningFromRequestingPermissions) {
                 view.requestPermissions(unauthorisedPermissions);
             }
         }
@@ -97,6 +97,15 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
             if (view.isLocationEnabled()) {
                 startDiscoveringMode();
             } else {
+                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
+                    @Override
+                    public void locationEnabled() {
+                        startDiscoveringMode();
+                    }
+                });
+            }
+        } else {
+            if (!returningFromRequestingPermissions) {
                 view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
                     @Override
                     public int getRequestCode() {
@@ -109,15 +118,6 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                         P2pModeSelectPresenter.this.prepareForDiscovering(true);
                     }
                 });
-                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
-                    @Override
-                    public void locationEnabled() {
-                        startDiscoveringMode();
-                    }
-                });
-            }
-        } else {
-            if (!returningFromRequestingPermissions) {
                 view.requestPermissions(unauthorisedPermissions);
             }
         }

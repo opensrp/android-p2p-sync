@@ -8,6 +8,8 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.internal.nearby.zzbd;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -16,6 +18,7 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 
 /**
@@ -28,6 +31,7 @@ public class Shadowzzbd extends ShadowConnectionsClient {
     public boolean stopAdvertisingCalled;
     public boolean startAdvertisingCalled;
     public static ArrayList<Shadowzzbd> instances = new ArrayList<>();
+    public HashMap<String, Integer> methodCalls = new HashMap<>();
 
     @Implementation
     public void __constructor__(Context context) {
@@ -55,6 +59,31 @@ public class Shadowzzbd extends ShadowConnectionsClient {
             }
         };
     }
+
+
+    @Implementation
+    public void stopDiscovery() {
+        addMethodCall("stopDiscovery");
+    }
+
+    @Implementation
+    public Task<Void> startDiscovery(@NonNull String var1, @NonNull EndpointDiscoveryCallback var2, @NonNull DiscoveryOptions var3) {
+        addMethodCall("startDiscovery");
+        return new DummyTask() {
+            @NonNull
+            @Override
+            public Task addOnSuccessListener(@NonNull OnSuccessListener onSuccessListener) {
+                onSuccessListener.onSuccess(null);
+                return super.addOnSuccessListener(onSuccessListener);
+            }
+        };
+    }
+
+    private void addMethodCall(@NonNull String methodName) {
+        int count = methodCalls.containsKey(methodName) ? methodCalls.get(methodName) + 1 : 1;
+        methodCalls.put(methodName, count);
+    }
+
 
     public static class DummyTask extends Task {
 

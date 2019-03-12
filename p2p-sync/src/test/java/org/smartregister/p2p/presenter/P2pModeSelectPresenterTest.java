@@ -12,6 +12,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,11 +35,12 @@ public class P2pModeSelectPresenterTest {
     }
 
     @Test
-    public void onSendButtonClickedShouldDisableButtons() {
-        presenter.onSendButtonClicked();
+    public void onSendButtonClickedShouldCallPrepareDiscovering() {
+        P2pModeSelectContract.Presenter spiedPresenter = Mockito.spy(presenter);
+        spiedPresenter.onSendButtonClicked();
 
-        Mockito.verify(view, Mockito.times(1))
-                .enableSendReceiveButtons(false);
+        Mockito.verify(spiedPresenter, Mockito.times(1))
+                .prepareForDiscovering(false);
     }
 
     @Test
@@ -176,6 +178,40 @@ public class P2pModeSelectPresenterTest {
 
         Mockito.verify(view, Mockito.times(1))
                 .requestPermissions(unauthorizedPermissions);
+        Mockito.verify(view, Mockito.times(1))
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+    }
+
+    @Test
+    public void prepareAdvertisingShouldCallItselfWhenPermissionsGrantedExplicitlyByUserOnView() {
+        final ArrayList<Object> sensitiveObjects = new ArrayList<>();
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                OnActivityRequestPermissionHandler onActivityRequestPermissionHandler = invocation.getArgument(0);
+                sensitiveObjects.add(onActivityRequestPermissionHandler);
+
+                onActivityRequestPermissionHandler.handlePermissionResult(new String[]{""}, new int[]{0});
+                return null;
+            }
+        }).when(view)
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+
+        P2pModeSelectContract.Presenter spiedPresenter = Mockito.spy(presenter);
+
+        spiedPresenter.prepareForAdvertising(false);
+
+        Mockito.verify(spiedPresenter, Mockito.times(1))
+                .prepareForAdvertising(true);
+        Mockito.verify(view, Mockito.times(1))
+                .removeOnActivityRequestPermissionHandler((OnActivityRequestPermissionHandler) sensitiveObjects.get(0));
     }
 
     @Test
@@ -227,4 +263,101 @@ public class P2pModeSelectPresenterTest {
         Mockito.verify(view, Mockito.times(1))
                 .requestPermissions(unauthorizedPermissions);
     }
+
+    @Test
+    public void prepareDiscoveringShouldCallStartDiscoveringModeWhenPermissionsGrantedAndLocationEnabled() {
+        P2pModeSelectContract.Presenter spiedPresenter = Mockito.spy(presenter);
+
+        List<String> unauthorizedPermissions = new ArrayList<>();
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doReturn(true)
+                .when(view)
+                .isLocationEnabled();
+
+        spiedPresenter.prepareForDiscovering(false);
+        Mockito.verify(spiedPresenter, Mockito.times(1))
+                .startDiscoveringMode();
+    }
+
+    @Test
+    public void prepareDiscoveringShouldCallRequestPermissionsWhenPermissionsNotGrantedAndNotReturningFromRequestingPermissions() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        presenter.prepareForDiscovering(false);
+        Mockito.verify(view, Mockito.times(1))
+                .requestPermissions(unauthorizedPermissions);
+        Mockito.verify(view, Mockito.times(1))
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+    }
+
+    @Test
+    public void prepareDiscoveringShouldNotCallRequestPermissionsWhenPermissionsNotGrantedAndReturningFromRequestionPermissions() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        presenter.prepareForDiscovering(true);
+        Mockito.verify(view, Mockito.times(0))
+                .requestPermissions(unauthorizedPermissions);
+    }
+
+    @Test
+    public void prepareDiscoveringShouldRequestEnableLocationWhenPermissionsGrantedAndLocationNotEnabled() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doReturn(false)
+                .when(view)
+                .isLocationEnabled();
+
+        presenter.prepareForDiscovering(false);
+
+        Mockito.verify(view, Mockito.times(1))
+                .requestEnableLocation(Mockito.any(P2pModeSelectContract.View.OnLocationEnabled.class));
+    }
+
+    @Test
+    public void prepareDiscoveringShouldCallItselfAfterPermissionsGrantedExplicitlyByUserOnView() {
+        final ArrayList<Object> sensitiveObjects = new ArrayList<>();
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        P2pModeSelectContract.Presenter spiedPresenter = Mockito.spy(presenter);
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                OnActivityRequestPermissionHandler onActivityRequestPermissionHandler = invocation.getArgument(0);
+                sensitiveObjects.add(onActivityRequestPermissionHandler);
+                onActivityRequestPermissionHandler.handlePermissionResult(new String[] {""}, new int[]{0});
+                return null;
+            }
+        }).when(view)
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+
+        spiedPresenter.prepareForDiscovering(false);
+
+        Mockito.verify(spiedPresenter, Mockito.times(1))
+                .prepareForDiscovering(true);
+        Mockito.verify(view, Mockito.times(1))
+                .removeOnActivityRequestPermissionHandler((OnActivityRequestPermissionHandler) sensitiveObjects.get(0));
+    }
+
+
 }
