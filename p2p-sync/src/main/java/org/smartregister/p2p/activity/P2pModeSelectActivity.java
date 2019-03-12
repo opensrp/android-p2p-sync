@@ -1,11 +1,12 @@
 package org.smartregister.p2p.activity;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -176,7 +177,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                                                 onLocationEnabled.locationEnabled();
                                             } else if (resultCode == Activity.RESULT_CANCELED) {
                                                 // The user was asked to change settings, but chose not to
-                                                //TODO: Show error dialog telling the user that they cannot enable or just leave it
+                                                showLocationEnableRejectionDialog();
                                             }
                                         }
                                     }
@@ -199,10 +200,29 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                             // settings so we won't show the dialog.
                             Timber.e("Location settings are not satisfied and we have no way to fix the settings");
                             break;
+
+
+                        default:
+                            // This should almost never happen
+                            Timber.e(exception, "The location settings API returned an unresolved status code %d", exception.getStatusCode());
+                            break;
                     }
                 }
             }
         });
+    }
+
+    private void showLocationEnableRejectionDialog() {
+        new AlertDialog.Builder(P2pModeSelectActivity.this)
+                .setTitle(R.string.location_service_disabled)
+                .setMessage(R.string.file_data_sharing_will_not_work_without_location)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 
     @Override

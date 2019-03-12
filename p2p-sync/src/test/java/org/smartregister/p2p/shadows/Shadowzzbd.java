@@ -12,11 +12,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import org.mockito.Mock;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
-import org.robolectric.annotation.RealObject;
-import org.robolectric.util.ReflectionHelpers;
 
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
@@ -34,6 +31,7 @@ public class Shadowzzbd extends ShadowConnectionsClient {
 
     @Implementation
     public void __constructor__(Context context) {
+        // Do nothing as opposed to calling super in the actual implementation
     }
 
     @Implementation
