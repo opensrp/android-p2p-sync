@@ -53,11 +53,8 @@ public class P2pModeSelectPresenterTest {
 
     @Test
     public void startAdvertisingModeShouldDisableButtonsWhenAdvertisingIsFalse() {
+        // The interactor.advertising is false by default
         presenter.startAdvertisingMode();
-
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
 
         Mockito.verify(view, Mockito.times(1))
                 .enableSendReceiveButtons(false);
@@ -77,11 +74,8 @@ public class P2pModeSelectPresenterTest {
 
     @Test
     public void startAdvertisingModeShouldShowProgressDialogBarWhenAdvertisingIsFalse() {
+        // interactor.advertising is false by default
         presenter.startAdvertisingMode();
-
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
 
         Mockito.verify(view, Mockito.times(1))
                 .showReceiveProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
@@ -89,22 +83,15 @@ public class P2pModeSelectPresenterTest {
 
     @Test
     public void startAdvertisingModeShouldCallInteractorAdvertisingWhenAdvertisingIsFalse() {
+        // interactor.advertising is false by default
         presenter.startAdvertisingMode();
-
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
-
         Mockito.verify(interactor, Mockito.times(1))
                 .startAdvertising();
     }
 
     @Test
     public void cancelDialogShouldCallStopAdvertisingWhenClicked(){
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
-
+        // interactor.advertising is false by default
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -134,10 +121,7 @@ public class P2pModeSelectPresenterTest {
 
     @Test
     public void cancelDialogShouldCallDialogIDismissWhenClicked(){
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
-
+        // interactor.advertising is false by default
         final DialogInterface dialogInterface = Mockito.mock(DialogInterface.class);
 
         Mockito.doAnswer(new Answer() {
@@ -159,10 +143,7 @@ public class P2pModeSelectPresenterTest {
 
     @Test
     public void cancelDialogShouldEnableButtonsWhenClicked(){
-        Mockito.doReturn(false)
-                .when(interactor)
-                .isAdvertising();
-
+        // interactor.advertising is false by default
         final DialogInterface dialogInterface = Mockito.mock(DialogInterface.class);
 
         Mockito.doAnswer(new Answer() {
