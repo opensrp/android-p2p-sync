@@ -2,6 +2,7 @@ package org.smartregister.p2p.interactor;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.nearby.Nearby;
@@ -67,8 +68,10 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                     @Override
                     public void onSuccess(Void aVoid) {
                         advertising = true;
+                        String message = "Advertising has been started successfully";
                         // For now this issue does not deal with this
-                        Timber.i("Advertising has been started successfully");
+                        Timber.i(message);
+                        showToast(message);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -78,7 +81,8 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                                 ((ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_ADVERTISING)) {
                             advertising = false;
                         }
-                        Timber.e(e, "Advertising could not be started - FAILED");
+                        String message = "Advertising could not be started - FAILED";
+                        showToast(message);
                     }
                 });
     }
@@ -102,12 +106,14 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                 .setStrategy(Constants.STRATEGY)
                 .build();
 
-        connectionsClient.startDiscovery(getAppPackageName(), new EndPointDiscoveryCallback(), discoveryOptions)
+        connectionsClient.startDiscovery(getAppPackageName(), new EndPointDiscoveryCallback(this), discoveryOptions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         discovering = true;
-                        Timber.i("Discovery has been started successfully");
+                        String message = "Discovery has been started successfully";
+                        Timber.i(message);
+                        showToast(message);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -117,7 +123,9 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                                 ((ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_DISCOVERING)) {
                             discovering = false;
                         }
-                        Timber.e(e, "Discovery could not be started - FAILED");
+                        String message = "Discovery could not be started - FAILED";
+                        Timber.e(e, message);
+                        showToast(message);
                     }
                 });
     }
@@ -165,5 +173,10 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     public void cleanupResources() {
         connectionsClient = null;
         context = null;
+    }
+
+    public void showToast(@NonNull String message) {
+        Toast.makeText(context, message, Toast.LENGTH_LONG)
+                .show();
     }
 }
