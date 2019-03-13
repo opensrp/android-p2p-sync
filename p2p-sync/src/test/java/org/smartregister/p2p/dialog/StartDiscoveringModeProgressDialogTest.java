@@ -13,20 +13,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
+import org.robolectric.Shadows;
+import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 13/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
-public class StartReceiveModeProgressDialogTest {
+public class StartDiscoveringModeProgressDialogTest {
 
-    private StartReceiveModeProgressDialog startReceiveModeProgressDialog;
+    private StartDiscoveringModeProgressDialog startDiscoveringModeProgressDialog;
 
     @Before
     public void setUp() throws Exception {
@@ -38,13 +39,13 @@ public class StartReceiveModeProgressDialogTest {
                 .get();
 
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
-        startReceiveModeProgressDialog = new StartReceiveModeProgressDialog();
-        startReceiveModeProgressDialog.show(fragmentManager, "dialog_receive_progress");
+        startDiscoveringModeProgressDialog = new StartDiscoveringModeProgressDialog();
+        startDiscoveringModeProgressDialog.show(fragmentManager, "dialog_discovering_progress");
     }
 
     @Test
     public void onCreateDialogShouldMakeFragmentDialogNotCancelable() {
-        Assert.assertFalse(startReceiveModeProgressDialog.isCancelable());
+        Assert.assertFalse(startDiscoveringModeProgressDialog.isCancelable());
     }
 
     @Test
@@ -57,12 +58,12 @@ public class StartReceiveModeProgressDialogTest {
             }
         };
 
-        startReceiveModeProgressDialog.setDialogCancelCallback(dialogCancelCallback);
-        Dialog dialog = startReceiveModeProgressDialog.getDialog();
+        startDiscoveringModeProgressDialog.setDialogCancelCallback(dialogCancelCallback);
+        Dialog dialog = startDiscoveringModeProgressDialog.getDialog();
         Button cancelButton = ((AlertDialog) dialog).getButton(DialogInterface.BUTTON_NEGATIVE);
         cancelButton.callOnClick();
 
-        Assert.assertNull(startReceiveModeProgressDialog.getDialog());
+        Assert.assertNull(startDiscoveringModeProgressDialog.getDialog());
         Assert.assertTrue(results.get(0));
     }
 }

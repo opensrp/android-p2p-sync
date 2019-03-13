@@ -12,6 +12,7 @@ import org.smartregister.p2p.shadows.Shadowzzbd;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -40,7 +41,7 @@ public class P2pModeSelectInteractorTest {
         interactor.stopAdvertising();
         assertFalse(interactor.isAdvertising());
 
-        assertTrue(Shadowzzbd.instances.get(0).stopAdvertisingCalled);
+        assertTrue(Shadowzzbd.instance.stopAdvertisingCalled);
     }
 
     @Test
@@ -49,6 +50,24 @@ public class P2pModeSelectInteractorTest {
         interactor.startAdvertising();
 
         assertTrue((boolean) ReflectionHelpers.getField(interactor, "advertising"));
+    }
+
+    @Test
+    public void startDiscoveringShouldChangeDiscoveringFlag() {
+        P2PLibrary.init(new P2PLibrary.ReceiverOptions(""));
+        interactor.startDiscovering();
+
+        assertTrue((boolean) ReflectionHelpers.getField(interactor, "discovering"));
+    }
+
+    @Test
+    public void stopDiscoveringShouldSetDiscoveringFalseIfAlreadyDiscovering() {
+        ReflectionHelpers.setField(interactor, "discovering", true);
+        interactor.stopDiscovering();
+        assertFalse(interactor.isDiscovering());
+
+        assertNotNull(Shadowzzbd.instance.methodCalls.get("stopDiscovery"));
+        assertEquals(1, Shadowzzbd.instance.methodCalls.get("stopDiscovery").intValue());
     }
 
 }
