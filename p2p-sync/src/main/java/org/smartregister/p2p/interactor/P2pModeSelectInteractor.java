@@ -135,6 +135,11 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
         return discovering;
     }
 
+    @Override
+    public void closeAllEndpoints() {
+        connectionsClient.stopAllEndpoints();
+    }
+
     @NonNull
     @Override
     public String getAppPackageName() {
@@ -154,5 +159,11 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     @Override
     public void onDisconnected(@NonNull String s) {
         Timber.i("Disconnected: %s", s);
+    }
+
+    @Override
+    public void cleanupResources() {
+        connectionsClient = null;
+        context = null;
     }
 }
