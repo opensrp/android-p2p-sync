@@ -27,14 +27,15 @@ import com.google.android.gms.tasks.Task;
 
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
+import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
 import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
 import org.smartregister.p2p.presenter.P2pModeSelectPresenter;
 import org.smartregister.p2p.util.Constants;
+import org.smartregister.p2p.util.DialogUtils;
 import org.smartregister.p2p.util.Permissions;
 
 import java.util.ArrayList;
@@ -59,8 +60,15 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         sendButton = findViewById(R.id.btn_p2pModeSelectActivity_send);
         receiveButton = findViewById(R.id.btn_p2pModeSelectActivity_receive);
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         initializePresenter();
+
+        sendButton.setOnClickListener(null);
+        receiveButton.setOnClickListener(null);
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -140,6 +148,11 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         LocationManager lm = ((LocationManager) getSystemService(Context.LOCATION_SERVICE));
         return lm != null && (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
                 || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+    }
+
+    @Override
+    public void dismissAllDialogs() {
+        DialogUtils.dismissAllDialogs(getSupportFragmentManager());
     }
 
     @Override
@@ -289,4 +302,14 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public boolean removeOnActivityRequestPermissionHandler(@NonNull OnActivityRequestPermissionHandler onActivityRequestPermissionHandler) {
         return onActivityRequestPermissionHandlers.remove(onActivityRequestPermissionHandler);
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+
+        presenter.onStop();
+    }
+
+
 }

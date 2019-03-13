@@ -3,6 +3,7 @@ package org.smartregister.p2p.contract;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 
 import java.util.List;
 
@@ -26,6 +27,8 @@ public interface P2pModeSelectContract {
         List<String> getUnauthorisedPermissions();
 
         boolean isLocationEnabled();
+
+        void dismissAllDialogs();
 
         void requestEnableLocation(@NonNull OnLocationEnabled onLocationEnabled);
 
@@ -51,9 +54,11 @@ public interface P2pModeSelectContract {
         void prepareForDiscovering(boolean returningFromRequestingPermissions);
 
         void startDiscoveringMode();
+
+        void onStop();
     }
 
-    interface Interactor {
+    interface Interactor extends BaseInteractor {
 
         void startAdvertising();
 
@@ -66,6 +71,8 @@ public interface P2pModeSelectContract {
         void stopDiscovering();
 
         boolean isDiscovering();
+
+        void closeAllEndpoints();
 
         @NonNull
         String getAppPackageName();

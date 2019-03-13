@@ -139,4 +139,17 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
         }
     }
 
+    @Override
+    public void onStop() {
+        view.dismissAllDialogs();
+        view.enableSendReceiveButtons(true);
+
+        interactor.stopAdvertising();
+        interactor.stopDiscovering();
+        interactor.closeAllEndpoints();
+
+        interactor.cleanupResources();
+        interactor = null;
+    }
+
 }
