@@ -30,21 +30,18 @@ public class Shadowzzbd extends ShadowConnectionsClient {
 
     public boolean stopAdvertisingCalled;
     public boolean startAdvertisingCalled;
-    public static ArrayList<Shadowzzbd> instances = new ArrayList<>();
+    public static Shadowzzbd instance;
     public HashMap<String, Integer> methodCalls = new HashMap<>();
 
     @Implementation
     public void __constructor__(Context context) {
         // Do nothing as opposed to calling super in the actual implementation
+        instance = this;
     }
 
     @Implementation
     public void stopAdvertising() {
         stopAdvertisingCalled = true;
-
-        if (!instances.contains(this)) {
-            instances.add(this);
-        }
     }
 
     @Implementation
