@@ -13,9 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
-import org.robolectric.shadow.api.Shadow;
-import org.robolectric.shadows.ShadowAlertDialog;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 import java.util.ArrayList;

@@ -17,7 +17,6 @@ import com.google.android.gms.tasks.Task;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
 
