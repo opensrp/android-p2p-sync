@@ -4,6 +4,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+
+import org.smartregister.p2p.callback.OnResultCallback;
+import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+
 import java.util.List;
 
 /**
@@ -20,6 +27,13 @@ public interface P2pModeSelectContract {
 
         void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
+        boolean removeDiscoveringProgressDialog();
+
+        void showQRCodeScanningDialog(@NonNull QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback);
+
+        void showConnectionAcceptDialog(@NonNull String receiverDeviceId, @NonNull String authenticationCode
+                , @NonNull DialogInterface.OnClickListener onClickListener);
+
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
         @NonNull
@@ -30,6 +44,10 @@ public interface P2pModeSelectContract {
         void dismissAllDialogs();
 
         void requestEnableLocation(@NonNull OnLocationEnabled onLocationEnabled);
+
+        void showToast(@NonNull String text, int length);
+
+        void displayMessage(@NonNull String text);
 
         interface DialogCancelCallback {
             void onCancelClicked(DialogInterface dialogInterface);
@@ -65,7 +83,8 @@ public interface P2pModeSelectContract {
 
         boolean isAdvertising();
 
-        void startDiscovering();
+        void startDiscovering(@NonNull EndpointDiscoveryCallback endpointDiscoveryCallback
+                , @NonNull OnResultCallback onStartDiscoveringResult);
 
         void stopDiscovering();
 
@@ -73,13 +92,21 @@ public interface P2pModeSelectContract {
 
         void closeAllEndpoints();
 
+        void sendMessage(@NonNull String message);
+
         @NonNull
         String getAppPackageName();
 
         @NonNull
-        String getAdvertisingUsername();
+        String getUserNickName();
 
         @NonNull
         Context getContext();
+
+        void requestConnection(@NonNull String endpointId
+                , @NonNull OnResultCallback onRequestConnectionResult
+                , @NonNull ConnectionLifecycleCallback connectionLifecycleCallback);
+
+        void acceptConnection(String endpointId, PayloadCallback payloadCallback);
     }
 }

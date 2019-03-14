@@ -10,10 +10,15 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -27,6 +32,7 @@ import com.google.android.gms.tasks.Task;
 
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
@@ -47,8 +53,14 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     private Button sendButton;
     private Button receiveButton;
+    private Button sendMsgBtn;
+
+    private TextView messagesTv;
+    private EditText messageToSendEt;
 
     private P2pModeSelectContract.Presenter presenter;
+    private P2pModeSelectContract.Interactor interactor;
+
     private ArrayList<OnActivityResultHandler> onActivityResultHandlers = new ArrayList<>();
     private ArrayList<OnResumeHandler> onResumeHandlers = new ArrayList<>();
     private ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers = new ArrayList<>();
@@ -60,6 +72,23 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         sendButton = findViewById(R.id.btn_p2pModeSelectActivity_send);
         receiveButton = findViewById(R.id.btn_p2pModeSelectActivity_receive);
+        sendMsgBtn = findViewById(R.id.btn_p2pModeSelectActivity_sendMsgBtn);
+        messagesTv = findViewById(R.id.tv_p2pModeSelectActivity_conversationDetails);
+        messageToSendEt = findViewById(R.id.et_p2pModeSelectActivity_messageToSend);
+
+        sendMsgBtn = findViewById(R.id.btn_p2pModeSelectActivity_sendMsgBtn);
+        messageToSendEt = findViewById(R.id.et_p2pModeSelectActivity_messageToSend);
+
+        sendMsgBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (messageToSendEt.getText() != null) {
+                    String messageToSend = messageToSendEt.getText().toString();
+                    interactor.sendMessage(messageToSend);
+                    displayMessage("YOU: " + messageToSend);
+                }
+            }
+        });
     }
 
     @Override
@@ -93,7 +122,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         StartReceiveModeProgressDialog newFragment = new StartReceiveModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
 
-        newFragment.show(fragmentManager, "dialog_start_receive_mode_progress");
+        newFragment.show(fragmentManager, Constants.DIALOG.START_RECEIVE_MODE_PROGRESS);
     }
 
     @Override
@@ -102,7 +131,51 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         StartDiscoveringModeProgressDialog newFragment = new StartDiscoveringModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
 
-        newFragment.show(fragmentManager, "dialog_start_send_mode_progress");
+        newFragment.show(fragmentManager, Constants.DIALOG.START_SEND_MODE_PROGRESS);
+    }
+
+    @Override
+    public boolean removeDiscoveringProgressDialog() {
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(Constants.DIALOG.START_SEND_MODE_PROGRESS);
+
+        if (fragment != null && fragment instanceof DialogFragment) {
+            ((DialogFragment) fragment)
+                    .dismiss();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void showQRCodeScanningDialog(@NonNull QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        QRCodeScanningDialog newFragment = new QRCodeScanningDialog();
+        newFragment.setOnQRRecognisedListener(qrCodeScanDialogCallback);
+
+        newFragment.show(fragmentManager, Constants.DIALOG.QR_CODE_SCANNING);
+    }
+
+    @Override
+    public void showConnectionAcceptDialog(@NonNull String receiverDeviceId, @NonNull String authenticationCode
+            , @NonNull final DialogInterface.OnClickListener onClickListener) {
+        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(this)
+                .setTitle(String.format("Accept Connection to %s", receiverDeviceId))
+                .setMessage(String.format("Confirm the code matches on both devices: %s", authenticationCode))
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        onClickListener.onClick(dialog, which);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        onClickListener.onClick(dialog, which);
+                    }
+                }).create();
     }
 
     @Override
@@ -233,6 +306,18 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         });
     }
 
+    @Override
+    public void showToast(@NonNull String text, int length) {
+        Toast.makeText(this, text, length)
+                .show();
+    }
+
+    @Override
+    public void displayMessage(@NonNull String text) {
+        String beforeText = messagesTv.getText() == null ? messagesTv.getText().toString() : "";
+        messagesTv.setText(String.format("%s\n%s", beforeText, text));
+    }
+
     private void showLocationEnableRejectionDialog() {
         new AlertDialog.Builder(P2pModeSelectActivity.this)
                 .setTitle(R.string.location_service_disabled)
@@ -285,7 +370,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public void initializePresenter() {
-        presenter = new P2pModeSelectPresenter(this, new P2pModeSelectInteractor(this));
+        interactor = new P2pModeSelectInteractor(this);
+        presenter = new P2pModeSelectPresenter(this, interactor);
     }
 
     @Override

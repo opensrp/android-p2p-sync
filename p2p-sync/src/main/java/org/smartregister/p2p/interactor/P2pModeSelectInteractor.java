@@ -13,11 +13,14 @@ import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.smartregister.p2p.P2PLibrary;
-import org.smartregister.p2p.callback.EndPointDiscoveryCallback;
+import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.util.Constants;
 
@@ -36,6 +39,8 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     private ConnectionsClient connectionsClient;
 
+    private String endpointIdConnected;
+
     public P2pModeSelectInteractor(@NonNull Context context) {
         this.context = context;
         this.appPackageName = context.getApplicationContext().getPackageName();
@@ -45,7 +50,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     @NonNull
     @Override
-    public String getAdvertisingUsername() {
+    public String getUserNickName() {
         P2PLibrary p2PLibrary = P2PLibrary.getInstance();
         return p2PLibrary.getUsername();
     }
@@ -57,13 +62,37 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
+    public void requestConnection(@NonNull String endpointId
+            , @NonNull final OnResultCallback onRequestConnectionResult, @NonNull ConnectionLifecycleCallback connectionLifecycleCallback) {
+        connectionsClient.requestConnection(getUserNickName(), endpointId, connectionLifecycleCallback)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        onRequestConnectionResult.onSuccess(aVoid);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Timber.e(e);
+                        onRequestConnectionResult.onFailure(e);
+                    }
+                });
+    }
+
+    @Override
+    public void acceptConnection(String endpointId, PayloadCallback payloadCallback) {
+        connectionsClient.acceptConnection(endpointId, payloadCallback);
+    }
+
+    @Override
     public void startAdvertising() {
         AdvertisingOptions advertisingOptions = new AdvertisingOptions.Builder()
                 .setStrategy(Constants.STRATEGY)
                 .build();
 
         connectionsClient
-                .startAdvertising(getAdvertisingUsername(), getAppPackageName(), this, advertisingOptions)
+                .startAdvertising(getUserNickName(), getAppPackageName(), this, advertisingOptions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -101,19 +130,21 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void startDiscovering() {
+    public void startDiscovering(@NonNull EndpointDiscoveryCallback endpointDiscoveryCallback
+            , @NonNull final OnResultCallback onStartDiscoveringResult) {
         DiscoveryOptions discoveryOptions = new DiscoveryOptions.Builder()
                 .setStrategy(Constants.STRATEGY)
                 .build();
 
-        connectionsClient.startDiscovery(getAppPackageName(), new EndPointDiscoveryCallback(this), discoveryOptions)
+        connectionsClient.startDiscovery(getAppPackageName(), endpointDiscoveryCallback, discoveryOptions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
                         discovering = true;
                         String message = "Discovery has been started successfully";
                         Timber.i(message);
-                        showToast(message);
+
+                        onStartDiscoveringResult.onSuccess(aVoid);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -125,7 +156,8 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                         }
                         String message = "Discovery could not be started - FAILED";
                         Timber.e(e, message);
-                        showToast(message);
+
+                        onStartDiscoveringResult.onFailure(e);
                     }
                 });
     }
@@ -146,6 +178,13 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     @Override
     public void closeAllEndpoints() {
         connectionsClient.stopAllEndpoints();
+    }
+
+    @Override
+    public void sendMessage(@NonNull String message) {
+        if (endpointIdConnected != null) {
+            connectionsClient.sendPayload(endpointIdConnected, Payload.fromBytes(message.getBytes()));
+        }
     }
 
     @NonNull

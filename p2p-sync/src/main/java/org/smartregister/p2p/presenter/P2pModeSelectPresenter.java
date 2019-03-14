@@ -2,7 +2,10 @@ package org.smartregister.p2p.presenter;
 
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
+import org.smartregister.p2p.callback.EndPointDiscoveryCallback;
+import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.util.Constants;
@@ -135,7 +138,20 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                     view.enableSendReceiveButtons(true);
                 }
             });
-            interactor.startDiscovering();
+            interactor.startDiscovering(new EndPointDiscoveryCallback(interactor, view, this)
+                    , new OnResultCallback() {
+                        @Override
+                        public void onSuccess(@Nullable Object object) {
+                            // Do nothing here for now
+                            // Continue showing the progress dialog
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            view.removeDiscoveringProgressDialog();
+                            view.enableSendReceiveButtons(true);
+                        }
+                    });
         }
     }
 
