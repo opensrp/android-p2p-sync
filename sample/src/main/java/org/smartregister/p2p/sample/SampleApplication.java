@@ -1,6 +1,7 @@
 package org.smartregister.p2p.sample;
 
 import android.app.Application;
+import android.os.Build;
 
 import org.smartregister.p2p.P2PLibrary;
 
@@ -13,6 +14,6 @@ public class SampleApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        P2PLibrary.init(new P2PLibrary.ReceiverOptions("John Doe"));
+        P2PLibrary.init(new P2PLibrary.ReceiverOptions(String.format("%s %s", Build.MANUFACTURER, Build.MODEL)));
     }
 }
