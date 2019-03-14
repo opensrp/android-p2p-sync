@@ -6,4 +6,5 @@
     <string name="location_service_disabled">Location service disabled</string>
     <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
     <string name="searching_for_device_to_connect_to">Searching for a devices(recipient) to connect to...</string>
+    <string name="qr_code_scanning_dialog_title">Please scan the QR Code shown on the receiving device</string>
 </resources>
