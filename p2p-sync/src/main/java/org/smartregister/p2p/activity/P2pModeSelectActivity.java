@@ -67,16 +67,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         super.onStart();
         initializePresenter();
 
-        sendButton.setOnClickListener(null);
-        receiveButton.setOnClickListener(null);
-
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 presenter.onSendButtonClicked();
             }
         });
-
         receiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -307,6 +303,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     protected void onStop() {
         super.onStop();
 
+        sendButton.setOnClickListener(null);
+        receiveButton.setOnClickListener(null);
 
         presenter.onStop();
     }
