@@ -86,6 +86,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                     String messageToSend = messageToSendEt.getText().toString();
                     interactor.sendMessage(messageToSend);
                     displayMessage("YOU: " + messageToSend);
+
+                    messageToSendEt.setText("");
                 }
             }
         });
@@ -162,20 +164,22 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void showConnectionAcceptDialog(@NonNull String receiverDeviceId, @NonNull String authenticationCode
             , @NonNull final DialogInterface.OnClickListener onClickListener) {
         android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(this)
-                .setTitle(String.format("Accept Connection to %s", receiverDeviceId))
-                .setMessage(String.format("Confirm the code matches on both devices: %s", authenticationCode))
+                .setTitle(String.format("Do you want to accept connection to %s?", receiverDeviceId))
+                .setMessage(String.format("Confirm the code [%s] matches on both devices before you accept the connection", authenticationCode))
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         onClickListener.onClick(dialog, which);
                     }
                 })
-                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         onClickListener.onClick(dialog, which);
                     }
-                }).create();
+                })
+                .setCancelable(false)
+                .show();
     }
 
     @Override
@@ -314,7 +318,15 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public void displayMessage(@NonNull String text) {
-        String beforeText = messagesTv.getText() == null ? messagesTv.getText().toString() : "";
+        String beforeText = messagesTv.getText() != null ? messagesTv.getText().toString() : "";
+
+        // Todo: this should be moved to another method or only called once
+        if (messagesTv.getVisibility() == View.GONE) {
+            messagesTv.setVisibility(View.VISIBLE);
+            messageToSendEt.setVisibility(View.VISIBLE);
+            sendMsgBtn.setVisibility(View.VISIBLE);
+        }
+
         messagesTv.setText(String.format("%s\n%s", beforeText, text));
     }
 
