@@ -2,10 +2,8 @@ package org.smartregister.p2p.util;
 
 import android.support.annotation.NonNull;
 
-import com.google.android.gms.nearby.connection.ConnectionInfo;
-import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
-
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.sync.DiscoveredDevice;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 14/03/2019
@@ -36,13 +34,14 @@ public abstract class BaseSyncConnectionAuthenticator {
         return presenter;
     }
 
-    public abstract void authenticate(@NonNull final String endpointId, @NonNull final DiscoveredEndpointInfo discoveredEndpointInfo
-            , @NonNull final ConnectionInfo connectionInfo, @NonNull final AuthenticationListener authenticationListener);
+    public abstract void authenticate(@NonNull DiscoveredDevice discoveredDevice, @NonNull final AuthenticationCallback authenticationCallback);
 
-    public interface AuthenticationListener {
+    public interface AuthenticationCallback {
 
-        void onSuccess();
+        void onAuthenticationSuccessful();
 
-        void onFailure(@NonNull String reason);
+        void onAuthenticationFailed(@NonNull Exception exception);
+
+        void onAuthenticationCancelled(@NonNull String reason);
     }
 }

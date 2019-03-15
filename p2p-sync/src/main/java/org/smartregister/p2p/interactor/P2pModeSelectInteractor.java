@@ -2,6 +2,7 @@ package org.smartregister.p2p.interactor;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -12,16 +13,19 @@ import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.DiscoveryOptions;
 import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
 import timber.log.Timber;
@@ -38,7 +42,9 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     private boolean discovering;
 
     private ConnectionsClient connectionsClient;
+    private ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback;
 
+    @Nullable
     private String endpointIdConnected;
 
     public P2pModeSelectInteractor(@NonNull Context context) {
@@ -81,8 +87,25 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void acceptConnection(String endpointId, PayloadCallback payloadCallback) {
+    public void acceptConnection(@NonNull String endpointId, PayloadCallback payloadCallback) {
         connectionsClient.acceptConnection(endpointId, payloadCallback);
+    }
+
+    @Override
+    public void rejectConnection(@NonNull final String endpointId) {
+        connectionsClient.rejectConnection(endpointId)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Timber.i("Connection %s rejected successfully", endpointId);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Timber.e(e, "Could not reject connection : %s", endpointId);
+                    }
+                });
     }
 
     @Override
@@ -130,13 +153,22 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void startDiscovering(@NonNull EndpointDiscoveryCallback endpointDiscoveryCallback
-            , @NonNull final OnResultCallback onStartDiscoveringResult) {
+    public void startDiscovering(@NonNull final ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback) {
         DiscoveryOptions discoveryOptions = new DiscoveryOptions.Builder()
                 .setStrategy(Constants.STRATEGY)
                 .build();
 
-        connectionsClient.startDiscovery(getAppPackageName(), endpointDiscoveryCallback, discoveryOptions)
+        connectionsClient.startDiscovery(getAppPackageName(), new EndpointDiscoveryCallback() {
+            @Override
+            public void onEndpointFound(@NonNull final String endpointId, @NonNull final DiscoveredEndpointInfo discoveredEndpointInfo) {
+                iSenderSyncLifecycleCallback.onDeviceFound(endpointId, discoveredEndpointInfo);
+            }
+
+            @Override
+            public void onEndpointLost(@NonNull String endpointId) {
+                iSenderSyncLifecycleCallback.onDisconnected(endpointId);
+            }
+        }, discoveryOptions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -144,7 +176,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                         String message = "Discovery has been started successfully";
                         Timber.i(message);
 
-                        onStartDiscoveringResult.onSuccess(aVoid);
+                        iSenderSyncLifecycleCallback.onStartedDiscovering(aVoid);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -157,7 +189,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                         String message = "Discovery could not be started - FAILED";
                         Timber.e(e, message);
 
-                        onStartDiscoveringResult.onFailure(e);
+                        iSenderSyncLifecycleCallback.onDiscoveringFailed(e);
                     }
                 });
     }
@@ -181,11 +213,22 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
+    public void cleanOngoingConnectionResources() {
+        // Todo: rename this to reset lost connection resources
+    }
+
+    @Override
     public void sendMessage(@NonNull String message) {
         if (endpointIdConnected != null) {
             connectionsClient.sendPayload(endpointIdConnected, Payload.fromBytes(message.getBytes()));
         }
     }
+
+    @Override
+    public void connectedTo(@NonNull String endpointId) {
+        endpointIdConnected = endpointId;
+    }
+
 
     @NonNull
     @Override
@@ -194,13 +237,38 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void onConnectionInitiated(@NonNull String s, @NonNull ConnectionInfo connectionInfo) {
-        Timber.i("Connection initiated %s", s);
+    public void onConnectionInitiated(@NonNull final String endpointId, @NonNull ConnectionInfo connectionInfo) {
+        Timber.i("Connection initiated %s", endpointId);
+        // This is in advertising mode
+        connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
+            @Override
+            public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
+                Timber.i("Received a payload from %s", endpointId);
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    // Show a simple message of the text sent
+                    String message = new String(payload.asBytes());
+                    showToast(message);
+
+                    if (context instanceof P2pModeSelectContract.View) {
+                        ((P2pModeSelectContract.View) context).displayMessage(endpointId + ": " + message);
+                    }
+                }
+            }
+
+            @Override
+            public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+
+            }
+        });
     }
 
     @Override
-    public void onConnectionResult(@NonNull String s, @NonNull ConnectionResolution connectionResolution) {
-        Timber.i("Connection result : %s", s);
+    public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
+        Timber.i("Connection result : %s", endpointId);
+
+        if (connectionResolution.getStatus().getStatusCode() == ConnectionsStatusCodes.STATUS_OK) {
+            endpointIdConnected = endpointId;
+        }
     }
 
     @Override

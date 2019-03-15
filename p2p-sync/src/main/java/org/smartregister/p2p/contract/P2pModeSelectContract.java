@@ -5,11 +5,11 @@ import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
-import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 
 import java.util.List;
 
@@ -83,8 +83,7 @@ public interface P2pModeSelectContract {
 
         boolean isAdvertising();
 
-        void startDiscovering(@NonNull EndpointDiscoveryCallback endpointDiscoveryCallback
-                , @NonNull OnResultCallback onStartDiscoveringResult);
+        void startDiscovering(@NonNull final ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback);
 
         void stopDiscovering();
 
@@ -92,7 +91,11 @@ public interface P2pModeSelectContract {
 
         void closeAllEndpoints();
 
+        void cleanOngoingConnectionResources();
+
         void sendMessage(@NonNull String message);
+
+        void connectedTo(@NonNull String endpointId);
 
         @NonNull
         String getAppPackageName();
@@ -107,6 +110,8 @@ public interface P2pModeSelectContract {
                 , @NonNull OnResultCallback onRequestConnectionResult
                 , @NonNull ConnectionLifecycleCallback connectionLifecycleCallback);
 
-        void acceptConnection(String endpointId, PayloadCallback payloadCallback);
+        void acceptConnection(@NonNull String endpointId, PayloadCallback payloadCallback);
+
+        void rejectConnection(@NonNull String endpointId);
     }
 }

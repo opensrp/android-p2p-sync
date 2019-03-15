@@ -2,12 +2,11 @@ package org.smartregister.p2p.presenter;
 
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
-import org.smartregister.p2p.callback.EndPointDiscoveryCallback;
-import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
+import org.smartregister.p2p.sync.SenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.List;
@@ -21,6 +20,8 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
     private P2pModeSelectContract.View view;
     private P2pModeSelectContract.Interactor interactor;
 
+    private ISenderSyncLifecycleCallback senderSyncLifecycleCallback;
+
     public P2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view, @NonNull P2pModeSelectContract.Interactor p2pModeSelectInteractor) {
         this.view = view;
         this.interactor = p2pModeSelectInteractor;
@@ -28,6 +29,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
         // This will be added when issue https://github.com/OpenSRP/android-p2p-sync/issues/24
         // is being worked on
         //view.addOnResumeHandler(new AdvertisingResumeHandler(this, interactor));
+        senderSyncLifecycleCallback = new SenderSyncLifecycleCallback(view, this, interactor);
     }
 
     @Override
@@ -138,20 +140,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                     view.enableSendReceiveButtons(true);
                 }
             });
-            interactor.startDiscovering(new EndPointDiscoveryCallback(interactor, view, this)
-                    , new OnResultCallback() {
-                        @Override
-                        public void onSuccess(@Nullable Object object) {
-                            // Do nothing here for now
-                            // Continue showing the progress dialog
-                        }
-
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            view.removeDiscoveringProgressDialog();
-                            view.enableSendReceiveButtons(true);
-                        }
-                    });
+            interactor.startDiscovering(senderSyncLifecycleCallback);
         }
     }
 

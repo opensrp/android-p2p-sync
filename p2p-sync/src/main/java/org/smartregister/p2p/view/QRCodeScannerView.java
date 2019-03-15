@@ -42,8 +42,6 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
     private CameraSource cameraSource;
     private CameraSourcePreview cameraSourcePreview;
 
-    private LifecycleOwner lifecycleOwner;
-
     private ArrayList<OnQRRecognisedListener> onQRRecognisedListeners = new ArrayList<>();
 
     public QRCodeScannerView(Context context) {
@@ -74,7 +72,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
 
         // Register to the lifecycle
         if (getContext() instanceof LifecycleOwner) {
-            lifecycleOwner = (LifecycleOwner) getContext();
+            LifecycleOwner lifecycleOwner = (LifecycleOwner) getContext();
             lifecycleOwner.getLifecycle().addObserver(this);
         }
     }
@@ -170,7 +168,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
      * Restarts the camera.
      */
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    private void onResume() {
+    public void onResume() {
         startCameraSource();
     }
 
@@ -178,7 +176,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
      * Stops the camera.
      */
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    private void onPause() {
+    public void onPause() {
         if (cameraSourcePreview != null) {
             cameraSourcePreview.stop();
         }
@@ -189,7 +187,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
      * rest of the processing pipeline.
      */
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    private void onDestroy() {
+    public void onDestroy() {
         if (cameraSourcePreview != null) {
             cameraSourcePreview.release();
         }
