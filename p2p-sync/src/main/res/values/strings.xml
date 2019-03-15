@@ -15,4 +15,5 @@
     <string name="advertising_started">Advertising has been started successfully</string>
     <string name="advertising_could_not_be_started">Advertising could not be started - FAILED</string>
     <string name="no">No</string>
+    <string name="authentication_failed_connection_rejected">Authentication failed! The connection has been rejected</string>
 </resources>

@@ -1,10 +1,10 @@
 package org.smartregister.p2p.dialog;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.widget.Button;
 
 import org.junit.Assert;
@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ public class StartDiscoveringModeProgressDialogTest {
                 .start()
                 .resume()
                 .get();
+
+        activity.setTheme(R.style.Theme_AppCompat_Light);
 
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
         startDiscoveringModeProgressDialog = new StartDiscoveringModeProgressDialog();

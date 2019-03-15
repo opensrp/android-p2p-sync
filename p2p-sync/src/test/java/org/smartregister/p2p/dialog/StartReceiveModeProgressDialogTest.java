@@ -1,10 +1,10 @@
 package org.smartregister.p2p.dialog;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.widget.Button;
 
 import org.junit.Assert;
@@ -14,6 +14,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.smartregister.p2p.R;
+import org.smartregister.p2p.TestApplication;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 import java.util.ArrayList;
@@ -23,7 +25,7 @@ import java.util.List;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(application = TestApplication.class, manifest = Config.NONE)
 public class StartReceiveModeProgressDialogTest {
 
     private StartReceiveModeProgressDialog startReceiveModeProgressDialog;
@@ -36,6 +38,8 @@ public class StartReceiveModeProgressDialogTest {
                 .start()
                 .resume()
                 .get();
+
+        activity.setTheme(R.style.Theme_AppCompat_Light);
 
         FragmentManager fragmentManager = activity.getSupportFragmentManager();
         startReceiveModeProgressDialog = new StartReceiveModeProgressDialog();
