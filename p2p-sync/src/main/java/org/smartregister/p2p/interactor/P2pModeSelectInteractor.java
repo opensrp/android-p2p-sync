@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
@@ -120,7 +121,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                     @Override
                     public void onSuccess(Void aVoid) {
                         advertising = true;
-                        String message = "Advertising has been started successfully";
+                        String message = context.getString(R.string.advertising_started);
                         // For now this issue does not deal with this
                         Timber.i(message);
                         showToast(message);
@@ -133,7 +134,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                                 ((ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_ADVERTISING)) {
                             advertising = false;
                         }
-                        String message = "Advertising could not be started - FAILED";
+                        String message = context.getString(R.string.advertising_could_not_be_started);
                         showToast(message);
                     }
                 });

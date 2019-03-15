@@ -7,4 +7,11 @@
     <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
     <string name="searching_for_device_to_connect_to">Searching for a devices(recipient) to connect to...</string>
     <string name="qr_code_scanning_dialog_title">Please scan the QR Code shown on the receiving device</string>
+    <string name="you_are_connected_to_receiver">You are now connected to the receiver</string>
+    <string name="receiver_rejected_the_connection">The receiver rejected the connection</string>
+    <string name="an_error_occurred_before_acceptance_or_rejection">An error occurred before the connection could be accepted or rejected</string>
+    <string name="accept_connection_dialog_title">Do you want to accept connection to %s?</string>
+    <string name="accept_connection_dialog_content">Confirm the code [%s] matches on both devices before you accept the connection</string>
+    <string name="advertising_started">Advertising has been started successfully</string>
+    <string name="advertising_could_not_be_started">Advertising could not be started - FAILED</string>
 </resources>
