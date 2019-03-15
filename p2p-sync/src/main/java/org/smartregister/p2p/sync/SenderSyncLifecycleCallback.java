@@ -142,10 +142,14 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
             interactor.rejectConnection(currentReceiver.getEndpointId());
         }
 
+        view.showToast(view.getContext().getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
+
         //Todo: Go back to discovering mode
         Timber.e(exception, "Authentication failed");
-        resetState();
-        presenter.startDiscoveringMode();
+        // The rest will be handled in the rejectConnection callback
+        // Todo: test is this is causing an error where the discovering mode can no longer be restarted
+        // if the receiving device app is either removed or advertising cancelled while the sender
+        // app is showing the QR code scanning dialog
     }
 
     @Override

@@ -9,9 +9,9 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
-import org.smartregister.p2p.callback.EndPointDiscoveryCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.shadows.Shadowzzbd;
+import org.smartregister.p2p.sync.SenderSyncLifecycleCallback;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -58,7 +58,10 @@ public class P2pModeSelectInteractorTest {
     @Test
     public void startDiscoveringShouldChangeDiscoveringFlag() {
         P2PLibrary.init(new P2PLibrary.ReceiverOptions(""));
-        interactor.startDiscovering(new EndPointDiscoveryCallback(Mockito.mock(P2pModeSelectContract.Presenter.class), interactor);
+        interactor.startDiscovering(new SenderSyncLifecycleCallback(
+                Mockito.mock(P2pModeSelectContract.View.class)
+                , Mockito.mock(P2pModeSelectContract.Presenter.class)
+                , interactor));
 
         assertTrue((boolean) ReflectionHelpers.getField(interactor, "discovering"));
     }
