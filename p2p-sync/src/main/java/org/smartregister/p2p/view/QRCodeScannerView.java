@@ -59,11 +59,6 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
         init();
     }
 
-    public QRCodeScannerView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-        init();
-    }
-
     private void init() {
         inflate(getContext(), R.layout.view_barcode_scanner, this);
 
