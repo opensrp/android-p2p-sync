@@ -87,6 +87,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     public void onRequestConnectionFailed(@NonNull Exception exception) {
         // Show the user an error trying to connect device XYZ
         view.showToast("COULD NOT INITIATE CONNECTION REQUEST TO THE DEVICE", Toast.LENGTH_LONG);
+        resetState();
         presenter.startDiscoveringMode();
     }
 
@@ -136,8 +137,15 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
 
     @Override
     public void onAuthenticationFailed(@NonNull Exception exception) {
-        // Go back to discovering mode
+        // Reject the connection
+        if (currentReceiver != null) {
+            interactor.rejectConnection(currentReceiver.getEndpointId());
+        }
+
+        //Todo: Go back to discovering mode
         Timber.e(exception, "Authentication failed");
+        resetState();
+        presenter.startDiscoveringMode();
     }
 
     @Override
@@ -162,21 +170,26 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         view.showToast(view.getContext().getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
+        resetState();
         presenter.startDiscoveringMode();
     }
 
     @Override
     public void onConnectionUnknownError(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        // Go back to discovering mode
-        // And show the user an error
+        //Todo: Go back to discovering mode
+        //Todo: And show the user an error
         view.showToast(view.getContext().getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
+        resetState();
         presenter.startDiscoveringMode();
     }
 
     @Override
     public void onConnectionBroken(@NonNull String endpointId) {
-        // Show the user an error
-        // Go back to discovering mode
+        //Todo: Show the user an error
+        //Todo: Go back to discovering mode
+        resetState();
+        view.showToast(String.format("The connection to %s has broken", endpointId), Toast.LENGTH_LONG);
+        presenter.startDiscoveringMode();
     }
 
     @Override
@@ -190,6 +203,8 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     }
 
     private void resetState() {
+        view.dismissAllDialogs();
+        currentReceiver = null;
 
     }
 
