@@ -11,6 +11,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.util.BaseSyncConnectionAuthenticator;
@@ -153,14 +154,14 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
 
     @Override
     public void onConnectedAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast("You are now connected to the receiver", Toast.LENGTH_LONG);
+        view.showToast(view.getContext().getString(R.string.you_are_connected_to_receiver), Toast.LENGTH_LONG);
         view.displayMessage("CONNECTED");
         interactor.connectedTo(endpointId);
     }
 
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast("The receiver rejected the connection", Toast.LENGTH_LONG);
+        view.showToast(view.getContext().getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
         presenter.startDiscoveringMode();
     }
 
@@ -168,7 +169,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     public void onConnectionUnknownError(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         // Go back to discovering mode
         // And show the user an error
-        view.showToast("An error occurred before the connection could be accepted or rejected", Toast.LENGTH_LONG);
+        view.showToast(view.getContext().getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
         presenter.startDiscoveringMode();
     }
 
