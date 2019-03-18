@@ -5,7 +5,9 @@ import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
+import org.smartregister.p2p.sync.ReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.SenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
@@ -21,6 +23,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
     private P2pModeSelectContract.Interactor interactor;
 
     private ISenderSyncLifecycleCallback senderSyncLifecycleCallback;
+    private IReceiverSyncLifecycleCallback receiverSyncLifecycleCallback;
 
     public P2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view, @NonNull P2pModeSelectContract.Interactor p2pModeSelectInteractor) {
         this.view = view;
@@ -30,6 +33,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
         // is being worked on
         //view.addOnResumeHandler(new AdvertisingResumeHandler(this, interactor));
         senderSyncLifecycleCallback = new SenderSyncLifecycleCallback(view, this, interactor);
+        receiverSyncLifecycleCallback = new ReceiverSyncLifecycleCallback(view, this, interactor);
     }
 
     @Override
@@ -89,7 +93,7 @@ public class P2pModeSelectPresenter implements P2pModeSelectContract.Presenter {
                     view.enableSendReceiveButtons(true);
                 }
             });
-            interactor.startAdvertising();
+            interactor.startAdvertising(receiverSyncLifecycleCallback);
         }
     }
 

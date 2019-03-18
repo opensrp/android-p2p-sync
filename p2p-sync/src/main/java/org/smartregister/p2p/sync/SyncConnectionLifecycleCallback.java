@@ -11,17 +11,17 @@ import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 14/03/2019
  */
 
-public class SenderConnectionLifecycleCallback extends ConnectionLifecycleCallback {
+public class SyncConnectionLifecycleCallback extends ConnectionLifecycleCallback {
 
-    private ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback;
+    private SyncLifecycleCallback syncLifecycleCallback;
 
-    public SenderConnectionLifecycleCallback(@NonNull ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback) {
-        this.iSenderSyncLifecycleCallback = iSenderSyncLifecycleCallback;
+    public SyncConnectionLifecycleCallback(@NonNull SyncLifecycleCallback syncLifecycleCallback) {
+        this.syncLifecycleCallback = syncLifecycleCallback;
     }
 
     @Override
     public void onConnectionInitiated(@NonNull final String endpointId, @NonNull final ConnectionInfo connectionInfo) {
-        iSenderSyncLifecycleCallback.onConnectionInitiated(endpointId, connectionInfo);
+        syncLifecycleCallback.onConnectionInitiated(endpointId, connectionInfo);
     }
 
     @Override
@@ -29,17 +29,17 @@ public class SenderConnectionLifecycleCallback extends ConnectionLifecycleCallba
         switch(connectionResolution.getStatus().getStatusCode()) {
             case ConnectionsStatusCodes.STATUS_OK:
                 // The start of the connection
-                iSenderSyncLifecycleCallback.onConnectedAccepted(endpointId, connectionResolution);
+                syncLifecycleCallback.onConnectionAccepted(endpointId, connectionResolution);
                 break;
 
             case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                 // The receiver rejected the connection
-                iSenderSyncLifecycleCallback.onConnectionRejected(endpointId, connectionResolution);
+                syncLifecycleCallback.onConnectionRejected(endpointId, connectionResolution);
                 break;
 
             case ConnectionsStatusCodes.STATUS_ERROR:
                 // The connection broke before it was able to be accepted
-                iSenderSyncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
+                syncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
                 break;
         }
     }
@@ -47,7 +47,7 @@ public class SenderConnectionLifecycleCallback extends ConnectionLifecycleCallba
     @Override
     public void onDisconnected(@NonNull String endpointId) {
         // This will not be handled here
-        iSenderSyncLifecycleCallback.onConnectionBroken(endpointId);
+        syncLifecycleCallback.onConnectionBroken(endpointId);
     }
 
 }

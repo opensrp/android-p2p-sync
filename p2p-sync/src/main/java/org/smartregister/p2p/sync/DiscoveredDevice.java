@@ -46,6 +46,14 @@ public class DiscoveredDevice {
         return discoveredEndpointInfo;
     }
 
+    @NonNull
+    public String getEndpointName() {
+        // From the constructor, it will never be possible for both discoveredEndpointInfo and
+        // connectionInfo to be null
+        return connectionInfo != null ? connectionInfo.getEndpointName()
+                : discoveredEndpointInfo != null ? discoveredEndpointInfo.getEndpointName() : "";
+    }
+
     @Nullable
     public ConnectionInfo getConnectionInfo() {
         return connectionInfo;

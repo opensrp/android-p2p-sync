@@ -99,6 +99,6 @@ public class QRCodeScanningDialog extends DialogFragment {
 
         void qrCodeScanned(@NonNull SparseArray<Barcode> qrCodeResult, @NonNull DialogInterface dialogInterface);
 
-        void onCancelClicked(DialogInterface dialogInterface);
+        void onCancelClicked(@NonNull DialogInterface dialogInterface);
     }
 }

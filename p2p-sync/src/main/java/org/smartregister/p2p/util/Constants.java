@@ -14,6 +14,7 @@ public interface Constants {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";
         String START_RECEIVE_MODE_PROGRESS = "dialog_start_receive_mode_progress";
         String QR_CODE_SCANNING = "qr_code_scanner";
+        String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
     }
 
     interface RQ_CODE {

@@ -8,7 +8,9 @@ import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
+import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 
 import java.util.List;
@@ -25,11 +27,16 @@ public interface P2pModeSelectContract {
 
         void showReceiveProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
+        boolean removeReceiveProgressDialog();
+
         void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
         boolean removeDiscoveringProgressDialog();
 
         void showQRCodeScanningDialog(@NonNull QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback);
+
+        void showQRCodeGeneratorDialog(@NonNull String authenticationCode
+                , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback);
 
         void showConnectionAcceptDialog(@NonNull String receiverDeviceId, @NonNull String authenticationCode
                 , @NonNull DialogInterface.OnClickListener onClickListener);
@@ -77,7 +84,7 @@ public interface P2pModeSelectContract {
 
     interface Interactor extends BaseInteractor {
 
-        void startAdvertising();
+        void startAdvertising(@NonNull final IReceiverSyncLifecycleCallback iReceiverSyncLifecycleCallback);
 
         void stopAdvertising();
 

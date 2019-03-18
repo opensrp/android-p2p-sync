@@ -14,8 +14,8 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.util.BaseSyncConnectionAuthenticator;
-import org.smartregister.p2p.util.SyncConnectionAuthenticator;
+import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
+import org.smartregister.p2p.authenticator.SenderConnectionAuthenticator;
 
 import timber.log.Timber;
 
@@ -47,6 +47,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
 
     @Override
     public void onDiscoveringFailed(@NonNull Exception exception) {
+        view.showToast(view.getContext().getString(R.string.error_occurred_cannot_start_sending), Toast.LENGTH_LONG);
         view.removeDiscoveringProgressDialog();
         view.enableSendReceiveButtons(true);
     }
@@ -72,7 +73,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
                 public void onFailure(@NonNull Exception e) {
                     onRequestConnectionFailed(e);
                 }
-            }, new SenderConnectionLifecycleCallback(this));
+            }, new org.smartregister.p2p.sync.SyncConnectionLifecycleCallback(this));
         }
     }
 
@@ -99,7 +100,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
             currentReceiver.setConnectionInfo(connectionInfo);
 
             // This can be moved to the library for easy customisation by host applications
-            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SyncConnectionAuthenticator(view, interactor, presenter);
+            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, presenter);
             syncConnectionAuthenticator.authenticate(currentReceiver, this);
         } else {
             //("Connection was initiated by other device");
@@ -165,10 +166,13 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
 
 
     @Override
-    public void onConnectedAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(view.getContext().getString(R.string.you_are_connected_to_receiver), Toast.LENGTH_LONG);
-        view.displayMessage("CONNECTED");
-        interactor.connectedTo(endpointId);
+    public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
+        if (currentReceiver != null) {
+            view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_receiver), currentReceiver.getEndpointName())
+                    , Toast.LENGTH_LONG);
+            view.displayMessage("CONNECTED");
+            interactor.connectedTo(endpointId);
+        }
     }
 
     @Override
@@ -204,6 +208,8 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     @Override
     public void onDisconnected(@NonNull String endpointId) {
         Timber.e("Endpoint lost %s", endpointId);
+        resetState();
+        presenter.startDiscoveringMode();
     }
 
     private void resetState() {
