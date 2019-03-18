@@ -32,6 +32,7 @@ import com.google.android.gms.tasks.Task;
 
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
@@ -128,6 +129,21 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
+    public boolean removeReceiveProgressDialog() {
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(Constants.DIALOG.START_RECEIVE_MODE_PROGRESS);
+
+        if (fragment != null && fragment instanceof DialogFragment) {
+            ((DialogFragment) fragment)
+                    .dismiss();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
     public void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         StartDiscoveringModeProgressDialog newFragment = new StartDiscoveringModeProgressDialog();
@@ -158,6 +174,17 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         newFragment.setOnQRRecognisedListener(qrCodeScanDialogCallback);
 
         newFragment.show(fragmentManager, Constants.DIALOG.QR_CODE_SCANNING);
+    }
+
+    @Override
+    public void showQRCodeGeneratorDialog(@NonNull String authenticationCode
+            , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        QRCodeGeneratorDialog newFragment = new QRCodeGeneratorDialog();
+        newFragment.setAuthenticationCode(authenticationCode);
+        newFragment.setQrCodeAuthenticationCallback(qrCodeAuthenticationCallback);
+
+        newFragment.show(fragmentManager, Constants.DIALOG.AUTHENTICATION_QR_CODE_GENERATOR);
     }
 
     @Override

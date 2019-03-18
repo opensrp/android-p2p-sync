@@ -26,6 +26,7 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
@@ -110,13 +111,15 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void startAdvertising() {
+    public void startAdvertising(@NonNull final IReceiverSyncLifecycleCallback iReceiverSyncLifecycleCallback) {
         AdvertisingOptions advertisingOptions = new AdvertisingOptions.Builder()
                 .setStrategy(Constants.STRATEGY)
                 .build();
 
         connectionsClient
-                .startAdvertising(getUserNickName(), getAppPackageName(), this, advertisingOptions)
+                .startAdvertising(getUserNickName(), getAppPackageName()
+                        , new org.smartregister.p2p.sync.SyncConnectionLifecycleCallback(iReceiverSyncLifecycleCallback)
+                        , advertisingOptions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -125,6 +128,8 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                         // For now this issue does not deal with this
                         Timber.i(message);
                         showToast(message);
+
+                        iReceiverSyncLifecycleCallback.onStartedAdvertising(aVoid);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -136,6 +141,9 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                         }
                         String message = context.getString(R.string.advertising_could_not_be_started);
                         showToast(message);
+
+                        iReceiverSyncLifecycleCallback.onAdvertisingFailed(e);
+                        Timber.e(e);
                     }
                 });
     }

@@ -1,4 +1,4 @@
-package org.smartregister.p2p.util;
+package org.smartregister.p2p.authenticator;
 
 import android.support.annotation.NonNull;
 

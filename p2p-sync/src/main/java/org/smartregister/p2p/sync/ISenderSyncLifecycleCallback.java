@@ -6,14 +6,14 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
-import org.smartregister.p2p.util.BaseSyncConnectionAuthenticator;
 
 /**
+ * Includes all the callbacks required for implementing sending mode on the library. This also lines up with
+ * the expected flow of the app when in the sender mode. This is used internally in the library.
+ *
  * Created by Ephraim Kigamba - ekigamba@ona.io on 15/03/2019
  */
-
-public interface ISenderSyncLifecycleCallback extends SyncLifecycleCallback
-        , BaseSyncConnectionAuthenticator.AuthenticationCallback {
+public interface ISenderSyncLifecycleCallback extends SyncLifecycleCallback {
 
     void onStartedDiscovering(@NonNull Object object);
 

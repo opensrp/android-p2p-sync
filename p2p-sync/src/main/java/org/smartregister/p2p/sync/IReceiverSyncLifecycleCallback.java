@@ -4,15 +4,17 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.nearby.connection.Payload;
 
+import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
+
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 15/03/2019
  */
 
 public interface IReceiverSyncLifecycleCallback extends SyncLifecycleCallback {
 
-    void onStartedAdvertising();
+    void onStartedAdvertising(Object result);
 
-    void onAdvertisingFailed();
+    void onAdvertisingFailed(@NonNull Exception e);
 
-    void onPayloadReceived(@NonNull String endpoingId, @NonNull Payload payload);
+    void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload);
 }
