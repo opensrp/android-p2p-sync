@@ -19,7 +19,6 @@ import timber.log.Timber;
  */
 
 public class CameraSourcePreview extends ViewGroup {
-    private static final String TAG = CameraSourcePreview.class.getSimpleName();
 
     private SurfaceView surfaceView;
     private boolean startRequested;
