@@ -32,28 +32,34 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
 
             view.showQRCodeScanningDialog(new QRCodeScanningDialog.QRCodeScanDialogCallback() {
                 @Override
-                public void qrCodeScanned(@NonNull SparseArray<Barcode> qrCodeResult, @NonNull DialogInterface dialogInterface) {
-                    dialogInterface.dismiss();
+                public void qrCodeScanned(final @NonNull SparseArray<Barcode> qrCodeResult, final @NonNull DialogInterface dialogInterface) {
+                    view.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            dialogInterface.dismiss();
 
-                    String authenticationCode = connectionInfo.getAuthenticationToken();
-                    boolean authenticationCodeFound = false;
+                            String authenticationCode = connectionInfo.getAuthenticationToken();
+                            boolean authenticationCodeFound = false;
 
-                    for (int i = 0; i < qrCodeResult.size(); i++) {
-                        if (authenticationCode.equals(qrCodeResult.get(i).rawValue)) {
-                            authenticationCodeFound = true;
-                            break;
+                            for (int i = 0; i < qrCodeResult.size(); i++) {
+                                if (authenticationCode.equals(qrCodeResult.valueAt(i).rawValue)) {
+                                    authenticationCodeFound = true;
+                                    break;
+                                }
+                            }
+
+                            String message = "Device %s authentication failed";
+
+                            if (authenticationCodeFound) {
+                                message = "Device %s authenticated successfully";
+                                authenticationCallback.onAuthenticationSuccessful();
+                            } else {
+                                authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
+                            }
+
+                            view.showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
                         }
-                    }
-
-                    String message = "Device %s authentication failed";
-                    if (authenticationCodeFound) {
-                        message = "Device %s authenticated successfully";
-                        authenticationCallback.onAuthenticationSuccessful();
-                    } else {
-                        authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
-                    }
-
-                    view.showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
+                    });
                 }
 
                 @Override

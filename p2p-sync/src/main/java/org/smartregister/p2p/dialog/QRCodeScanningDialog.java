@@ -68,10 +68,10 @@ public class QRCodeScanningDialog extends DialogFragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onStart() {
+        super.onStart();
 
-        qrCodeScannerView = view.findViewById(R.id.bsv_qrCodeScanningDialog_barcodeScanner);
+        qrCodeScannerView = getDialog().findViewById(R.id.bsv_qrCodeScanningDialog_barcodeScanner);
         qrCodeScannerView.addOnBarcodeRecognisedListener(new QRCodeScannerView.OnQRRecognisedListener() {
             @Override
             public void onBarcodeRecognised(SparseArray<Barcode> recognisedItems) {

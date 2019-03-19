@@ -9,8 +9,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
@@ -29,6 +29,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
     private DialogInterface dialogInterface;
     private String authenticationCode;
     private QRCodeAuthenticationCallback qrCodeAuthenticationCallback;
+    private String deviceName;
 
     public QRCodeGeneratorDialog() {
         dialogInterface = new DialogInterface() {
@@ -46,6 +47,10 @@ public class QRCodeGeneratorDialog extends DialogFragment {
 
     public void setAuthenticationCode(@NonNull String authenticationCode) {
         this.authenticationCode = authenticationCode;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
     }
 
     public void setQrCodeAuthenticationCallback(QRCodeAuthenticationCallback qrCodeAuthenticationCallback) {
@@ -81,18 +86,22 @@ public class QRCodeGeneratorDialog extends DialogFragment {
         return dialog;
     }
 
+
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onStart() {
+        super.onStart();
 
         // Generate the QR Code
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
         Bitmap bitmap = null;
         try {
-            bitmap = barcodeEncoder.encodeBitmap(authenticationCode, BarcodeFormat.QR_CODE, 400, 400);
+            bitmap = barcodeEncoder.encodeBitmap(authenticationCode, BarcodeFormat.QR_CODE, 800, 800);
 
-            ImageView imageViewQrCode = view.findViewById(R.id.iv_qrCodeGenDialog_qrCode);
+            ImageView imageViewQrCode = getDialog().findViewById(R.id.iv_qrCodeGenDialog_qrCode);
             imageViewQrCode.setImageBitmap(bitmap);
+
+            ((TextView) getDialog().findViewById(R.id.tv_qrCodeGenDialog_authCode))
+                    .setText(String.format("Accept connection to %s with code %s", deviceName, authenticationCode));
         } catch (WriterException e) {
             Timber.e(e);
 
@@ -102,6 +111,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
             }
             dismiss();
         }
+
     }
 
     @Override

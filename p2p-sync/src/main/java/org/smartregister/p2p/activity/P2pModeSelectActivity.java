@@ -177,11 +177,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showQRCodeGeneratorDialog(@NonNull String authenticationCode
+    public void showQRCodeGeneratorDialog(@NonNull String authenticationCode, @NonNull String deviceName
             , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         QRCodeGeneratorDialog newFragment = new QRCodeGeneratorDialog();
         newFragment.setAuthenticationCode(authenticationCode);
+        newFragment.setDeviceName(deviceName);
         newFragment.setQrCodeAuthenticationCallback(qrCodeAuthenticationCallback);
 
         newFragment.show(fragmentManager, Constants.DIALOG.AUTHENTICATION_QR_CODE_GENERATOR);
@@ -348,10 +349,9 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         String beforeText = messagesTv.getText() != null ? messagesTv.getText().toString() : "";
 
         // Todo: this should be moved to another method or only called once
-        if (messagesTv.getVisibility() == View.GONE) {
-            messagesTv.setVisibility(View.VISIBLE);
-            messageToSendEt.setVisibility(View.VISIBLE);
-            sendMsgBtn.setVisibility(View.VISIBLE);
+        if (!messageToSendEt.isEnabled()) {
+            messageToSendEt.setEnabled(true);
+            sendMsgBtn.setEnabled(true);
         }
 
         messagesTv.setText(String.format("%s\n%s", beforeText, text));
@@ -427,6 +427,9 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     protected void onStop() {
         super.onStop();
+
+        messageToSendEt.setEnabled(false);
+        sendMsgBtn.setEnabled(false);
 
         sendButton.setOnClickListener(null);
         receiveButton.setOnClickListener(null);

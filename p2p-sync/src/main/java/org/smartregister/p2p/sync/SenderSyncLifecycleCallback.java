@@ -116,6 +116,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     @Override
     public void onAuthenticationSuccessful() {
         if (currentReceiver != null){
+            view.showToast("Authentication successful! Receiver can accept connection", Toast.LENGTH_LONG);
             interactor.acceptConnection(currentReceiver.getEndpointId(), new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
@@ -208,6 +209,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     @Override
     public void onDisconnected(@NonNull String endpointId) {
         Timber.e("Endpoint lost %s", endpointId);
+        view.displayMessage("DISCONNECTED");
         resetState();
         presenter.startDiscoveringMode();
     }
