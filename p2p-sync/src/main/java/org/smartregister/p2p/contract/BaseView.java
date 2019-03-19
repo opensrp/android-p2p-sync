@@ -15,6 +15,8 @@ public interface BaseView extends ActivityResultHandler, ActivityResumeHandler, 
 
     void initializePresenter();
 
+    void runOnUiThread(@NonNull Runnable runnable);
+
     @NonNull
     Context getContext();
 }

@@ -7,14 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".activity.P2pModeSelectActivity">
 
-
     <EditText
         android:layout_marginTop="23dp"
         android:id="@+id/et_p2pModeSelectActivity_messageToSend"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="23dp"
-        android:visibility="gone"
+        android:enabled="false"
         app:layout_constraintTop_toTopOf="parent"/>
 
     <Button
@@ -24,7 +23,7 @@
         app:layout_constraintTop_toBottomOf="@+id/et_p2pModeSelectActivity_messageToSend"
         app:layout_constraintLeft_toLeftOf="@id/et_p2pModeSelectActivity_messageToSend"
         android:layout_marginTop="23dp"
-        android:visibility="gone"
+        android:enabled="false"
         android:text="@string/send"/>
 
     <TextView
@@ -34,7 +33,6 @@
         android:layout_marginTop="17dp"
         android:layout_marginLeft="17dp"
         android:layout_marginRight="17dp"
-        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/btn_p2pModeSelectActivity_sendMsgBtn"/>
 
     <Button

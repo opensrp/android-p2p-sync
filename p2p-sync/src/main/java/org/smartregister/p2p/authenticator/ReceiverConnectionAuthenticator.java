@@ -25,6 +25,7 @@ public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthentic
                 && discoveredDevice.getConnectionInfo().isIncomingConnection()) {
 
             view.showQRCodeGeneratorDialog(discoveredDevice.getConnectionInfo().getAuthenticationToken()
+                    , discoveredDevice.getEndpointName()
                     , new QRCodeGeneratorDialog.QRCodeAuthenticationCallback() {
                 @Override
                 public void onAccepted(@NonNull DialogInterface dialogInterface) {
