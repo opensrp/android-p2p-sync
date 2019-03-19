@@ -50,7 +50,6 @@ public class P2pModeSelectActivityTest {
             }
         };
 
-
         activity.addOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler);
         activity.addOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler);
 
@@ -150,7 +149,6 @@ public class P2pModeSelectActivityTest {
                 results.add("permission_handled");
             }
         };
-
 
         activity.addOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler);
         assertTrue(activity.removeOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler));
