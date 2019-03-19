@@ -13,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +89,7 @@ public class P2pModeSelectPresenterTest {
         // interactor.advertising is false by default
         presenter.startAdvertisingMode();
         Mockito.verify(interactor, Mockito.times(1))
-                .startAdvertising();
+                .startAdvertising(Mockito.any(IReceiverSyncLifecycleCallback.class));
     }
 
     @Test

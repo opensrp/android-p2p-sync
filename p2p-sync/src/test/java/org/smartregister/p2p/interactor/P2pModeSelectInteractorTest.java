@@ -11,6 +11,7 @@ import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.shadows.Shadowzzbd;
+import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.SenderSyncLifecycleCallback;
 
 import static org.junit.Assert.assertEquals;
@@ -50,7 +51,7 @@ public class P2pModeSelectInteractorTest {
     @Test
     public void startAdvertisingShouldChangeAdvertisingFlag() {
         P2PLibrary.init(new P2PLibrary.ReceiverOptions(""));
-        interactor.startAdvertising();
+        interactor.startAdvertising(Mockito.mock(IReceiverSyncLifecycleCallback.class));
 
         assertTrue((boolean) ReflectionHelpers.getField(interactor, "advertising"));
     }
