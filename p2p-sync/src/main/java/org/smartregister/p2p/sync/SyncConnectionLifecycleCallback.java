@@ -41,6 +41,10 @@ public class SyncConnectionLifecycleCallback extends ConnectionLifecycleCallback
                 // The connection broke before it was able to be accepted
                 syncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
                 break;
+
+            default:
+                syncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
+                break;
         }
     }
 

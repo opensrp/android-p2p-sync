@@ -44,7 +44,6 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     private boolean discovering;
 
     private ConnectionsClient connectionsClient;
-    private ISenderSyncLifecycleCallback iSenderSyncLifecycleCallback;
 
     @Nullable
     private String endpointIdConnected;
@@ -266,7 +265,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
             @Override
             public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
-
+                // Do nothing for now
             }
         });
     }
