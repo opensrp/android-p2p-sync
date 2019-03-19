@@ -74,7 +74,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                             if (which == DialogInterface.BUTTON_POSITIVE) {
                                 authenticationCallback.onAuthenticationSuccessful();
                             } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                                authenticationCallback.onAuthenticationFailed(new Exception("User cancelled the connection"));
+                                authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
                             }
                         }
                     });
