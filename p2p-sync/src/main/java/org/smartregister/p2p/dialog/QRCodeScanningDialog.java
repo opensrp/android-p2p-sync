@@ -9,7 +9,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
-import android.view.View;
 
 import com.google.android.gms.vision.barcode.Barcode;
 

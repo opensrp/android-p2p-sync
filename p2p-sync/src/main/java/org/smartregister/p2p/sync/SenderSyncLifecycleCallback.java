@@ -203,7 +203,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
 
     @Override
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
-
+        // Do nothing for now
     }
 
     @Override

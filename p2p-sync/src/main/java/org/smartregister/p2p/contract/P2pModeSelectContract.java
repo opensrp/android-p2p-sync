@@ -38,7 +38,7 @@ public interface P2pModeSelectContract {
         void showQRCodeGeneratorDialog(@NonNull String authenticationCode, @NonNull String deviceName
                 , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback);
 
-        void showConnectionAcceptDialog(@NonNull String receiverDeviceId, @NonNull String authenticationCode
+        void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
                 , @NonNull DialogInterface.OnClickListener onClickListener);
 
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
