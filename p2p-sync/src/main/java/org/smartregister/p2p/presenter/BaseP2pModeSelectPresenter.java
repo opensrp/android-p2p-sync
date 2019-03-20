@@ -29,7 +29,9 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
 
     @Override
     public void sendTextMessage(@NonNull String message) {
-        interactor.sendMessage(message);
+        if (getCurrentPeerDevice() != null) {
+            interactor.sendMessage(message);
+        }
     }
 
     @Override

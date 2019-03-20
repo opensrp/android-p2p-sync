@@ -8,9 +8,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
-import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
-import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
@@ -18,7 +16,6 @@ import com.google.android.gms.nearby.connection.DiscoveryOptions;
 import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
-import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -36,7 +33,7 @@ import timber.log.Timber;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
  */
 
-public class P2pModeSelectInteractor extends ConnectionLifecycleCallback implements P2pModeSelectContract.Interactor {
+public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor {
 
     private Context context;
     private String appPackageName;
@@ -233,55 +230,14 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
     }
 
     @Override
-    public void connectedTo(@NonNull String endpointId) {
+    public void connectedTo(@Nullable String endpointId) {
         endpointIdConnected = endpointId;
     }
-
 
     @NonNull
     @Override
     public String getAppPackageName() {
         return appPackageName;
-    }
-
-    @Override
-    public void onConnectionInitiated(@NonNull final String endpointId, @NonNull ConnectionInfo connectionInfo) {
-        Timber.i(getContext().getString(R.string.log_connection_initiated), endpointId);
-        // This is in advertising mode
-        connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
-            @Override
-            public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
-                Timber.i(getContext().getString(R.string.log_received_payload_from_endpoint), endpointId);
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    // Show a simple message of the text sent
-                    String message = new String(payload.asBytes());
-                    showToast(message);
-
-                    if (context instanceof P2pModeSelectContract.View) {
-                        ((P2pModeSelectContract.View) context).displayMessage(endpointId + ": " + message);
-                    }
-                }
-            }
-
-            @Override
-            public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
-                // Do nothing for now
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        Timber.i(getContext().getString(R.string.log_connection_result), endpointId);
-
-        if (connectionResolution.getStatus().getStatusCode() == ConnectionsStatusCodes.STATUS_OK) {
-            endpointIdConnected = endpointId;
-        }
-    }
-
-    @Override
-    public void onDisconnected(@NonNull String s) {
-        Timber.i(getContext().getString(R.string.log_disconnected), s);
     }
 
     @Override

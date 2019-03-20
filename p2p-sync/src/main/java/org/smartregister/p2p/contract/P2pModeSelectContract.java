@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.annotation.Nullable;
 
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.PayloadCallback;
@@ -11,6 +12,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 
@@ -77,6 +79,9 @@ public interface P2pModeSelectContract {
 
         @NonNull
         View getView();
+
+        @Nullable
+        DiscoveredDevice getCurrentPeerDevice();
     }
 
     interface ReceiverPresenter extends BasePresenter {
@@ -118,7 +123,7 @@ public interface P2pModeSelectContract {
 
         void sendMessage(@NonNull String message);
 
-        void connectedTo(@NonNull String endpointId);
+        void connectedTo(@Nullable String endpointId);
 
         @NonNull
         String getAppPackageName();

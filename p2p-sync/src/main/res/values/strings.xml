@@ -20,6 +20,7 @@
     <string name="yes">Yes</string>
     <string name="an_error_occurred_start_receiving">An error occurred and we cannot start receiving</string>
     <string name="error_occurred_cannot_start_sending">An error occurred and we cannot start sending</string>
+    <string name="connection_could_not_be_authorized">Connection to %s could not be authorized</string>
     <string name="log_discovery_could_not_be_started">Discovery could not be started - FAILED</string>
     <string name="log_discovery_started_successfully">Discovery has been started successfully</string>
     <string name="log_connection_rejected_successfully">Connection %s rejected successfully</string>
