@@ -7,6 +7,8 @@ import com.google.android.gms.nearby.connection.ConnectionsClient;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.DiscoveryOptions;
 import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -29,6 +31,7 @@ import org.robolectric.shadow.api.Shadow;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.shadows.Shadowzzbd;
@@ -50,12 +53,10 @@ public class P2pModeSelectInteractorTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private P2pModeSelectInteractor interactor;
 
     @Mock
     private zzbd mockedZzbd;
-
     private String username = "possum";
 
     @Before
@@ -65,7 +66,7 @@ public class P2pModeSelectInteractorTest {
         Shadowzzbd shadowzzbd = Shadow.extract(connectionsClient);
         shadowzzbd.setMockZzbd(mockedZzbd);
 
-        P2PLibrary.init(new P2PLibrary.ReceiverOptions(username));
+        P2PLibrary.init(new P2PLibrary.Options(username, Mockito.mock(P2PAuthorizationService.class)));
     }
 
     @Test
@@ -304,6 +305,115 @@ public class P2pModeSelectInteractorTest {
 
         Mockito.verify(onResultCallback, Mockito.times(1))
                 .onSuccess(Mockito.any());
+    }
+
+    @Test
+    public void requestConnectionShouldCallRequestConnectionResultOnFailureWhenRequestConnectionIsSuccessful() {
+        String endpointId = "id";
+
+        OnResultCallback onResultCallback = Mockito.mock(OnResultCallback.class);
+        ConnectionLifecycleCallback connectionLifecycleCallback = Mockito.mock(ConnectionLifecycleCallback.class);
+
+        final Task<Void> requestConnectionTask = Mockito.mock(Task.class);
+
+        Mockito.doReturn(requestConnectionTask)
+                .when(mockedZzbd)
+                .requestConnection(ArgumentMatchers.eq(username)
+                        , ArgumentMatchers.eq(endpointId)
+                        , Mockito.eq(connectionLifecycleCallback));
+        Mockito.doReturn(requestConnectionTask)
+                .when(requestConnectionTask)
+                .addOnSuccessListener(Mockito.any(OnSuccessListener.class));
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((OnFailureListener) invocation.getArgument(0))
+                        .onFailure(new Exception());
+
+                return requestConnectionTask;
+            }
+        })
+                .when(requestConnectionTask)
+                .addOnFailureListener(Mockito.any(OnFailureListener.class));
+
+        interactor.requestConnection(endpointId, onResultCallback, connectionLifecycleCallback);
+
+        Mockito.verify(onResultCallback, Mockito.times(1))
+                .onFailure(Mockito.any(Exception.class));
+    }
+
+    @Test
+    public void acceptConnectionShouldCallConnectionsClientAcceptConnection() {
+        String endpointId = "id";
+        PayloadCallback payloadCallback = Mockito.mock(PayloadCallback.class);
+        ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
+
+        ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
+        interactor.acceptConnection(endpointId, payloadCallback);
+
+        Mockito.verify(connectionsClient, Mockito.times(1))
+                .acceptConnection(ArgumentMatchers.eq(endpointId)
+                        , ArgumentMatchers.eq(payloadCallback));
+    }
+
+    @Test
+    public void rejectConnectionShouldCallConnectionClientRejectConnection() {
+        String endpointId = "id";
+        ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
+
+        final Task<Void> rejectConnectionTask = Mockito.mock(Task.class);
+        Mockito.doReturn(rejectConnectionTask)
+                .when(connectionsClient)
+                .rejectConnection(ArgumentMatchers.eq(endpointId));
+        Mockito.doReturn(rejectConnectionTask)
+                .when(rejectConnectionTask)
+                .addOnSuccessListener(Mockito.any(OnSuccessListener.class));
+
+        ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
+        interactor.rejectConnection(endpointId);
+
+        Mockito.verify(connectionsClient, Mockito.times(1))
+                .rejectConnection(ArgumentMatchers.eq(endpointId));
+
+        Mockito.verify(rejectConnectionTask, Mockito.times(1))
+                .addOnSuccessListener(ArgumentMatchers.any(OnSuccessListener.class));
+        Mockito.verify(rejectConnectionTask, Mockito.times(1))
+                .addOnFailureListener(ArgumentMatchers.any(OnFailureListener.class));
+    }
+
+    @Test
+    public void closeAllEndpointsShouldCallConnectionsClientStopAllEndpoints() {
+        ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
+        ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
+
+        interactor.closeAllEndpoints();
+
+        Mockito.verify(connectionsClient, Mockito.times(1))
+                .stopAllEndpoints();
+    }
+
+    @Test
+    public void sendMessageShouldSendPayloadWhenConnectionExists() {
+        String endpointId = "endpoint-id";
+        ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
+        ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
+        ReflectionHelpers.setField(interactor, "endpointIdConnected", endpointId);
+
+        String message = "Hello world";
+
+        interactor.sendMessage(message);
+
+        Mockito.verify(connectionsClient, Mockito.times(1))
+                .sendPayload(ArgumentMatchers.eq(endpointId), Mockito.any(Payload.class));
+    }
+
+    @Test
+    public void connectedToShouldAddDeviceId() {
+        String endpointId = "id";
+
+        interactor.connectedTo(endpointId);
+
+        assertEquals(endpointId, ReflectionHelpers.getField(interactor, "endpointIdConnected"));
     }
 
 }

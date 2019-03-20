@@ -23,6 +23,8 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.util.ReflectionHelpers;
+import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
@@ -54,6 +56,7 @@ public class P2PSenderPresenterTest {
 
     @Before
     public void setUp() throws Exception {
+        P2PLibrary.init(new P2PLibrary.Options("username", Mockito.mock(P2PAuthorizationService.class)));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();

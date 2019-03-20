@@ -11,17 +11,23 @@ import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.gson.Gson;
 
+import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.ConnectionState;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.List;
+
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -30,10 +36,11 @@ import timber.log.Timber;
  */
 
 public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements P2pModeSelectContract.ReceiverPresenter
-        , IReceiverSyncLifecycleCallback {
+        , IReceiverSyncLifecycleCallback, P2PAuthorizationService.AuthorizationCallback {
 
     @Nullable
     private DiscoveredDevice currentSender;
+    private ConnectionState connectionState;
 
     public P2PReceiverPresenter(@NonNull P2pModeSelectContract.View view) {
         super(view);
@@ -139,10 +146,19 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(String.format(view.getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
-                , Toast.LENGTH_LONG);
-        view.displayMessage(view.getString(R.string.connected));
-        interactor.connectedTo(endpointId);
+        if (currentSender != null) {
+            connectionState = ConnectionState.AUTHENTICATED;
+            interactor.connectedTo(endpointId);
+            P2PAuthorizationService authorizationService = P2PLibrary.getInstance()
+                    .getP2PAuthorizationService();
+            authorizationService.getAuthorizationDetails(new P2PAuthorizationService.OnAuthorizationDetailsProvidedCallback() {
+                @Override
+                public void onAuthorizationDetailsProvided(@NonNull Map<String, Object> authorizationDetails) {
+                    // Send the authorization details
+                    sendAuthorizationDetails(authorizationDetails);
+                }
+            });
+        }
     }
 
     @Override
@@ -173,11 +189,33 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
-        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-            // Show a simple message of the text sent
-            String message = new String(payload.asBytes());
-            view.showToast(message, Toast.LENGTH_LONG);
-            view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
+        if (connectionState != null) {
+            if (connectionState.equals(ConnectionState.AUTHORIZED)) {
+                // Do nothing for now
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    // Show a simple message of the text sent
+                    String message = new String(payload.asBytes());
+                    view.showToast(message, Toast.LENGTH_LONG);
+                    view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
+                }
+            } else {
+                // Should get the details to authorize
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    String authenticationDetailsJson = new String(payload.asBytes());
+
+                    Map<String, Object> map = (Map<String, Object>) new Gson()
+                            .fromJson(authenticationDetailsJson, Map.class);
+
+                    if (map == null) {
+                        onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+                    } else {
+                        P2PLibrary.getInstance().getP2PAuthorizationService()
+                                .authorizeConnection(map, P2PReceiverPresenter.this);
+                    }
+                } else {
+                    onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+                }
+            }
         }
     }
 
@@ -186,6 +224,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
         resetState();
         startAdvertisingMode();
+    }
+
+    @Override
+    public void sendAuthorizationDetails(@NonNull Map<String, Object> authorizationDetails) {
+        interactor.sendMessage(new Gson().toJson(authorizationDetails));
     }
 
     @Override
@@ -234,7 +277,34 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     private void resetState() {
+        connectionState = null;
         view.dismissAllDialogs();
         currentSender = null;
+    }
+
+    @Override
+    public void onConnectionAuthorized() {
+        connectionState = ConnectionState.AUTHORIZED;
+        view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
+                , Toast.LENGTH_LONG);
+        view.displayMessage(view.getString(R.string.connected));
+    }
+
+    @Override
+    public void onConnectionAuthorizationRejected(@NonNull String reason) {
+        interactor.closeAllEndpoints();
+        interactor.connectedTo(null);
+        view.showToast(String.format(view.getContext().getString(R.string.connection_could_not_be_authorized)
+                , currentSender.getEndpointName())
+                , Toast.LENGTH_LONG);
+
+        resetState();
+        startAdvertisingMode();
+    }
+
+    @Nullable
+    @Override
+    public DiscoveredDevice getCurrentPeerDevice() {
+        return currentSender;
     }
 }

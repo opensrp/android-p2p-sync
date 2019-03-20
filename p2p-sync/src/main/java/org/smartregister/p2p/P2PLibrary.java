@@ -2,6 +2,8 @@ package org.smartregister.p2p;
 
 import android.support.annotation.NonNull;
 
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
+
 import timber.log.Timber;
 
 /**
@@ -11,7 +13,7 @@ import timber.log.Timber;
 public final class P2PLibrary {
 
     private static P2PLibrary instance;
-    private BasicOptions basicOptions;
+    private Options options;
 
     @NonNull
     public static P2PLibrary getInstance() {
@@ -24,12 +26,12 @@ public final class P2PLibrary {
         return instance;
     }
 
-    public static void init(@NonNull BasicOptions basicOptions) {
-        instance = new P2PLibrary(basicOptions);
+    public static void init(@NonNull Options options) {
+        instance = new P2PLibrary(options);
     }
 
-    private P2PLibrary(@NonNull BasicOptions basicOptions) {
-        this.basicOptions = basicOptions;
+    private P2PLibrary(@NonNull Options options) {
+        this.options = options;
 
         // We should not override the host applications Timber trees
         if (Timber.treeCount() == 0) {
@@ -39,28 +41,30 @@ public final class P2PLibrary {
 
     @NonNull
     public String getUsername() {
-        return basicOptions.getUsername();
+        return options.getUsername();
     }
 
-    public static class ReceiverOptions extends BasicOptions {
-
-        public ReceiverOptions(@NonNull String advertisingName) {
-            super(advertisingName);
-        }
-
+    public P2PAuthorizationService getP2PAuthorizationService() {
+        return options.getP2PAuthorizationService();
     }
 
-    public static abstract class BasicOptions {
+    public static class Options {
 
         private String username;
+        private P2PAuthorizationService p2PAuthorizationService;
 
-        public BasicOptions(@NonNull String username) {
+        public Options(@NonNull String username, @NonNull P2PAuthorizationService p2PAuthorizationService) {
             this.username = username;
+            this.p2PAuthorizationService = p2PAuthorizationService;
         }
 
         @NonNull
         public String getUsername() {
             return this.username;
+        }
+
+        public P2PAuthorizationService getP2PAuthorizationService() {
+            return p2PAuthorizationService;
         }
     }
 }
