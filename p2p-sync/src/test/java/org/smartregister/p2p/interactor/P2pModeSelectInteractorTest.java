@@ -213,4 +213,98 @@ public class P2pModeSelectInteractorTest {
         assertEquals(1, Shadowzzbd.instance.methodCalls.get("stopDiscovery").intValue());
     }
 
+    @Test
+    public void startDiscoveringShouldSetDiscoveringFlagFalseAndCallOnDiscoveringFailedWhenFailsAndNotDiscovering() {
+        ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
+        final Task<Void> startDiscoveryTask = Mockito.mock(Task.class);
+        Mockito.doReturn(startDiscoveryTask)
+                .when(startDiscoveryTask)
+                .addOnSuccessListener(Mockito.any(OnSuccessListener.class));
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((OnFailureListener) invocation.getArgument(0))
+                        .onFailure(new Exception());
+
+                return startDiscoveryTask;
+            }
+        })
+                .when(startDiscoveryTask)
+                .addOnFailureListener(Mockito.any(OnFailureListener.class));
+
+        Mockito.doReturn(startDiscoveryTask)
+                .when(connectionsClient)
+                .startDiscovery(ArgumentMatchers.eq("org.smartregister.p2p")
+                        , Mockito.any(EndpointDiscoveryCallback.class)
+                        , Mockito.any(DiscoveryOptions.class));
+
+        SenderSyncLifecycleCallback senderSyncLifecycleCallback = Mockito.mock(SenderSyncLifecycleCallback.class);
+
+        ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
+        interactor.startDiscovering(senderSyncLifecycleCallback);
+
+        Mockito.verify(senderSyncLifecycleCallback, Mockito.times(1))
+                .onDiscoveringFailed(ArgumentMatchers.any(Exception.class));
+        assertFalse((boolean) ReflectionHelpers.getField(interactor, "discovering"));
+    }
+
+    @Test
+    public void requestConnectionShouldCallConnectionClient() {
+        String endpointId = "id";
+
+        OnResultCallback onResultCallback = Mockito.mock(OnResultCallback.class);
+        ConnectionLifecycleCallback connectionLifecycleCallback = Mockito.mock(ConnectionLifecycleCallback.class);
+
+        Task<Void> requestConnectionTask = Mockito.mock(Task.class);
+        Mockito.doReturn(requestConnectionTask)
+                .when(mockedZzbd)
+                .requestConnection(ArgumentMatchers.eq(username)
+                        , ArgumentMatchers.eq(endpointId)
+                        , Mockito.eq(connectionLifecycleCallback));
+        Mockito.doReturn(requestConnectionTask)
+                .when(requestConnectionTask)
+                .addOnSuccessListener(Mockito.any(OnSuccessListener.class));
+
+        interactor.requestConnection(endpointId, onResultCallback, connectionLifecycleCallback);
+
+        Mockito.verify(mockedZzbd, Mockito.times(1))
+                .requestConnection(ArgumentMatchers.eq(username)
+                        , ArgumentMatchers.eq(endpointId)
+                        , ArgumentMatchers.eq(connectionLifecycleCallback)
+                );
+    }
+
+    @Test
+    public void requestConnectionShouldCallRequestConnectionResultOnSuccessWhenRequestConnectionIsSuccessful() {
+        String endpointId = "id";
+
+        OnResultCallback onResultCallback = Mockito.mock(OnResultCallback.class);
+        ConnectionLifecycleCallback connectionLifecycleCallback = Mockito.mock(ConnectionLifecycleCallback.class);
+
+        final Task<Void> requestConnectionTask = Mockito.mock(Task.class);
+
+        Mockito.doReturn(requestConnectionTask)
+                .when(mockedZzbd)
+                .requestConnection(ArgumentMatchers.eq(username)
+                        , ArgumentMatchers.eq(endpointId)
+                        , Mockito.eq(connectionLifecycleCallback));
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                ((OnSuccessListener<Void>) invocation.getArgument(0))
+                        .onSuccess(null);
+
+                return requestConnectionTask;
+            }
+        })
+                .when(requestConnectionTask)
+                .addOnSuccessListener(Mockito.any(OnSuccessListener.class));
+
+        interactor.requestConnection(endpointId, onResultCallback, connectionLifecycleCallback);
+
+        Mockito.verify(onResultCallback, Mockito.times(1))
+                .onSuccess(Mockito.any());
+    }
+
 }
