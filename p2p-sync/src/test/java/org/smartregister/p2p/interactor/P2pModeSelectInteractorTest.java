@@ -93,9 +93,6 @@ public class P2pModeSelectInteractorTest {
     public void startAdvertisingShouldSetAdvertisingFlagToFalseAndCallOnAdvertisingFailedWhenFailsAndNotAdvertising() {
         P2pModeSelectInteractor spiedInteractor = Mockito.spy(interactor);
 
-        OnResultCallback onResultCallback = Mockito.mock(OnResultCallback.class);
-        ConnectionLifecycleCallback connectionLifecycleCallback = Mockito.mock(ConnectionLifecycleCallback.class);
-
         ConnectionsClient connectionsClient = Mockito.mock(ConnectionsClient.class);
         ReflectionHelpers.setField(spiedInteractor, "connectionsClient", connectionsClient);
 
