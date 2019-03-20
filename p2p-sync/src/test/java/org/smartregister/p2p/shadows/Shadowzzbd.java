@@ -32,10 +32,16 @@ public class Shadowzzbd extends ShadowConnectionsClient {
     public static Shadowzzbd instance;
     public HashMap<String, Integer> methodCalls = new HashMap<>();
 
+    public zzbd mockZzbd;
+
     @Implementation
     public void __constructor__(Context context) {
         // Do nothing as opposed to calling super in the actual implementation
         instance = this;
+    }
+
+    public void setMockZzbd(zzbd mockZzbd) {
+        this.mockZzbd = mockZzbd;
     }
 
     @Implementation
@@ -73,6 +79,15 @@ public class Shadowzzbd extends ShadowConnectionsClient {
                 return super.addOnSuccessListener(onSuccessListener);
             }
         };
+    }
+
+    @Implementation
+    public Task<Void> requestConnection(String var1, String var2, ConnectionLifecycleCallback var3) {
+        if (mockZzbd != null) {
+            return mockZzbd.requestConnection(var1, var2, var3);
+        }
+
+        return null;
     }
 
     private void addMethodCall(@NonNull String methodName) {
