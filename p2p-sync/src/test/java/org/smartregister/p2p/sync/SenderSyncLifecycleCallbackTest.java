@@ -336,7 +336,7 @@ public class SenderSyncLifecycleCallbackTest {
         senderSyncLifecycleCallback.onConnectionRejected(endpointId, connectionResolution);
 
         Mockito.verify(presenter, Mockito.times(1))
-                .startAdvertisingMode();
+                .startDiscoveringMode();
         assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
     }
 
@@ -354,7 +354,7 @@ public class SenderSyncLifecycleCallbackTest {
         senderSyncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
 
         Mockito.verify(presenter, Mockito.times(1))
-                .startAdvertisingMode();
+                .startDiscoveringMode();
         assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
     }
 
@@ -371,7 +371,7 @@ public class SenderSyncLifecycleCallbackTest {
         senderSyncLifecycleCallback.onConnectionBroken(endpointId);
 
         Mockito.verify(presenter, Mockito.times(1))
-                .startAdvertisingMode();
+                .startDiscoveringMode();
         assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
     }
 
@@ -388,7 +388,7 @@ public class SenderSyncLifecycleCallbackTest {
         senderSyncLifecycleCallback.onDisconnected(endpointId);
 
         Mockito.verify(presenter, Mockito.times(1))
-                .startAdvertisingMode();
+                .startDiscoveringMode();
         assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
     }
 }
