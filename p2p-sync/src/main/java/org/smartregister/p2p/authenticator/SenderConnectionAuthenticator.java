@@ -18,10 +18,8 @@ import org.smartregister.p2p.sync.DiscoveredDevice;
 
 public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticator {
 
-    public SenderConnectionAuthenticator(@NonNull P2pModeSelectContract.View view
-            , @NonNull P2pModeSelectContract.Interactor interactor
-            , @NonNull P2pModeSelectContract.BasePresenter basePresenter) {
-        super(view, interactor, basePresenter);
+    public SenderConnectionAuthenticator(@NonNull P2pModeSelectContract.SenderPresenter senderPresenter) {
+        super(senderPresenter);
     }
 
     @Override
@@ -30,10 +28,10 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 && !discoveredDevice.getConnectionInfo().isIncomingConnection()) {
             final ConnectionInfo connectionInfo = discoveredDevice.getConnectionInfo();
 
-            view.showQRCodeScanningDialog(new QRCodeScanningDialog.QRCodeScanDialogCallback() {
+            getPresenter().getView().showQRCodeScanningDialog(new QRCodeScanningDialog.QRCodeScanDialogCallback() {
                 @Override
                 public void qrCodeScanned(final @NonNull SparseArray<Barcode> qrCodeResult, final @NonNull DialogInterface dialogInterface) {
-                    view.runOnUiThread(new Runnable() {
+                    getPresenter().getView().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             dialogInterface.dismiss();
@@ -57,7 +55,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                                 authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
                             }
 
-                            view.showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
+                            getPresenter().getView().showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
                         }
                     });
                 }
@@ -65,7 +63,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 @Override
                 public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
                     dialogInterface.dismiss();
-                    view.showConnectionAcceptDialog(discoveredDevice.getEndpointName(), connectionInfo.getAuthenticationToken(), new DialogInterface.OnClickListener() {
+                    getPresenter().getView().showConnectionAcceptDialog(discoveredDevice.getEndpointName(), connectionInfo.getAuthenticationToken(), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             // Todo: Test if the dialogs are dismissed automatically
