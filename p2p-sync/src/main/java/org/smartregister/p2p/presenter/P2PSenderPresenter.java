@@ -14,12 +14,11 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
 import org.smartregister.p2p.R;
-import org.smartregister.p2p.callback.OnResultCallback;
-import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.SenderConnectionAuthenticator;
+import org.smartregister.p2p.callback.OnResultCallback;
+import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
-import org.smartregister.p2p.presenter.BaseP2pModeSelectPresenter;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
@@ -163,7 +162,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             currentReceiver.setConnectionInfo(connectionInfo);
 
             // This can be moved to the library for easy customisation by host applications
-            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, this);
+            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(this);
             syncConnectionAuthenticator.authenticate(currentReceiver, this);
         } else {
             //("Connection was initiated by other device");

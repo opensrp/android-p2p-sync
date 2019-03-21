@@ -27,13 +27,14 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
-import org.smartregister.p2p.presenter.P2PSenderPresenter;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 19/03/2019

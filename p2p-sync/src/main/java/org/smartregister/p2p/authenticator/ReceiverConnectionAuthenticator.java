@@ -13,10 +13,8 @@ import org.smartregister.p2p.sync.DiscoveredDevice;
 
 public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthenticator {
 
-    public ReceiverConnectionAuthenticator(@NonNull P2pModeSelectContract.View view
-            , @NonNull P2pModeSelectContract.Interactor interactor
-            , @NonNull P2pModeSelectContract.BasePresenter basePresenter) {
-        super(view, interactor, basePresenter);
+    public ReceiverConnectionAuthenticator(@NonNull P2pModeSelectContract.BasePresenter basePresenter) {
+        super(basePresenter);
     }
 
     @Override
@@ -24,7 +22,7 @@ public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthentic
         if (discoveredDevice.getConnectionInfo() != null
                 && discoveredDevice.getConnectionInfo().isIncomingConnection()) {
 
-            view.showQRCodeGeneratorDialog(discoveredDevice.getConnectionInfo().getAuthenticationToken()
+            getPresenter().getView().showQRCodeGeneratorDialog(discoveredDevice.getConnectionInfo().getAuthenticationToken()
                     , discoveredDevice.getEndpointName()
                     , new QRCodeGeneratorDialog.QRCodeAuthenticationCallback() {
                 @Override

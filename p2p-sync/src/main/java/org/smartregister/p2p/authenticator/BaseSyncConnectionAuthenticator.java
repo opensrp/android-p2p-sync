@@ -11,27 +11,14 @@ import org.smartregister.p2p.sync.DiscoveredDevice;
 
 public abstract class BaseSyncConnectionAuthenticator {
 
-    protected P2pModeSelectContract.View view;
-    protected P2pModeSelectContract.Interactor interactor;
-    protected P2pModeSelectContract.BasePresenter basePresenter;
+    protected P2pModeSelectContract.BasePresenter presenter;
 
-    public BaseSyncConnectionAuthenticator(@NonNull P2pModeSelectContract.View view
-            , @NonNull P2pModeSelectContract.Interactor interactor, @NonNull P2pModeSelectContract.BasePresenter basePresenter) {
-        this.view = view;
-        this.interactor = interactor;
-        this.basePresenter = basePresenter;
+    public BaseSyncConnectionAuthenticator(@NonNull P2pModeSelectContract.BasePresenter presenter) {
+        this.presenter = presenter;
     }
 
-    public P2pModeSelectContract.View getView() {
-        return view;
-    }
-
-    public P2pModeSelectContract.Interactor getInteractor() {
-        return interactor;
-    }
-
-    public P2pModeSelectContract.BasePresenter getBasePresenter() {
-        return basePresenter;
+    public P2pModeSelectContract.BasePresenter getPresenter() {
+        return presenter;
     }
 
     public abstract void authenticate(@NonNull DiscoveredDevice discoveredDevice, @NonNull final AuthenticationCallback authenticationCallback);

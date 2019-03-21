@@ -70,6 +70,9 @@ public interface P2pModeSelectContract {
         void onStop();
 
         void sendTextMessage(@NonNull String message);
+
+        @NonNull
+        View getView();
     }
 
     interface ReceiverPresenter extends BasePresenter {

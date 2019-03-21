@@ -45,4 +45,10 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
         interactor = null;
     }
 
+    @NonNull
+    @Override
+    public P2pModeSelectContract.View getView() {
+        return view;
+    }
+
 }

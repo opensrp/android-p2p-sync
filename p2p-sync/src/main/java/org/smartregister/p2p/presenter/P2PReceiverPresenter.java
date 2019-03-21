@@ -126,7 +126,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             view.removeReceiveProgressDialog();
 
             // This can be moved to the library for easy customisation by host applications
-            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new ReceiverConnectionAuthenticator(view, interactor, this);
+            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new ReceiverConnectionAuthenticator(this);
             syncConnectionAuthenticator.authenticate(currentSender, this);
         } else {
             Timber.e("Ignoring connection initiated by the other device %s, %s, %s"
