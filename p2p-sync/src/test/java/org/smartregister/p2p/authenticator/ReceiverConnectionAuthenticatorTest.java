@@ -30,7 +30,7 @@ public class ReceiverConnectionAuthenticatorTest {
     @Mock
     private P2pModeSelectContract.View view;
     @Mock
-    private P2pModeSelectContract.Presenter presenter;
+    private P2pModeSelectContract.BasePresenter basePresenter;
     @Mock
     private P2pModeSelectContract.Interactor interactor;
 
@@ -38,7 +38,7 @@ public class ReceiverConnectionAuthenticatorTest {
 
     @Before
     public void setUp() {
-        receiverConnectionAuthenticator = new ReceiverConnectionAuthenticator(view, interactor, presenter);
+        receiverConnectionAuthenticator = new ReceiverConnectionAuthenticator(view, interactor, basePresenter);
     }
 
     @Test

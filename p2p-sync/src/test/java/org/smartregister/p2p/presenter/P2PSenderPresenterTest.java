@@ -1,5 +1,6 @@
-package org.smartregister.p2p.sync;
+package org.smartregister.p2p.presenter;
 
+import android.Manifest;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -25,6 +26,12 @@ import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.presenter.P2PSenderPresenter;
+import org.smartregister.p2p.sync.DiscoveredDevice;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -32,7 +39,7 @@ import static org.junit.Assert.*;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 19/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-public class SenderSyncLifecycleCallbackTest {
+public class P2PSenderPresenterTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -41,10 +48,8 @@ public class SenderSyncLifecycleCallbackTest {
     private P2pModeSelectContract.View view;
     @Mock
     private P2pModeSelectContract.Interactor interactor;
-    @Mock
-    private P2pModeSelectContract.Presenter presenter;
 
-    private SenderSyncLifecycleCallback senderSyncLifecycleCallback;
+    private P2PSenderPresenter p2PSenderPresenter;
 
     @Before
     public void setUp() throws Exception {
@@ -52,12 +57,113 @@ public class SenderSyncLifecycleCallbackTest {
                 .when(view)
                 .getContext();
 
-        senderSyncLifecycleCallback = new SenderSyncLifecycleCallback(view, presenter, interactor);
+        p2PSenderPresenter = Mockito.spy(new P2PSenderPresenter(view, interactor));
+    }
+
+    @Test
+    public void onSendButtonClickedShouldCallPrepareDiscovering() {
+
+        p2PSenderPresenter.onSendButtonClicked();
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .prepareForDiscovering(false);
+    }
+
+    @Test
+    public void prepareDiscoveringShouldCallStartDiscoveringModeWhenPermissionsGrantedAndLocationEnabled() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doReturn(true)
+                .when(view)
+                .isLocationEnabled();
+
+        p2PSenderPresenter.prepareForDiscovering(false);
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .startDiscoveringMode();
+    }
+
+    @Test
+    public void prepareDiscoveringShouldCallRequestPermissionsWhenPermissionsNotGrantedAndNotReturningFromRequestingPermissions() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        p2PSenderPresenter.prepareForDiscovering(false);
+        Mockito.verify(view, Mockito.times(1))
+                .requestPermissions(unauthorizedPermissions);
+        Mockito.verify(view, Mockito.times(1))
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+    }
+
+    @Test
+    public void prepareDiscoveringShouldNotCallRequestPermissionsWhenPermissionsNotGrantedAndReturningFromRequestionPermissions() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        p2PSenderPresenter.prepareForDiscovering(true);
+        Mockito.verify(view, Mockito.times(0))
+                .requestPermissions(unauthorizedPermissions);
+    }
+
+    @Test
+    public void prepareDiscoveringShouldRequestEnableLocationWhenPermissionsGrantedAndLocationNotEnabled() {
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doReturn(false)
+                .when(view)
+                .isLocationEnabled();
+
+        p2PSenderPresenter.prepareForDiscovering(false);
+
+        Mockito.verify(view, Mockito.times(1))
+                .requestEnableLocation(Mockito.any(P2pModeSelectContract.View.OnLocationEnabled.class));
+    }
+
+    @Test
+    public void prepareDiscoveringShouldCallItselfAfterPermissionsGrantedExplicitlyByUserOnView() {
+        final ArrayList<Object> sensitiveObjects = new ArrayList<>();
+        List<String> unauthorizedPermissions = new ArrayList<>();
+        unauthorizedPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        Mockito.doReturn(unauthorizedPermissions)
+                .when(view)
+                .getUnauthorisedPermissions();
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                OnActivityRequestPermissionHandler onActivityRequestPermissionHandler = invocation.getArgument(0);
+                sensitiveObjects.add(onActivityRequestPermissionHandler);
+                onActivityRequestPermissionHandler.handlePermissionResult(new String[] {""}, new int[]{0});
+                return null;
+            }
+        }).when(view)
+                .addOnActivityRequestPermissionHandler(Mockito.any(OnActivityRequestPermissionHandler.class));
+
+        p2PSenderPresenter.prepareForDiscovering(false);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .prepareForDiscovering(true);
+        Mockito.verify(view, Mockito.times(1))
+                .removeOnActivityRequestPermissionHandler((OnActivityRequestPermissionHandler) sensitiveObjects.get(0));
     }
 
     @Test
     public void onDiscoveringFailedShouldResetUI() {
-        senderSyncLifecycleCallback.onDiscoveringFailed(new Exception());
+        p2PSenderPresenter.onDiscoveringFailed(new Exception());
 
         Mockito.verify(view, Mockito.times(1))
                 .removeDiscoveringProgressDialog();
@@ -82,7 +188,7 @@ public class SenderSyncLifecycleCallbackTest {
                 .when(discoveredEndpointInfo)
                 .getServiceId();
 
-        senderSyncLifecycleCallback.onDeviceFound(endpointId, discoveredEndpointInfo);
+        p2PSenderPresenter.onDeviceFound(endpointId, discoveredEndpointInfo);
 
         Mockito.verify(interactor, Mockito.times(1))
                 .stopDiscovering();
@@ -95,7 +201,7 @@ public class SenderSyncLifecycleCallbackTest {
                         , Mockito.any(OnResultCallback.class)
                         , Mockito.any(ConnectionLifecycleCallback.class));
 
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
     @Test
@@ -106,10 +212,10 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onDeviceFound(endpointId, discoveredEndpointInfo);
+        p2PSenderPresenter.onDeviceFound(endpointId, discoveredEndpointInfo);
 
         Mockito.verify(interactor, Mockito.times(0))
                 .stopDiscovering();
@@ -153,7 +259,7 @@ public class SenderSyncLifecycleCallbackTest {
                         , Mockito.any(OnResultCallback.class)
                         , Mockito.any(ConnectionLifecycleCallback.class));
 
-        SenderSyncLifecycleCallback spiedCallback = Mockito.spy(senderSyncLifecycleCallback);
+        P2PSenderPresenter spiedCallback = Mockito.spy(p2PSenderPresenter);
 
         spiedCallback.onDeviceFound(endpointId, discoveredEndpointInfo);
 
@@ -191,7 +297,7 @@ public class SenderSyncLifecycleCallbackTest {
                         , Mockito.any(OnResultCallback.class)
                         , Mockito.any(ConnectionLifecycleCallback.class));
 
-        SenderSyncLifecycleCallback spiedCallback = Mockito.spy(senderSyncLifecycleCallback);
+        P2PSenderPresenter spiedCallback = Mockito.spy(p2PSenderPresenter);
 
         spiedCallback.onDeviceFound(endpointId, discoveredEndpointInfo);
 
@@ -203,14 +309,14 @@ public class SenderSyncLifecycleCallbackTest {
     public void onRequestConnectionFailedShouldResetStateAndStartDiscoveringMode() {
         DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onRequestConnectionFailed(new Exception());
+        p2PSenderPresenter.onRequestConnectionFailed(new Exception());
 
-        Mockito.verify(presenter, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
     @Test
@@ -225,12 +331,12 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onConnectionInitiated(endpointId, connectionInfo);
+        p2PSenderPresenter.onConnectionInitiated(endpointId, connectionInfo);
 
-        assertEquals(connectionInfo, ((DiscoveredDevice)ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"))
+        assertEquals(connectionInfo, ((DiscoveredDevice)ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"))
                 .getConnectionInfo());
 
         Mockito.verify(view, Mockito.times(1))
@@ -242,9 +348,9 @@ public class SenderSyncLifecycleCallbackTest {
         String endpointId = "id";
         ConnectionInfo connectionInfo = Mockito.mock(ConnectionInfo.class);
 
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onConnectionInitiated(endpointId, connectionInfo);
+        p2PSenderPresenter.onConnectionInitiated(endpointId, connectionInfo);
 
         Mockito.verify(view, Mockito.times(0))
                 .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
@@ -257,9 +363,9 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
-        senderSyncLifecycleCallback.onAuthenticationSuccessful();
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+        p2PSenderPresenter.onAuthenticationSuccessful();
 
         Mockito.verify(interactor, Mockito.times(1))
                 .acceptConnection(ArgumentMatchers.eq(endpointId)
@@ -276,10 +382,10 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onAuthenticationFailed(new Exception());
+        p2PSenderPresenter.onAuthenticationFailed(new Exception());
 
         Mockito.verify(interactor, Mockito.times(1))
                 .rejectConnection(ArgumentMatchers.eq(endpointId));
@@ -295,10 +401,10 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onAuthenticationCancelled("");
+        p2PSenderPresenter.onAuthenticationCancelled("");
 
         Mockito.verify(interactor, Mockito.times(1))
                 .rejectConnection(ArgumentMatchers.eq(endpointId));
@@ -311,12 +417,12 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
         ConnectionResolution connectionResolution = Mockito.mock(ConnectionResolution.class);
 
-        senderSyncLifecycleCallback.onConnectionAccepted(endpointId, connectionResolution);
+        p2PSenderPresenter.onConnectionAccepted(endpointId, connectionResolution);
 
         Mockito.verify(interactor, Mockito.times(1))
                 .connectedTo(ArgumentMatchers.eq(endpointId));
@@ -330,14 +436,14 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onConnectionRejected(endpointId, connectionResolution);
+        p2PSenderPresenter.onConnectionRejected(endpointId, connectionResolution);
 
-        Mockito.verify(presenter, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
     @Test
@@ -348,14 +454,14 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onConnectionUnknownError(endpointId, connectionResolution);
+        p2PSenderPresenter.onConnectionUnknownError(endpointId, connectionResolution);
 
-        Mockito.verify(presenter, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
     @Test
@@ -365,14 +471,14 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onConnectionBroken(endpointId);
+        p2PSenderPresenter.onConnectionBroken(endpointId);
 
-        Mockito.verify(presenter, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
     @Test
@@ -382,13 +488,13 @@ public class SenderSyncLifecycleCallbackTest {
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
-        ReflectionHelpers.setField(senderSyncLifecycleCallback, "currentReceiver", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
-        senderSyncLifecycleCallback.onDisconnected(endpointId);
+        p2PSenderPresenter.onDisconnected(endpointId);
 
-        Mockito.verify(presenter, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
-        assertNull(ReflectionHelpers.getField(senderSyncLifecycleCallback, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 }

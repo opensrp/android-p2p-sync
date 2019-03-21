@@ -39,8 +39,8 @@ import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
-import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
-import org.smartregister.p2p.presenter.P2pModeSelectPresenter;
+import org.smartregister.p2p.presenter.P2PReceiverPresenter;
+import org.smartregister.p2p.presenter.P2PSenderPresenter;
 import org.smartregister.p2p.util.Constants;
 import org.smartregister.p2p.util.DialogUtils;
 import org.smartregister.p2p.util.Permissions;
@@ -59,8 +59,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     private TextView messagesTv;
     private EditText messageToSendEt;
 
-    private P2pModeSelectContract.Presenter presenter;
-    private P2pModeSelectContract.Interactor interactor;
+    private P2pModeSelectContract.SenderPresenter senderBasePresenter;
+    private P2pModeSelectContract.ReceiverPresenter receiverBasePresenter;
 
     private ArrayList<OnActivityResultHandler> onActivityResultHandlers = new ArrayList<>();
     private ArrayList<OnResumeHandler> onResumeHandlers = new ArrayList<>();
@@ -85,7 +85,11 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
             public void onClick(View v) {
                 if (messageToSendEt.getText() != null) {
                     String messageToSend = messageToSendEt.getText().toString();
-                    interactor.sendMessage(messageToSend);
+
+                    // This is not ideal but for testing purposes for now
+                    // It will not be in the any final release
+                    receiverBasePresenter.sendTextMessage(messageToSend);
+                    senderBasePresenter.sendTextMessage(messageToSend);
                     displayMessage("YOU: " + messageToSend);
 
                     messageToSendEt.setText("");
@@ -97,18 +101,18 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     protected void onStart() {
         super.onStart();
-        initializePresenter();
+        initializePresenters();
 
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                presenter.onSendButtonClicked();
+                senderBasePresenter.onSendButtonClicked();
             }
         });
         receiveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                presenter.onReceiveButtonClicked();
+                receiverBasePresenter.onReceiveButtonClicked();
             }
         });
     }
@@ -408,9 +412,9 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void initializePresenter() {
-        interactor = new P2pModeSelectInteractor(this);
-        presenter = new P2pModeSelectPresenter(this, interactor);
+    public void initializePresenters() {
+        receiverBasePresenter = new P2PReceiverPresenter(this);
+        senderBasePresenter = new P2PSenderPresenter(this);
     }
 
     @Override
@@ -434,7 +438,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         sendButton.setOnClickListener(null);
         receiveButton.setOnClickListener(null);
 
-        presenter.onStop();
+        receiverBasePresenter.onStop();
+        senderBasePresenter.onStop();
     }
 
 

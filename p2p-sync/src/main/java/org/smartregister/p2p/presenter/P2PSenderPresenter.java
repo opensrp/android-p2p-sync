@@ -1,7 +1,9 @@
-package org.smartregister.p2p.sync;
+package org.smartregister.p2p.presenter;
 
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -16,6 +18,13 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.SenderConnectionAuthenticator;
+import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.presenter.BaseP2pModeSelectPresenter;
+import org.smartregister.p2p.sync.DiscoveredDevice;
+import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
+import org.smartregister.p2p.util.Constants;
+
+import java.util.List;
 
 import timber.log.Timber;
 
@@ -23,20 +32,74 @@ import timber.log.Timber;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 15/03/2019
  */
 
-public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback {
-
-    private P2pModeSelectContract.View view;
-    private P2pModeSelectContract.Presenter presenter;
-    private P2pModeSelectContract.Interactor interactor;
+public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements ISenderSyncLifecycleCallback, P2pModeSelectContract.SenderPresenter {
 
     @Nullable
     private DiscoveredDevice currentReceiver;
 
-    public SenderSyncLifecycleCallback(@NonNull P2pModeSelectContract.View view, @NonNull P2pModeSelectContract.Presenter presenter
-            , @NonNull P2pModeSelectContract.Interactor interactor) {
-        this.view = view;
-        this.presenter = presenter;
-        this.interactor = interactor;
+    public P2PSenderPresenter(@NonNull P2pModeSelectContract.View view) {
+        super(view);
+    }
+
+    @VisibleForTesting
+    public P2PSenderPresenter(@NonNull P2pModeSelectContract.View view, @NonNull P2pModeSelectContract.Interactor p2pModeSelectInteractor) {
+        super(view, p2pModeSelectInteractor);
+    }
+
+    @Override
+    public void onSendButtonClicked() {
+        prepareForDiscovering(false);
+    }
+
+    @Override
+    public void prepareForDiscovering(boolean returningFromRequestingPermissions) {
+        List<String> unauthorisedPermissions = view.getUnauthorisedPermissions();
+        // Are all required permissions given
+        if (unauthorisedPermissions.size() == 0) {
+            // Check if location is enabled
+            if (view.isLocationEnabled()) {
+                startDiscoveringMode();
+            } else {
+                view.requestEnableLocation(new P2pModeSelectContract.View.OnLocationEnabled() {
+                    @Override
+                    public void locationEnabled() {
+                        startDiscoveringMode();
+                    }
+                });
+            }
+        } else {
+            if (!returningFromRequestingPermissions) {
+                view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
+                    @Override
+                    public int getRequestCode() {
+                        return Constants.RQ_CODE.PERMISSIONS;
+                    }
+
+                    @Override
+                    public void handlePermissionResult(@NonNull String[] permissions, @NonNull int[] grantResults) {
+                        view.removeOnActivityRequestPermissionHandler(this);
+                        prepareForDiscovering(true);
+                    }
+                });
+                view.requestPermissions(unauthorisedPermissions);
+            }
+        }
+    }
+
+    @Override
+    public void startDiscoveringMode() {
+        if (!interactor.isDiscovering()) {
+            view.enableSendReceiveButtons(false);
+            view.showDiscoveringProgressDialog (new P2pModeSelectContract.View.DialogCancelCallback() {
+                @Override
+                public void onCancelClicked(DialogInterface dialogInterface) {
+                    interactor.stopDiscovering();
+                    dialogInterface.dismiss();
+                    view.enableSendReceiveButtons(true);
+                }
+            });
+            interactor.startDiscovering(this);
+        }
     }
 
     @Override
@@ -89,7 +152,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
         // Show the user an error trying to connect device XYZ
         view.showToast("COULD NOT INITIATE CONNECTION REQUEST TO THE DEVICE", Toast.LENGTH_LONG);
         resetState();
-        presenter.startDiscoveringMode();
+        startDiscoveringMode();
     }
 
     @Override
@@ -100,7 +163,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
             currentReceiver.setConnectionInfo(connectionInfo);
 
             // This can be moved to the library for easy customisation by host applications
-            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, presenter);
+            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, this);
             syncConnectionAuthenticator.authenticate(currentReceiver, this);
         } else {
             //("Connection was initiated by other device");
@@ -180,7 +243,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         view.showToast(view.getContext().getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
         resetState();
-        presenter.startDiscoveringMode();
+        startDiscoveringMode();
     }
 
     @Override
@@ -189,7 +252,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
         //Todo: And show the user an error
         view.showToast(view.getContext().getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
         resetState();
-        presenter.startDiscoveringMode();
+        startDiscoveringMode();
     }
 
     @Override
@@ -198,7 +261,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
         //Todo: Go back to discovering mode
         resetState();
         view.showToast(String.format("The connection to %s has broken", endpointId), Toast.LENGTH_LONG);
-        presenter.startDiscoveringMode();
+        startDiscoveringMode();
     }
 
     @Override
@@ -211,7 +274,7 @@ public class SenderSyncLifecycleCallback implements ISenderSyncLifecycleCallback
         Timber.e("Endpoint lost %s", endpointId);
         view.displayMessage("DISCONNECTED");
         resetState();
-        presenter.startDiscoveringMode();
+        startDiscoveringMode();
     }
 
     private void resetState() {

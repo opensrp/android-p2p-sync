@@ -40,7 +40,7 @@ public class SenderConnectionAuthenticatorTest {
     @Mock
     private P2pModeSelectContract.View view;
     @Mock
-    private P2pModeSelectContract.Presenter presenter;
+    private P2pModeSelectContract.BasePresenter basePresenter;
     @Mock
     private P2pModeSelectContract.Interactor interactor;
 
@@ -48,7 +48,7 @@ public class SenderConnectionAuthenticatorTest {
 
     @Before
     public void setUp() {
-        senderConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, presenter);
+        senderConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, basePresenter);
     }
 
     @Test

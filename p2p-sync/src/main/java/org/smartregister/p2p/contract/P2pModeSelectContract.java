@@ -65,9 +65,14 @@ public interface P2pModeSelectContract {
         }
     }
 
-    interface Presenter {
+    interface BasePresenter {
 
-        void onSendButtonClicked();
+        void onStop();
+
+        void sendTextMessage(@NonNull String message);
+    }
+
+    interface ReceiverPresenter extends BasePresenter {
 
         void onReceiveButtonClicked();
 
@@ -75,11 +80,15 @@ public interface P2pModeSelectContract {
 
         void startAdvertisingMode();
 
+    }
+
+    interface SenderPresenter extends BasePresenter {
+
+        void onSendButtonClicked();
+
         void prepareForDiscovering(boolean returningFromRequestingPermissions);
 
         void startDiscoveringMode();
-
-        void onStop();
     }
 
     interface Interactor extends BaseInteractor {

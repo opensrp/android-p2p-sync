@@ -13,13 +13,13 @@ public abstract class BaseSyncConnectionAuthenticator {
 
     protected P2pModeSelectContract.View view;
     protected P2pModeSelectContract.Interactor interactor;
-    protected P2pModeSelectContract.Presenter presenter;
+    protected P2pModeSelectContract.BasePresenter basePresenter;
 
     public BaseSyncConnectionAuthenticator(@NonNull P2pModeSelectContract.View view
-            , @NonNull P2pModeSelectContract.Interactor interactor, @NonNull P2pModeSelectContract.Presenter presenter) {
+            , @NonNull P2pModeSelectContract.Interactor interactor, @NonNull P2pModeSelectContract.BasePresenter basePresenter) {
         this.view = view;
         this.interactor = interactor;
-        this.presenter = presenter;
+        this.basePresenter = basePresenter;
     }
 
     public P2pModeSelectContract.View getView() {
@@ -30,8 +30,8 @@ public abstract class BaseSyncConnectionAuthenticator {
         return interactor;
     }
 
-    public P2pModeSelectContract.Presenter getPresenter() {
-        return presenter;
+    public P2pModeSelectContract.BasePresenter getBasePresenter() {
+        return basePresenter;
     }
 
     public abstract void authenticate(@NonNull DiscoveredDevice discoveredDevice, @NonNull final AuthenticationCallback authenticationCallback);
