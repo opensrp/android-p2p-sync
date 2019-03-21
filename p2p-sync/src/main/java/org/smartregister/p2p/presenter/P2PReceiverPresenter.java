@@ -108,14 +108,14 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onAdvertisingFailed(@NonNull Exception e) {
-        view.showToast(view.getContext().getString(R.string.an_error_occurred_start_receiving), Toast.LENGTH_LONG);
+        view.showToast(view.getString(R.string.an_error_occurred_start_receiving), Toast.LENGTH_LONG);
         view.removeReceiveProgressDialog();
         view.enableSendReceiveButtons(true);
     }
 
     @Override
     public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
-        Timber.i("Connection initiated by : %s  Endpoint name(%s) auth code(%s)", endpointId, connectionInfo.getEndpointName()
+        Timber.i(view.getString(R.string.log_connection_initiated_endpoint_auth_code), endpointId, connectionInfo.getEndpointName()
                 , connectionInfo.getAuthenticationToken());
 
         if (currentSender == null) {
@@ -129,7 +129,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new ReceiverConnectionAuthenticator(this);
             syncConnectionAuthenticator.authenticate(currentSender, this);
         } else {
-            Timber.e("Ignoring connection initiated by the other device %s, %s, %s"
+            Timber.e(view.getString(R.string.log_ignoring_connection_initiated_by_other_device)
                     , endpointId
                     , connectionInfo.getEndpointName()
                     , connectionInfo.getAuthenticationToken());
@@ -139,15 +139,15 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
+        view.showToast(String.format(view.getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
-        view.displayMessage("CONNECTED");
+        view.displayMessage(view.getString(R.string.connected));
         interactor.connectedTo(endpointId);
     }
 
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(view.getContext().getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
+        view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
         resetState();
         startAdvertisingMode();
     }
@@ -156,7 +156,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onConnectionUnknownError(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         //Todo: Go back to advertising mode
         //Todo: And show the user an error
-        view.showToast(view.getContext().getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
+        view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
         resetState();
         startAdvertisingMode();
     }
@@ -166,24 +166,24 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Show the user an error
         //Todo: Go back to advertising mode
         resetState();
-        view.showToast(String.format("The connection to %s has broken", endpointId), Toast.LENGTH_LONG);
+        view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
         startAdvertisingMode();
     }
 
     @Override
     public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
-        Timber.i("Received a payload from %s", endpointId);
+        Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             // Show a simple message of the text sent
             String message = new String(payload.asBytes());
             view.showToast(message, Toast.LENGTH_LONG);
-            view.displayMessage(endpointId + ": " + message);
+            view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
         }
     }
 
     @Override
     public void onDisconnected(@NonNull String endpointId) {
-        Timber.e("Endpoint lost %s", endpointId);
+        Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
         resetState();
         startAdvertisingMode();
     }
@@ -212,10 +212,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             interactor.rejectConnection(currentSender.getEndpointId());
         }
 
-        view.showToast(view.getContext().getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
+        view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
 
         //Todo: Go back to advertising mode
-        Timber.e(exception, "Authentication failed");
+        Timber.e(exception, view.getString(R.string.authentication_failed));
         // The rest will be handled in the rejectConnection callback
         // Todo: test is this is causing an error where the discovering mode can no longer be restarted
         // if the receiving device app is either removed or discovering cancelled while the receiver is showing
@@ -230,7 +230,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
 
         // Go back to discovering mode
-        Timber.e("Authentication cancelled : %s", reason);
+        Timber.e(view.getString(R.string.log_authentication_cancelled), reason);
     }
 
     private void resetState() {

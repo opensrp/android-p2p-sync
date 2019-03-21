@@ -400,7 +400,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         for (OnActivityResultHandler onActivityResultHandler: onActivityResultHandlers) {
             if (requestCode == onActivityResultHandler.getRequestCode()) {
-                onActivityResultHandler.handleActivityResult(resultCode, data);
+                onActivityResultHandler.handleActivityResult(resultCode, data); getString(R.string.connected);
             }
         }
     }

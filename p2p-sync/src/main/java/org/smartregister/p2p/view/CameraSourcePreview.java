@@ -9,7 +9,7 @@ import android.view.SurfaceView;
 import android.view.ViewGroup;
 
 import com.google.android.gms.vision.CameraSource;
-
+import org.smartregister.p2p.R;
 import java.io.IOException;
 
 import timber.log.Timber;
@@ -77,9 +77,9 @@ public class CameraSourcePreview extends ViewGroup {
             try {
                 startIfReady();
             } catch (SecurityException se) {
-                Timber.e(se, "Do not have permission to start the camera");
+                Timber.e(se, getContext().getString(R.string.no_permission_to_start_the_camera));
             } catch (IOException e) {
-                Timber.e(e, "Could not start camera source.");
+                Timber.e(e, getContext().getString(R.string.could_not_start_camera_source));
             }
         }
 
@@ -104,9 +104,9 @@ public class CameraSourcePreview extends ViewGroup {
         try {
             startIfReady();
         } catch (SecurityException se) {
-            Timber.e(se, "Do not have permission to start the camera");
+            Timber.e(se, getContext().getString(R.string.no_permission_to_start_the_camera));
         } catch (IOException e) {
-            Timber.e(e, "Could not start camera source.");
+            Timber.e(e, getContext().getString(R.string.could_not_start_camera_source));
         }
     }
 }

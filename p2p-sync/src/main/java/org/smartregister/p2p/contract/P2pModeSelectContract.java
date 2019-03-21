@@ -3,6 +3,7 @@ package org.smartregister.p2p.contract;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.annotation.StringRes;
 
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.PayloadCallback;
@@ -55,6 +56,9 @@ public interface P2pModeSelectContract {
         void showToast(@NonNull String text, int length);
 
         void displayMessage(@NonNull String text);
+
+        @NonNull
+        String getString(@StringRes int resId);
 
         interface DialogCancelCallback {
             void onCancelClicked(DialogInterface dialogInterface);

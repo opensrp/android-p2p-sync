@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -46,10 +47,12 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                                 }
                             }
 
-                            String message = "Device %s authentication failed";
+                            String message = getPresenter().getView()
+                                    .getString(R.string.device_authentication_failed);
 
                             if (authenticationCodeFound) {
-                                message = "Device %s authenticated successfully";
+                                message = getPresenter().getView()
+                                        .getString(R.string.device_authenticated_successfully);
                                 authenticationCallback.onAuthenticationSuccessful();
                             } else {
                                 authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));

@@ -89,13 +89,14 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
         barcodeDetector.setProcessor(this);
 
         if (!barcodeDetector.isOperational()) {
-            Timber.w("Detector dependencies are not yet available.");
+            Timber.w(getContext().getString(R.string.log_detector_dependencies_are_not_yet_available));
             IntentFilter lowStorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
             boolean hasLowStorage = getContext().registerReceiver(null, lowStorageFilter) != null;
 
             if (hasLowStorage) {
-                Toast.makeText(getContext(), "Face detector dependencies cannot be downloaded due to low device storage", Toast.LENGTH_LONG).show();
-                Timber.e("Face detector dependencies cannot be downloaded due to low device storage");
+                Toast.makeText(getContext(), getContext().getString(R.string.barcode_detector_dependencies_cannot_be_downloaded)
+                        , Toast.LENGTH_LONG).show();
+                Timber.e(getContext().getString(R.string.barcode_detector_dependencies_cannot_be_downloaded));
             }
         }
 
@@ -110,7 +111,8 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
 
     @Override
     public void release() {
-        //Todo
+        // Our processor in #receiveDetections does not hold any resources and therefore we have not resources
+        // to release
     }
 
     @Override
@@ -144,7 +146,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
                                 , code, Constants.RQ_CODE.BARCODE_SCANNER_GOOGLE_PLAY_FIX);
                 errorDialog.show();
             } else {
-                Timber.e("Could not show Google Play Services resolution dialog since it was not called from an activity");
+                Timber.e(getContext().getString(R.string.log_could_not_show_google_play_services_resolution_dialog));
             }
         }
 
@@ -152,7 +154,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
             try {
                 cameraSourcePreview.start(cameraSource);
             } catch (IOException e) {
-                Timber.e(e, "Unable to start camera source.");
+                Timber.e(e, getContext().getString(R.string.log_unable_to_start_camera_source));
                 cameraSource.release();
                 cameraSource = null;
             }
