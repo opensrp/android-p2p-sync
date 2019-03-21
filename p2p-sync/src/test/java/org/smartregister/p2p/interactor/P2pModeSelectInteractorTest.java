@@ -33,7 +33,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.shadows.Shadowzzbd;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
-import org.smartregister.p2p.sync.SenderSyncLifecycleCallback;
+import org.smartregister.p2p.presenter.P2PSenderPresenter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -133,9 +133,8 @@ public class P2pModeSelectInteractorTest {
 
     @Test
     public void startDiscoveringShouldChangeDiscoveringFlag() {
-        interactor.startDiscovering(new SenderSyncLifecycleCallback(
+        interactor.startDiscovering(new P2PSenderPresenter(
                 Mockito.mock(P2pModeSelectContract.View.class)
-                , Mockito.mock(P2pModeSelectContract.Presenter.class)
                 , interactor));
 
         assertTrue((boolean) ReflectionHelpers.getField(interactor, "discovering"));
@@ -163,12 +162,12 @@ public class P2pModeSelectInteractorTest {
                         , Mockito.any(EndpointDiscoveryCallback.class)
                         , Mockito.any(DiscoveryOptions.class));
 
-        SenderSyncLifecycleCallback senderSyncLifecycleCallback = Mockito.mock(SenderSyncLifecycleCallback.class);
+        P2PSenderPresenter p2PSenderPresenter = Mockito.mock(P2PSenderPresenter.class);
 
         ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
-        interactor.startDiscovering(senderSyncLifecycleCallback);
+        interactor.startDiscovering(p2PSenderPresenter);
 
-        Mockito.verify(senderSyncLifecycleCallback, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .onDeviceFound(ArgumentMatchers.eq("id"), Mockito.any(DiscoveredEndpointInfo.class));
     }
 
@@ -194,12 +193,12 @@ public class P2pModeSelectInteractorTest {
                         , Mockito.any(EndpointDiscoveryCallback.class)
                         , Mockito.any(DiscoveryOptions.class));
 
-        SenderSyncLifecycleCallback senderSyncLifecycleCallback = Mockito.mock(SenderSyncLifecycleCallback.class);
+        P2PSenderPresenter p2PSenderPresenter = Mockito.mock(P2PSenderPresenter.class);
 
         ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
-        interactor.startDiscovering(senderSyncLifecycleCallback);
+        interactor.startDiscovering(p2PSenderPresenter);
 
-        Mockito.verify(senderSyncLifecycleCallback, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .onDisconnected(ArgumentMatchers.eq("id"));
     }
 
@@ -239,12 +238,12 @@ public class P2pModeSelectInteractorTest {
                         , Mockito.any(EndpointDiscoveryCallback.class)
                         , Mockito.any(DiscoveryOptions.class));
 
-        SenderSyncLifecycleCallback senderSyncLifecycleCallback = Mockito.mock(SenderSyncLifecycleCallback.class);
+        P2PSenderPresenter p2PSenderPresenter = Mockito.mock(P2PSenderPresenter.class);
 
         ReflectionHelpers.setField(interactor, "connectionsClient", connectionsClient);
-        interactor.startDiscovering(senderSyncLifecycleCallback);
+        interactor.startDiscovering(p2PSenderPresenter);
 
-        Mockito.verify(senderSyncLifecycleCallback, Mockito.times(1))
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .onDiscoveringFailed(ArgumentMatchers.any(Exception.class));
         assertFalse((boolean) ReflectionHelpers.getField(interactor, "discovering"));
     }

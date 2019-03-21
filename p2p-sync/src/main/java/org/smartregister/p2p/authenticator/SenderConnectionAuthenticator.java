@@ -20,8 +20,8 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
 
     public SenderConnectionAuthenticator(@NonNull P2pModeSelectContract.View view
             , @NonNull P2pModeSelectContract.Interactor interactor
-            , @NonNull P2pModeSelectContract.Presenter presenter) {
-        super(view, interactor, presenter);
+            , @NonNull P2pModeSelectContract.BasePresenter basePresenter) {
+        super(view, interactor, basePresenter);
     }
 
     @Override

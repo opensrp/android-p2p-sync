@@ -13,7 +13,7 @@ import org.smartregister.p2p.handler.ActivityResumeHandler;
 
 public interface BaseView extends ActivityResultHandler, ActivityResumeHandler, ActivityRequestPermissionResultHandler {
 
-    void initializePresenter();
+    void initializePresenters();
 
     void runOnUiThread(@NonNull Runnable runnable);
 

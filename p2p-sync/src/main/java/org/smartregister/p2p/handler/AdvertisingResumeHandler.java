@@ -1,7 +1,6 @@
 package org.smartregister.p2p.handler;
 
 import android.support.annotation.NonNull;
-
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 /**
@@ -10,12 +9,13 @@ import org.smartregister.p2p.contract.P2pModeSelectContract;
 
 public class AdvertisingResumeHandler implements OnResumeHandler {
 
-    private P2pModeSelectContract.Presenter presenter;
+    private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
     private P2pModeSelectContract.Interactor interactor;
 
 
-    public AdvertisingResumeHandler(@NonNull P2pModeSelectContract.Presenter presenter, P2pModeSelectContract.Interactor interactor) {
-        this.presenter = presenter;
+    public AdvertisingResumeHandler(@NonNull P2pModeSelectContract.ReceiverPresenter receiverPresenter
+            , P2pModeSelectContract.Interactor interactor) {
+        this.receiverPresenter = receiverPresenter;
         this.interactor = interactor;
     }
 
@@ -23,7 +23,7 @@ public class AdvertisingResumeHandler implements OnResumeHandler {
     @Override
     public void onResume() {
         if (interactor.isAdvertising()) {
-            presenter.prepareForAdvertising(false);
+            receiverPresenter.prepareForAdvertising(false);
         }
     }
 }
