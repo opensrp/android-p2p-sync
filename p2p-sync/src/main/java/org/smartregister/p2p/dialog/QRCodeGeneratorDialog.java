@@ -101,7 +101,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
             imageViewQrCode.setImageBitmap(bitmap);
 
             ((TextView) getDialog().findViewById(R.id.tv_qrCodeGenDialog_authCode))
-                    .setText(String.format("Accept connection to %s with code %s", deviceName, authenticationCode));
+                    .setText(String.format(getString(R.string.accept_connection_to_device_with_code), deviceName, authenticationCode));
         } catch (WriterException e) {
             Timber.e(e);
 

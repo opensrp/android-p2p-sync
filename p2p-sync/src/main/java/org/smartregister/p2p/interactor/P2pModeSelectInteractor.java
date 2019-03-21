@@ -98,13 +98,13 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        Timber.i("Connection %s rejected successfully", endpointId);
+                        Timber.i(getContext().getString(R.string.log_connection_rejected_successfully), endpointId);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Timber.e(e, "Could not reject connection : %s", endpointId);
+                        Timber.e(e, getContext().getString(R.string.log_connection_rejection_failed), endpointId);
                     }
                 });
     }
@@ -181,7 +181,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                     @Override
                     public void onSuccess(Void aVoid) {
                         discovering = true;
-                        String message = "Discovery has been started successfully";
+                        String message = getContext().getString(R.string.log_discovery_started_successfully);
                         Timber.i(message);
 
                         iSenderSyncLifecycleCallback.onStartedDiscovering(aVoid);
@@ -194,7 +194,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
                                 ((ApiException) e).getStatusCode() == ConnectionsStatusCodes.STATUS_ALREADY_DISCOVERING)) {
                             discovering = false;
                         }
-                        String message = "Discovery could not be started - FAILED";
+                        String message = getContext().getString(R.string.log_discovery_could_not_be_started);
                         Timber.e(e, message);
 
                         iSenderSyncLifecycleCallback.onDiscoveringFailed(e);
@@ -246,12 +246,12 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     @Override
     public void onConnectionInitiated(@NonNull final String endpointId, @NonNull ConnectionInfo connectionInfo) {
-        Timber.i("Connection initiated %s", endpointId);
+        Timber.i(getContext().getString(R.string.log_connection_initiated), endpointId);
         // This is in advertising mode
         connectionsClient.acceptConnection(endpointId, new PayloadCallback() {
             @Override
             public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
-                Timber.i("Received a payload from %s", endpointId);
+                Timber.i(getContext().getString(R.string.log_received_payload_from_endpoint), endpointId);
                 if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
                     // Show a simple message of the text sent
                     String message = new String(payload.asBytes());
@@ -272,7 +272,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     @Override
     public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        Timber.i("Connection result : %s", endpointId);
+        Timber.i(getContext().getString(R.string.log_connection_result), endpointId);
 
         if (connectionResolution.getStatus().getStatusCode() == ConnectionsStatusCodes.STATUS_OK) {
             endpointIdConnected = endpointId;
@@ -281,7 +281,7 @@ public class P2pModeSelectInteractor extends ConnectionLifecycleCallback impleme
 
     @Override
     public void onDisconnected(@NonNull String s) {
-        Timber.i("Disconnected: %s", s);
+        Timber.i(getContext().getString(R.string.log_disconnected), s);
     }
 
     @Override
