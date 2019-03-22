@@ -23,6 +23,9 @@ allprojects {
         google()
         jcenter()
     }
+
+    version VERSION_NAME
+    group GROUP
 }
 
 task clean(type: Delete) {
@@ -30,8 +33,8 @@ task clean(type: Delete) {
 }
 
 ext {
-    group = 'org.smartregister'
-    version = "0.1.0"
+    group = GROUP
+    version = VERSION_NAME
 
     androidBuildToolsVersion = "28.0.3"
     androidMinSdkVersion = 18
