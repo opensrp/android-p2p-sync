@@ -95,7 +95,20 @@ public class QRCodeGeneratorDialog extends DialogFragment {
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
         Bitmap bitmap = null;
         try {
-            bitmap = barcodeEncoder.encodeBitmap(authenticationCode, BarcodeFormat.QR_CODE, 800, 800);
+            int screenHeight = getResources().getDisplayMetrics().heightPixels;
+            int screenWidth = getResources().getDisplayMetrics().widthPixels;
+
+            int barcodeSize = 800;
+
+            if (screenHeight/2 < barcodeSize) {
+                barcodeSize = screenHeight/2;
+            }
+
+            if (screenWidth/2 < barcodeSize) {
+                barcodeSize = screenWidth/2;
+            }
+
+            bitmap = barcodeEncoder.encodeBitmap(authenticationCode, BarcodeFormat.QR_CODE, barcodeSize, barcodeSize);
 
             ImageView imageViewQrCode = getDialog().findViewById(R.id.iv_qrCodeGenDialog_qrCode);
             imageViewQrCode.setImageBitmap(bitmap);
