@@ -21,6 +21,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -40,15 +41,27 @@ public class SenderConnectionAuthenticatorTest {
     @Mock
     private P2pModeSelectContract.View view;
     @Mock
-    private P2pModeSelectContract.BasePresenter basePresenter;
-    @Mock
-    private P2pModeSelectContract.Interactor interactor;
+    private P2pModeSelectContract.SenderPresenter senderPresenter;
 
     private SenderConnectionAuthenticator senderConnectionAuthenticator;
 
     @Before
     public void setUp() {
-        senderConnectionAuthenticator = new SenderConnectionAuthenticator(view, interactor, basePresenter);
+        Mockito.doReturn(view)
+                .when(senderPresenter)
+                .getView();
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                int resId = invocation.getArgument(0);
+                return RuntimeEnvironment.application.getString(resId);
+            }
+        })
+                .when(view)
+                .getString(Mockito.anyInt());
+
+        senderConnectionAuthenticator = new SenderConnectionAuthenticator(senderPresenter);
     }
 
     @Test

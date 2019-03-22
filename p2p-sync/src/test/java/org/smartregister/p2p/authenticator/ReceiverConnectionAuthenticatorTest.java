@@ -30,15 +30,17 @@ public class ReceiverConnectionAuthenticatorTest {
     @Mock
     private P2pModeSelectContract.View view;
     @Mock
-    private P2pModeSelectContract.BasePresenter basePresenter;
-    @Mock
-    private P2pModeSelectContract.Interactor interactor;
+    private P2pModeSelectContract.SenderPresenter senderPresenter;
 
     private ReceiverConnectionAuthenticator receiverConnectionAuthenticator;
 
     @Before
     public void setUp() {
-        receiverConnectionAuthenticator = new ReceiverConnectionAuthenticator(view, interactor, basePresenter);
+        Mockito.doReturn(view)
+                .when(senderPresenter)
+                .getView();
+
+        receiverConnectionAuthenticator = new ReceiverConnectionAuthenticator(senderPresenter);
     }
 
     @Test

@@ -57,6 +57,16 @@ public class P2PReceiverPresenterTest {
                 .when(view)
                 .getContext();
 
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                int resId = invocation.getArgument(0);
+                return RuntimeEnvironment.application.getString(resId);
+            }
+        })
+                .when(view)
+                .getString(Mockito.anyInt());
+
         p2PReceiverPresenter = Mockito.spy(new P2PReceiverPresenter(view, interactor));
     }
 
