@@ -51,5 +51,4 @@
     <string name="accept_connection_to_device_with_code">Accept connection to %s with code %s</string>
     <string name="authentication_failed">Authentication failed</string>
     <string name="authentication_cancelled_with_reason">Authentication cancelled : %s</string>
-    <string name="authentication_failed">Authentication failed</string>
 </resources>
