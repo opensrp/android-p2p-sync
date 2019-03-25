@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
@@ -28,12 +29,14 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.ConnectionState;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -513,5 +516,35 @@ public class P2PReceiverPresenterTest {
 
         Mockito.verify(interactor, Mockito.times(1))
                 .rejectConnection(ArgumentMatchers.eq(endpointId));
+    }
+
+    @Test
+    public void onConnectionAuthorizedShouldChangeConnectionStateToAuthorized() {
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
+        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", new DiscoveredDevice("endpointid"
+                , new DiscoveredEndpointInfo("endpointid", "endpoint-name")));
+
+        p2PReceiverPresenter.onConnectionAuthorized();
+
+        assertEquals(ConnectionState.AUTHORIZED
+                , ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
+    }
+
+    @Test
+    public void onConnectionAuthorizationRejectedShouldResetState() {
+        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", Mockito.mock(DiscoveredDevice.class));
+        ReflectionHelpers.setField(p2PReceiverPresenter, "connectionState", ConnectionState.AUTHENTICATED);
+
+        p2PReceiverPresenter.onConnectionAuthorizationRejected("Incompatible app version");
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .closeAllEndpoints();
+        Mockito.verify(interactor, Mockito.times(1))
+                .connectedTo(ArgumentMatchers.eq((String) null));
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .startAdvertisingMode();
+
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
     }
 }

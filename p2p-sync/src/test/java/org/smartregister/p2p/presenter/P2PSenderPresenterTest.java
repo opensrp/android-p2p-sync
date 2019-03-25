@@ -29,6 +29,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.sync.ConnectionState;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 import java.util.ArrayList;
@@ -510,5 +511,35 @@ public class P2PSenderPresenterTest {
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDiscoveringMode();
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+    }
+
+    @Test
+    public void onConnectionAuthorizedShouldChangeConnectionStateToAuthorized() {
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionState"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", new DiscoveredDevice("endpointid"
+                , new DiscoveredEndpointInfo("endpointid", "endpoint-name")));
+
+        p2PSenderPresenter.onConnectionAuthorized();
+        
+        assertEquals(ConnectionState.AUTHORIZED
+                , ReflectionHelpers.getField(p2PSenderPresenter, "connectionState"));
+    }
+
+    @Test
+    public void onConnectionAuthorizationRejectedShouldResetState() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", Mockito.mock(DiscoveredDevice.class));
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionState", ConnectionState.AUTHENTICATED);
+
+        p2PSenderPresenter.onConnectionAuthorizationRejected("Incompatible app version");
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .closeAllEndpoints();
+        Mockito.verify(interactor, Mockito.times(1))
+                .connectedTo(ArgumentMatchers.eq((String) null));
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .startDiscoveringMode();
+
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionState"));
     }
 }
