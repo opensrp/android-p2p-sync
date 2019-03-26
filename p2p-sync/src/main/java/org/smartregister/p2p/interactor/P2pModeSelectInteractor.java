@@ -218,6 +218,11 @@ public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor
     }
 
     @Override
+    public void disconnectFromEndpoint(@NonNull String endpointId) {
+        connectionsClient.disconnectFromEndpoint(endpointId);
+    }
+
+    @Override
     public void cleanOngoingConnectionResources() {
         // Todo: rename this to reset lost connection resources
     }

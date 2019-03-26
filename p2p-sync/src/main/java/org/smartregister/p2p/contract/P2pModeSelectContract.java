@@ -128,6 +128,8 @@ public interface P2pModeSelectContract {
 
         void closeAllEndpoints();
 
+        void disconnectFromEndpoint(@NonNull String endpointId);
+
         void cleanOngoingConnectionResources();
 
         /**

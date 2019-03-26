@@ -7,6 +7,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import java.util.UUID;
 import android.support.annotation.Nullable;
 
+import org.smartregister.p2p.model.AppDatabase;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.util.Device;
 import org.smartregister.p2p.util.Settings;
@@ -48,6 +49,14 @@ public final class P2PLibrary {
         }
 
         hashKey = getHashKey();
+
+        // Start the DB
+        AppDatabase.getInstance(getContext(), options.getDbPassphrase());
+    }
+
+    @NonNull
+    public AppDatabase getDb() {
+        return AppDatabase.getInstance(getContext(), options.getDbPassphrase());
     }
 
     @NonNull
@@ -76,7 +85,7 @@ public final class P2PLibrary {
      * @param context
      * @param onFinishedCallback
      */
-    public void getDeviceMacAddress(@NonNull final Context context, @NonNull GenericAsyncTask.OnFinishedCallback onFinishedCallback) {
+    public void getDeviceMacAddress(@NonNull final Context context, @NonNull GenericAsyncTask.OnFinishedCallback<String> onFinishedCallback) {
         GenericAsyncTask<String> genericAsyncTask = new GenericAsyncTask<>(new Callable<String>() {
             @Override
             public String call() {
@@ -117,10 +126,13 @@ public final class P2PLibrary {
 
         private Context context;
         private String username;
+        private String dbPassphrase;
         private P2PAuthorizationService p2PAuthorizationService;
 
-        public Options(@NonNull Context context, @NonNull String username, @NonNull P2PAuthorizationService p2PAuthorizationService) {
+        public Options(@NonNull Context context, @NonNull String dbPassphrase, @NonNull String username
+                , @NonNull P2PAuthorizationService p2PAuthorizationService) {
             this.context = context;
+            this.dbPassphrase = dbPassphrase;
             this.username = username;
             this.p2PAuthorizationService = p2PAuthorizationService;
         }
@@ -137,6 +149,10 @@ public final class P2PLibrary {
 
         public Context getContext() {
             return context;
+        }
+
+        public String getDbPassphrase() {
+            return dbPassphrase;
         }
     }
 }

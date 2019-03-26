@@ -27,4 +27,10 @@ public interface Constants {
         String NAME = "android-p2p-sync";
         String KEY_HASH = "hash-key";
     }
+
+    interface BasicDeviceDetails {
+
+        String KEY_DEVICE_ID = "device-id";
+        String KEY_APP_LIFETIME_KEY = "app-lifetime-key";
+    }
 }

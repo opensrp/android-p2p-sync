@@ -107,12 +107,15 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     private void prepareTrackingDetails() {
         P2PLibrary.getInstance()
-                .getDeviceMacAddress(this, new GenericAsyncTask.OnFinishedCallback() {
+                .getDeviceMacAddress(this, new GenericAsyncTask.OnFinishedCallback<String>() {
                     @Override
-                    public void onSuccess(@Nullable Object... objects) {
-                        if (objects != null) {
+                    public void onSuccess(@Nullable String result) {
+                        if (result != null) {
                             P2PLibrary.getInstance()
-                                    .setDeviceUniqueIdentifier((String) objects[0]);
+                                    .setDeviceUniqueIdentifier(result);
+                        } else {
+                            Timber.e("Getting device mac address was not successful! It failed");
+                            showFatalErrorDialog(R.string.an_error_occured, R.string.error_occurred_trying_to_get_mac_address);
                         }
                     }
 

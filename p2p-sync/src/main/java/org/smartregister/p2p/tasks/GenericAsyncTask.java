@@ -17,7 +17,7 @@ import timber.log.Timber;
 public class GenericAsyncTask<T> extends AsyncTask<Void, Void, T> {
 
     private Callable<T> toCall;
-    private OnFinishedCallback onFinishedCallback;
+    private OnFinishedCallback<T> onFinishedCallback;
 
     private Exception exception;
 
@@ -56,13 +56,13 @@ public class GenericAsyncTask<T> extends AsyncTask<Void, Void, T> {
         }
     }
 
-    public void setOnFinishedCallback(@Nullable OnFinishedCallback onFinishedCallback) {
+    public void setOnFinishedCallback(@Nullable OnFinishedCallback<T> onFinishedCallback) {
         this.onFinishedCallback = onFinishedCallback;
     }
 
-    public interface OnFinishedCallback {
+    public interface OnFinishedCallback<T> {
 
-        void onSuccess(@Nullable Object... objects);
+        void onSuccess(@NonNull T result);
 
         void onError(Exception e);
     }
