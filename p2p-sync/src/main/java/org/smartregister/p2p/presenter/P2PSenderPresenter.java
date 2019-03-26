@@ -161,7 +161,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Show the user an error trying to connect device XYZ
         view.showToast(view.getString(R.string.could_not_initiate_connection_request_to_device), Toast.LENGTH_LONG);
         resetState();
-        startDiscoveringMode();
+        prepareForDiscovering(false);
     }
 
     @Override
@@ -264,7 +264,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         //Todo: And show the user an error
         view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
         resetState();
-        startDiscoveringMode();
+        prepareForDiscovering(false);
     }
 
     @Override
@@ -274,7 +274,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         resetState();
         view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken)
                 , endpointId), Toast.LENGTH_LONG);
-        startDiscoveringMode();
+        prepareForDiscovering(false);
     }
 
     @Override
@@ -297,7 +297,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         Timber.e(view.getString(R.string.log_disconnected), endpointId);
         view.displayMessage(view.getString(R.string.disconnected));
         resetState();
-        startDiscoveringMode();
+        prepareForDiscovering(false);
     }
 
     @Override
@@ -386,7 +386,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 , Toast.LENGTH_LONG);
 
         resetState();
-        startDiscoveringMode();
+        prepareForDiscovering(false);
     }
 
     @Nullable

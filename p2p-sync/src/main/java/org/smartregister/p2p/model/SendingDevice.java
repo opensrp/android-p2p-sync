@@ -16,7 +16,7 @@ public class SendingDevice {
     @ColumnInfo(name = "device_unique_id", index = true)
     private String deviceUniqueId;
 
-    @ColumnInfo(name = "app-lifetime-key")
+    @ColumnInfo(name = "app_lifetime_key")
     private String appLifetimeKey;
 
     public int getId() {
