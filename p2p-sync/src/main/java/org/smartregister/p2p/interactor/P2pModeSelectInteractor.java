@@ -223,10 +223,15 @@ public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor
     }
 
     @Override
-    public void sendMessage(@NonNull String message) {
+    public long sendMessage(@NonNull String message) {
         if (endpointIdConnected != null) {
-            connectionsClient.sendPayload(endpointIdConnected, Payload.fromBytes(message.getBytes()));
+            Payload payload = Payload.fromBytes(message.getBytes());
+            connectionsClient.sendPayload(endpointIdConnected, payload);
+
+            return payload.getId();
         }
+
+        return 0;
     }
 
     @Override

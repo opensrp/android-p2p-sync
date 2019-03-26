@@ -5,6 +5,8 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
 import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
@@ -31,6 +33,10 @@ public interface SyncLifecycleCallback extends BaseSyncConnectionAuthenticator.A
     void onDisconnected(@NonNull String endpointId);
 
     void sendAuthorizationDetails(@NonNull Map<String, Object> authorizationDetails);
+
+    void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload);
+
+    void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update);
 
     interface SyncConnectionLifecycleCallback {
 

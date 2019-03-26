@@ -20,7 +20,7 @@ import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
-import org.smartregister.p2p.sync.ConnectionState;
+import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
@@ -40,7 +40,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Nullable
     private DiscoveredDevice currentSender;
-    private ConnectionState connectionState;
+    private ConnectionLevel connectionLevel;
 
     public P2PReceiverPresenter(@NonNull P2pModeSelectContract.View view) {
         super(view);
@@ -147,7 +147,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         if (currentSender != null) {
-            connectionState = ConnectionState.AUTHENTICATED;
+            connectionLevel = ConnectionLevel.AUTHENTICATED;
             interactor.connectedTo(endpointId);
             P2PAuthorizationService authorizationService = P2PLibrary.getInstance()
                     .getP2PAuthorizationService();
@@ -189,8 +189,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
-        if (connectionState != null) {
-            if (connectionState.equals(ConnectionState.AUTHORIZED)) {
+        if (connectionLevel != null) {
+            if (connectionLevel.equals(ConnectionLevel.RECEIVED_HASH_KEY)) {
                 // Do nothing for now
                 if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
                     // Show a simple message of the text sent
@@ -198,7 +198,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     view.showToast(message, Toast.LENGTH_LONG);
                     view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
                 }
-            } else {
+            } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
                 if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
                     String authenticationDetailsJson = new String(payload.asBytes());
@@ -215,8 +215,34 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 } else {
                     onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
                 }
+            } else if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
+                // Waiting for the hash key
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    String payloadAsString = new String(payload.asBytes());
+
+                    Map<String, Object> basicDeviceDetails = (Map<String, Object>) new Gson()
+                            .fromJson(payloadAsString, Map.class);
+                    if (basicDeviceDetails != null) {
+                        Timber.e("Hash key was sent was null");
+                        interactor.rejectConnection(endpointId);
+                        resetState();
+                    } else {
+                        // Check if the device has been interacting with this app && if it's state when it started
+                        // and now is the same
+                    }
+
+                } else {
+                    Timber.e("Hash key was sent in an invalid format");
+                    interactor.rejectConnection(endpointId);
+                    resetState();
+                }
             }
         }
+    }
+
+    @Override
+    public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
+
     }
 
     @Override
@@ -243,6 +269,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 @Override
                 public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
                     // Do nothing for now
+                    P2PReceiverPresenter.this.onPayloadTransferUpdate(s, payloadTransferUpdate);
                 }
             });
         }
@@ -277,14 +304,14 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     private void resetState() {
-        connectionState = null;
+        connectionLevel = null;
         view.dismissAllDialogs();
         currentSender = null;
     }
 
     @Override
     public void onConnectionAuthorized() {
-        connectionState = ConnectionState.AUTHORIZED;
+        connectionLevel = ConnectionLevel.AUTHORIZED;
         view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
         view.displayMessage(view.getString(R.string.connected));

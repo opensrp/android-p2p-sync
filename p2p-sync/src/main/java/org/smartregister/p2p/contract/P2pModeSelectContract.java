@@ -9,9 +9,11 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
@@ -75,7 +77,14 @@ public interface P2pModeSelectContract {
 
         void onStop();
 
-        void sendTextMessage(@NonNull String message);
+        /**
+         * Sends a payload to the other device and returns the payloadId which can be used to track the
+         * transfer progress of the payload/message
+         *
+         * @param message the string message
+         * @return the payloadId
+         */
+        long sendTextMessage(@NonNull String message);
 
         @NonNull
         View getView();
@@ -121,7 +130,14 @@ public interface P2pModeSelectContract {
 
         void cleanOngoingConnectionResources();
 
-        void sendMessage(@NonNull String message);
+        /**
+         * Sends a payload to the other device and returns the payloadId which can be used to track the
+         * transfer progress of the payload/message
+         *
+         * @param message the string message
+         * @return the payloadId
+         */
+        long sendMessage(@NonNull String message);
 
         void connectedTo(@Nullable String endpointId);
 

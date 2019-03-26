@@ -13,6 +13,4 @@ public interface IReceiverSyncLifecycleCallback extends SyncLifecycleCallback {
     void onStartedAdvertising(Object result);
 
     void onAdvertisingFailed(@NonNull Exception e);
-
-    void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload);
 }
