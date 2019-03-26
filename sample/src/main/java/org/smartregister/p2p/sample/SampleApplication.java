@@ -19,7 +19,8 @@ public class SampleApplication extends Application implements P2PAuthorizationSe
     @Override
     public void onCreate() {
         super.onCreate();
-        P2PLibrary.init(new P2PLibrary.Options(String.format("%s %s", Build.MANUFACTURER, Build.MODEL), this));
+        P2PLibrary.init(new P2PLibrary.Options(this
+                , String.format("%s %s", Build.MANUFACTURER, Build.MODEL), this));
     }
 
     @Override

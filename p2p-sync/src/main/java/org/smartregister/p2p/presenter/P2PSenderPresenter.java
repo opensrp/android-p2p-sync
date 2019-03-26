@@ -23,11 +23,12 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
-import org.smartregister.p2p.sync.ConnectionState;
+import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
 import org.smartregister.p2p.util.Constants;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Nullable
     private DiscoveredDevice currentReceiver;
-    private ConnectionState connectionState;
+    private ConnectionLevel connectionLevel;
+    private long hashKeyPayloadId;
 
     public P2PSenderPresenter(@NonNull P2pModeSelectContract.View view) {
         super(view);
@@ -187,53 +189,17 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onAuthenticationSuccessful() {
         if (currentReceiver != null){
             view.showToast(view.getString(R.string.authentication_successful_receiver_can_accept_connection), Toast.LENGTH_LONG);
-            final P2PAuthorizationService p2PAuthorizationService = P2PLibrary.getInstance()
-                    .getP2PAuthorizationService();
 
             interactor.acceptConnection(currentReceiver.getEndpointId(), new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
-                    Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
-                    if (connectionState != null) {
-                        if (connectionState.equals(ConnectionState.AUTHORIZED)) {
-                            // Do nothing for now
-                            if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                                // Show a simple message of the text sent
-                                String message = new String(payload.asBytes());
-                                view.showToast(message, Toast.LENGTH_LONG);
-                                view.displayMessage(endpointId + ": " + message);
-                            }
-                        } else {
-                            // Should get the details to authorize
-                            if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                                String authenticationDetailsJson = new String(payload.asBytes());
-
-                                // Validate json is a map
-
-                                Map<String, Object> map = null;
-                                try {
-                                     map = (Map<String, Object>) new Gson()
-                                            .fromJson(authenticationDetailsJson, Map.class);
-                                } catch (JsonSyntaxException e) {
-                                    Timber.e(e);
-                                }
-
-                                if (map == null) {
-                                    onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                                } else {
-                                    p2PAuthorizationService.authorizeConnection(map
-                                            , P2PSenderPresenter.this);
-                                }
-                            } else {
-                                onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                            }
-                        }
-                    }
+                    P2PSenderPresenter.this.onPayloadReceived(endpointId, payload);
                 }
 
                 @Override
                 public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
                     // Do nothing for now
+                    P2PSenderPresenter.this.onPayloadTransferUpdate(s, payloadTransferUpdate);
                 }
             });
         }
@@ -271,7 +237,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         if (currentReceiver != null) {
-            connectionState = ConnectionState.AUTHENTICATED;
+            connectionLevel = ConnectionLevel.AUTHENTICATED;
             interactor.connectedTo(endpointId);
             P2PAuthorizationService authorizationService = P2PLibrary.getInstance()
                     .getP2PAuthorizationService();
@@ -313,7 +279,17 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
-        // Do nothing for now
+        if (hashKeyPayloadId != 0) {
+            if (hashKeyPayloadId == update.getPayloadId()) {
+                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                    connectionLevel = ConnectionLevel.SENT_HASH_KEY;
+                } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
+                    hashKeyPayloadId = 0;
+
+                    //Todo: Should retry sending the hash key if the connection to the device is still alive
+                }
+            }
+        }
     }
 
     @Override
@@ -329,20 +305,76 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         interactor.sendMessage(new Gson().toJson(authorizationDetails));
     }
 
+    @Override
+    public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
+        P2PAuthorizationService p2PAuthorizationService = P2PLibrary.getInstance()
+                .getP2PAuthorizationService();
+
+        Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
+        if (connectionLevel != null) {
+            if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
+                // Do nothing until the hash_key has been received on the other side
+            } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
+                // Should get the details to authorize
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    String authenticationDetailsJson = new String(payload.asBytes());
+
+                    // Validate json is a map
+
+                    Map<String, Object> map = null;
+                    try {
+                        map = (Map<String, Object>) new Gson()
+                                .fromJson(authenticationDetailsJson, Map.class);
+                    } catch (JsonSyntaxException e) {
+                        Timber.e(e);
+                    }
+
+                    if (map == null) {
+                        onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+                    } else {
+                        p2PAuthorizationService.authorizeConnection(map
+                                , P2PSenderPresenter.this);
+                    }
+                } else {
+                    onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+                }
+            } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
+                // Do nothing for now
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    // Show a simple message of the text sent
+                    String message = new String(payload.asBytes());
+                    view.showToast(message, Toast.LENGTH_LONG);
+                    view.displayMessage(endpointId + ": " + message);
+                }
+            }
+        }
+    }
+
     private void resetState() {
-        connectionState = null;
+        connectionLevel = null;
         view.dismissAllDialogs();
         currentReceiver = null;
     }
 
     @Override
     public void onConnectionAuthorized() {
-        connectionState = ConnectionState.AUTHORIZED;
+        connectionLevel = ConnectionLevel.AUTHORIZED;
+
+        // Send the hash key
+        sendBasicDeviceDetails();
 
         view.showToast(String.format(view.getString(R.string.you_are_connected_to_receiver)
                 , currentReceiver.getEndpointName())
                 , Toast.LENGTH_LONG);
         view.displayMessage(view.getString(R.string.connected));
+    }
+
+    private void sendBasicDeviceDetails() {
+        Map<String, String> basicDeviceDetails = new HashMap<>();
+        basicDeviceDetails.put("app-lifetime-key", P2PLibrary.getInstance().getHashKey());
+        basicDeviceDetails.put("device-id", P2PLibrary.getInstance().getDeviceUniqueIdentifier());
+
+        hashKeyPayloadId = sendTextMessage(new Gson().toJson(basicDeviceDetails));
     }
 
     @Override
@@ -362,4 +394,5 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public DiscoveredDevice getCurrentPeerDevice() {
         return currentReceiver;
     }
+
 }

@@ -66,7 +66,8 @@ public class P2pModeSelectInteractorTest {
         Shadowzzbd shadowzzbd = Shadow.extract(connectionsClient);
         shadowzzbd.setMockZzbd(mockedZzbd);
 
-        P2PLibrary.init(new P2PLibrary.Options(username, Mockito.mock(P2PAuthorizationService.class)));
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application,
+                username, Mockito.mock(P2PAuthorizationService.class)));
     }
 
     @Test

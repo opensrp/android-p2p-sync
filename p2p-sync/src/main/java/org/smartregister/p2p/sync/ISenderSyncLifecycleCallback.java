@@ -24,6 +24,4 @@ public interface ISenderSyncLifecycleCallback extends SyncLifecycleCallback {
     void onRequestConnectionSuccessful(@Nullable Object result);
 
     void onRequestConnectionFailed(@NonNull Exception exception);
-
-    void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update);
 }

@@ -8,8 +8,11 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
+import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.StringRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -30,6 +33,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
@@ -41,6 +45,7 @@ import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
 import org.smartregister.p2p.presenter.P2PReceiverPresenter;
 import org.smartregister.p2p.presenter.P2PSenderPresenter;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.util.Constants;
 import org.smartregister.p2p.util.DialogUtils;
 import org.smartregister.p2p.util.Permissions;
@@ -96,6 +101,26 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                 }
             }
         });
+
+        prepareTrackingDetails();
+    }
+
+    private void prepareTrackingDetails() {
+        P2PLibrary.getInstance()
+                .getDeviceMacAddress(this, new GenericAsyncTask.OnFinishedCallback() {
+                    @Override
+                    public void onSuccess(@Nullable Object... objects) {
+                        if (objects != null) {
+                            P2PLibrary.getInstance()
+                                    .setDeviceUniqueIdentifier((String) objects[0]);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        showFatalErrorDialog(R.string.an_error_occured, R.string.error_occurred_trying_to_get_mac_address);
+                    }
+                });
     }
 
     @Override
@@ -369,6 +394,20 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    private void showFatalErrorDialog(@StringRes int title, @StringRes int message) {
+        new AlertDialog.Builder(P2pModeSelectActivity.this)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        P2pModeSelectActivity.this.finish();
                     }
                 })
                 .show();

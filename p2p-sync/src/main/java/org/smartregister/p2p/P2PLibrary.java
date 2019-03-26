@@ -1,11 +1,16 @@
 package org.smartregister.p2p;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
-import org.smartregister.p2p.util.Constants;
 import java.util.UUID;
+import android.support.annotation.Nullable;
+
+import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.util.Device;
+import org.smartregister.p2p.util.Settings;
+import java.util.concurrent.Callable;
 import timber.log.Timber;
 
 /**
@@ -17,6 +22,7 @@ public final class P2PLibrary {
     private static P2PLibrary instance;
     private Options options;
     private String hashKey;
+    private String deviceUniqueIdentifier;
 
     @NonNull
     public static P2PLibrary getInstance() {
@@ -41,19 +47,56 @@ public final class P2PLibrary {
             Timber.plant(new Timber.DebugTree());
         }
 
-        checkHashKeyPresent();
+        hashKey = getHashKey();
     }
 
-    private void checkHashKeyPresent() {
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences(Constants.Prefs.NAME, Context.MODE_PRIVATE);
-        hashKey = sharedPreferences.getString(Constants.Prefs.KEY_HASH, null);
+    @NonNull
+    public String getHashKey() {
         if (hashKey == null) {
-            hashKey = UUID.randomUUID().toString();
-            sharedPreferences.edit()
-                    .putString(Constants.Prefs.KEY_HASH, hashKey)
-                    .apply();
+            Settings settings = new Settings(getContext());
+            hashKey = settings.getHashKey();
+
+            if (hashKey == null) {
+                hashKey = generateHashKey();
+                settings.saveHashKey(hashKey);
+            }
         }
+
+        return hashKey;
     }
+
+    private String generateHashKey() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * This retrieves the device Wifi MAC Address. This might take up-to 5 seconds because it has to turn on wifi
+     * if it is not on so that is can access the WLAN interface
+     *
+     * @param context
+     * @param onFinishedCallback
+     */
+    public void getDeviceMacAddress(@NonNull final Context context, @NonNull GenericAsyncTask.OnFinishedCallback onFinishedCallback) {
+        GenericAsyncTask<String> genericAsyncTask = new GenericAsyncTask<>(new Callable<String>() {
+            @Override
+            public String call() {
+                return Device.generateUniqueDeviceId(context);
+            }
+        });
+
+        genericAsyncTask.setOnFinishedCallback(onFinishedCallback);
+        genericAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    public void setDeviceUniqueIdentifier(@NonNull String deviceUniqueIdentifier) {
+        this.deviceUniqueIdentifier = deviceUniqueIdentifier;
+    }
+
+    @Nullable
+    public String getDeviceUniqueIdentifier() {
+        return deviceUniqueIdentifier;
+    }
+
 
     @NonNull
     public String getUsername() {

@@ -29,7 +29,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
-import org.smartregister.p2p.sync.ConnectionState;
+import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 
@@ -58,7 +58,8 @@ public class P2PReceiverPresenterTest {
 
     @Before
     public void setUp() throws Exception {
-        P2PLibrary.init(new P2PLibrary.Options("username", Mockito.mock(P2PAuthorizationService.class)));
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
+                ,"username", Mockito.mock(P2PAuthorizationService.class)));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();
@@ -520,20 +521,20 @@ public class P2PReceiverPresenterTest {
 
     @Test
     public void onConnectionAuthorizedShouldChangeConnectionStateToAuthorized() {
-        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionLevel"));
         ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", new DiscoveredDevice("endpointid"
                 , new DiscoveredEndpointInfo("endpointid", "endpoint-name")));
 
         p2PReceiverPresenter.onConnectionAuthorized();
 
-        assertEquals(ConnectionState.AUTHORIZED
-                , ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
+        assertEquals(ConnectionLevel.AUTHORIZED
+                , ReflectionHelpers.getField(p2PReceiverPresenter, "connectionLevel"));
     }
 
     @Test
     public void onConnectionAuthorizationRejectedShouldResetState() {
         ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", Mockito.mock(DiscoveredDevice.class));
-        ReflectionHelpers.setField(p2PReceiverPresenter, "connectionState", ConnectionState.AUTHENTICATED);
+        ReflectionHelpers.setField(p2PReceiverPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
 
         p2PReceiverPresenter.onConnectionAuthorizationRejected("Incompatible app version");
 
@@ -545,6 +546,6 @@ public class P2PReceiverPresenterTest {
                 .startAdvertisingMode();
 
         assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
-        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionState"));
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionLevel"));
     }
 }
