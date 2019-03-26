@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "bf5cf2c004ba8eda09f4ca4d93daafe5",
+    "identityHash": "29c5cef9b2b7110b713f68e04b744cc7",
     "entities": [
       {
         "tableName": "sending_devices",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `device_unique_id` TEXT, `app-lifetime-key` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `device_unique_id` TEXT, `app_lifetime_key` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -22,7 +22,7 @@
           },
           {
             "fieldPath": "appLifetimeKey",
-            "columnName": "app-lifetime-key",
+            "columnName": "app_lifetime_key",
             "affinity": "TEXT",
             "notNull": false
           }
@@ -80,7 +80,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"bf5cf2c004ba8eda09f4ca4d93daafe5\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"29c5cef9b2b7110b713f68e04b744cc7\")"
     ]
   }
 }

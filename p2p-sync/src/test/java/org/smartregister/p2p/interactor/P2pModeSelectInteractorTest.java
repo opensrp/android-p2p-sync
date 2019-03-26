@@ -34,6 +34,7 @@ import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.Shadowzzbd;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.presenter.P2PSenderPresenter;
@@ -48,7 +49,7 @@ import static org.junit.Assert.assertTrue;
  */
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {Shadowzzbd.class})
+@Config(shadows = {Shadowzzbd.class, ShadowAppDatabase.class})
 public class P2pModeSelectInteractorTest {
 
     @Rule
@@ -67,7 +68,7 @@ public class P2pModeSelectInteractorTest {
         shadowzzbd.setMockZzbd(mockedZzbd);
 
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application,
-                username, Mockito.mock(P2PAuthorizationService.class)));
+                "password", username, Mockito.mock(P2PAuthorizationService.class)));
     }
 
     @Test

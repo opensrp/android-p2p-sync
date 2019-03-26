@@ -5,12 +5,17 @@ import android.support.annotation.NonNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
+import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.TestApplication;
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.shadows.ShadowAppDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,13 +27,15 @@ import static org.junit.Assert.assertTrue;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 13/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(application = TestApplication.class)
+@Config(application = TestApplication.class, shadows = {ShadowAppDatabase.class})
 public class P2pModeSelectActivityTest {
 
     private P2pModeSelectActivity activity;
 
     @Before
     public void setUp() throws Exception {
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
+                ,"password","username", Mockito.mock(P2PAuthorizationService.class)));
         activity = Robolectric.buildActivity(P2pModeSelectActivity.class)
                 .create()
                 .start()

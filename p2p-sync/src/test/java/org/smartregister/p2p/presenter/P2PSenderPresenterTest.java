@@ -22,6 +22,7 @@ import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
@@ -29,6 +30,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
@@ -43,6 +45,7 @@ import static org.junit.Assert.assertNull;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 19/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
+@Config(shadows = {ShadowAppDatabase.class})
 public class P2PSenderPresenterTest {
 
     @Rule
@@ -58,7 +61,7 @@ public class P2PSenderPresenterTest {
     @Before
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
-                ,"username", Mockito.mock(P2PAuthorizationService.class)));
+                ,"password","username", Mockito.mock(P2PAuthorizationService.class)));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();
@@ -331,7 +334,7 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onRequestConnectionFailed(new Exception());
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .startDiscoveringMode();
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
@@ -476,7 +479,7 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onConnectionUnknownError(endpointId, connectionResolution);
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .startDiscoveringMode();
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
@@ -493,7 +496,7 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onConnectionBroken(endpointId);
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .startDiscoveringMode();
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
@@ -510,7 +513,7 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onDisconnected(endpointId);
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .startDiscoveringMode();
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
@@ -538,7 +541,7 @@ public class P2PSenderPresenterTest {
         Mockito.verify(interactor, Mockito.times(1))
                 .connectedTo(ArgumentMatchers.eq((String) null));
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .startDiscoveringMode();
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
 
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
