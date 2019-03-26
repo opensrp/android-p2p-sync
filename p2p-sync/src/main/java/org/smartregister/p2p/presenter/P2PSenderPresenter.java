@@ -371,8 +371,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     private void sendBasicDeviceDetails() {
         Map<String, String> basicDeviceDetails = new HashMap<>();
-        basicDeviceDetails.put("app-lifetime-key", P2PLibrary.getInstance().getHashKey());
-        basicDeviceDetails.put("device-id", P2PLibrary.getInstance().getDeviceUniqueIdentifier());
+        basicDeviceDetails.put(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY, P2PLibrary.getInstance().getHashKey());
+        basicDeviceDetails.put(Constants.BasicDeviceDetails.KEY_DEVICE_ID, P2PLibrary.getInstance().getDeviceUniqueIdentifier());
 
         hashKeyPayloadId = sendTextMessage(new Gson().toJson(basicDeviceDetails));
     }

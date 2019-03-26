@@ -1,6 +1,7 @@
 package org.smartregister.p2p.presenter;
 
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -20,14 +21,19 @@ import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.model.AppDatabase;
+import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.List;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import timber.log.Timber;
 
@@ -187,57 +193,170 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     @Override
-    public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
+    public void onPayloadReceived(@NonNull final String endpointId, @NonNull Payload payload) {
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
         if (connectionLevel != null) {
             if (connectionLevel.equals(ConnectionLevel.RECEIVED_HASH_KEY)) {
                 // Do nothing for now
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    // Show a simple message of the text sent
-                    String message = new String(payload.asBytes());
-                    view.showToast(message, Toast.LENGTH_LONG);
-                    view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
-                }
+                processPayload(endpointId, payload);
             } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    String authenticationDetailsJson = new String(payload.asBytes());
-
-                    Map<String, Object> map = (Map<String, Object>) new Gson()
-                            .fromJson(authenticationDetailsJson, Map.class);
-
-                    if (map == null) {
-                        onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                    } else {
-                        P2PLibrary.getInstance().getP2PAuthorizationService()
-                                .authorizeConnection(map, P2PReceiverPresenter.this);
-                    }
-                } else {
-                    onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                }
+                performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
                 // Waiting for the hash key
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    String payloadAsString = new String(payload.asBytes());
-
-                    Map<String, Object> basicDeviceDetails = (Map<String, Object>) new Gson()
-                            .fromJson(payloadAsString, Map.class);
-                    if (basicDeviceDetails != null) {
-                        Timber.e("Hash key was sent was null");
-                        interactor.rejectConnection(endpointId);
-                        resetState();
-                    } else {
-                        // Check if the device has been interacting with this app && if it's state when it started
-                        // and now is the same
-                    }
-
-                } else {
-                    Timber.e("Hash key was sent in an invalid format");
-                    interactor.rejectConnection(endpointId);
-                    resetState();
-                }
+                processHashKey(endpointId, payload);
             }
         }
+    }
+
+    private void processHashKey(@NonNull final String endpointId, @NonNull Payload payload) {
+        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+            String payloadAsString = new String(payload.asBytes());
+
+            final Map<String, Object> basicDeviceDetails = (Map<String, Object>) new Gson()
+                    .fromJson(payloadAsString, Map.class);
+            if (basicDeviceDetails == null || basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID) == null) {
+                Timber.e("Hash key was sent was null");
+                disconnectAndReset(endpointId);
+            } else {
+                connectionLevel = ConnectionLevel.RECEIVED_HASH_KEY;
+                // Check if the device has been interacting with this app if it's state when it started
+                // and now is the same
+                // Should be done in the background
+                checkIfDeviceKeyHasChanged(basicDeviceDetails, new GenericAsyncTask.OnFinishedCallback<SendingDevice>() {
+                    @Override
+                    public void onSuccess(@Nullable SendingDevice result) {
+                        if (result != null) {
+                            final SendingDevice sendingDevice = result;
+                            final String appLifetimeKey = (String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY);
+
+                            if (sendingDevice.getAppLifetimeKey()
+                                    .equals(appLifetimeKey)) {
+                                //Todo: Get the records sent last time
+
+                            } else {
+                                // Clear the device history records && update device app key
+                                Tasker.run(new Callable<Integer>() {
+                                    @Override
+                                    public Integer call() throws Exception {
+                                        AppDatabase db = P2PLibrary.getInstance().getDb();
+
+                                        sendingDevice.setAppLifetimeKey(appLifetimeKey);
+                                        db.sendingDeviceDao().update(sendingDevice);
+
+                                        return db.p2pReceivedHistoryDao()
+                                                .clearDeviceRecords(sendingDevice.getId());
+                                    }
+                                }, new GenericAsyncTask.OnFinishedCallback<Integer>() {
+                                    @Override
+                                    public void onSuccess(@Nullable Integer result) {
+                                        if (result != null) {
+                                            Timber.e("%d records deleted", (int) result);
+                                        }
+
+                                        // Todo: get the records sent last time and continue with the process
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Timber.e("An error occurred trying to delete the P2P received history of the device %s"
+                                                , sendingDevice.getDeviceUniqueId());
+                                    }
+                                });
+
+                            }
+                        } else {
+                            // This is a new device we should save it
+                            Tasker.run(new Callable<Void>() {
+                                @Override
+                                public Void call() throws Exception {
+                                    SendingDevice sendingDevice = new SendingDevice();
+                                    sendingDevice.setDeviceUniqueId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
+                                    sendingDevice.setAppLifetimeKey((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY));
+
+                                    P2PLibrary.getInstance().getDb()
+                                            .sendingDeviceDao()
+                                            .insert(sendingDevice);
+
+                                    return null;
+                                }
+                            }, new GenericAsyncTask.OnFinishedCallback<Void>() {
+                                @Override
+                                public void onSuccess(@Nullable Void result) {
+                                    // Todo: get the records sent last time and continue with the process
+                                }
+
+                                @Override
+                                public void onError(Exception e) {
+                                    Timber.e(e);
+                                    view.showToast("An error occurred trying to save the new sender details", Toast.LENGTH_LONG);
+
+                                    disconnectAndReset(endpointId);
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Timber.e(e);
+                        disconnectAndReset(endpointId);
+                    }
+                });
+            }
+
+        } else {
+            Timber.e("Hash key was sent in an invalid format");
+            disconnectAndReset(endpointId);
+        }
+    }
+
+    private void performAuthorization(@NonNull Payload payload) {
+        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+            String authenticationDetailsJson = new String(payload.asBytes());
+
+            Map<String, Object> map = (Map<String, Object>) new Gson()
+                    .fromJson(authenticationDetailsJson, Map.class);
+
+            if (map == null) {
+                onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+            } else {
+                P2PLibrary.getInstance().getP2PAuthorizationService()
+                        .authorizeConnection(map, P2PReceiverPresenter.this);
+            }
+        } else {
+            onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+        }
+    }
+
+    private void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
+        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+            // Show a simple message of the text sent
+            String message = new String(payload.asBytes());
+            view.showToast(message, Toast.LENGTH_LONG);
+            view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
+        }
+    }
+
+    private void disconnectAndReset(@NonNull String endpointId) {
+        interactor.disconnectFromEndpoint(endpointId);
+        resetState();
+        prepareForAdvertising(false);
+    }
+
+    private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails
+            , @NonNull GenericAsyncTask.OnFinishedCallback<SendingDevice> onFinishedCallback) {
+        GenericAsyncTask<SendingDevice> genericAsyncTask = new GenericAsyncTask<>(new Callable<SendingDevice>() {
+            @Override
+            public SendingDevice call() throws Exception {
+                return P2PLibrary.getInstance().getDb()
+                        .sendingDeviceDao()
+                        .getSendingDevice((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
+            }
+        });
+
+        genericAsyncTask.setOnFinishedCallback(onFinishedCallback);
+        genericAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
