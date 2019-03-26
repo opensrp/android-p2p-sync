@@ -77,7 +77,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 view.addOnActivityRequestPermissionHandler(new OnActivityRequestPermissionHandler() {
                     @Override
                     public int getRequestCode() {
-                        return Constants.RQ_CODE.PERMISSIONS;
+                        return Constants.RqCode.PERMISSIONS;
                     }
 
                     @Override

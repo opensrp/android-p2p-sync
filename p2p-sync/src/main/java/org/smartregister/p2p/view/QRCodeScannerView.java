@@ -143,7 +143,7 @@ public class QRCodeScannerView extends LinearLayout implements Detector.Processo
             if (getContext() instanceof Activity) {
                 Dialog errorDialog =
                         GoogleApiAvailability.getInstance().getErrorDialog((Activity) getContext()
-                                , code, Constants.RQ_CODE.BARCODE_SCANNER_GOOGLE_PLAY_FIX);
+                                , code, Constants.RqCode.BARCODE_SCANNER_GOOGLE_PLAY_FIX);
                 errorDialog.show();
             } else {
                 Timber.e(getContext().getString(R.string.log_could_not_show_google_play_services_resolution_dialog));

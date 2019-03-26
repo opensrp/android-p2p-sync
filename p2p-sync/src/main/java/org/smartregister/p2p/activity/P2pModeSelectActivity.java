@@ -129,13 +129,13 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         StartReceiveModeProgressDialog newFragment = new StartReceiveModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
 
-        newFragment.show(fragmentManager, Constants.DIALOG.START_RECEIVE_MODE_PROGRESS);
+        newFragment.show(fragmentManager, Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
     }
 
     @Override
     public boolean removeReceiveProgressDialog() {
         Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(Constants.DIALOG.START_RECEIVE_MODE_PROGRESS);
+                .findFragmentByTag(Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
 
         if (fragment != null && fragment instanceof DialogFragment) {
             ((DialogFragment) fragment)
@@ -153,13 +153,13 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         StartDiscoveringModeProgressDialog newFragment = new StartDiscoveringModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
 
-        newFragment.show(fragmentManager, Constants.DIALOG.START_SEND_MODE_PROGRESS);
+        newFragment.show(fragmentManager, Constants.Dialog.START_SEND_MODE_PROGRESS);
     }
 
     @Override
     public boolean removeDiscoveringProgressDialog() {
         Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(Constants.DIALOG.START_SEND_MODE_PROGRESS);
+                .findFragmentByTag(Constants.Dialog.START_SEND_MODE_PROGRESS);
 
         if (fragment != null && fragment instanceof DialogFragment) {
             ((DialogFragment) fragment)
@@ -177,7 +177,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         QRCodeScanningDialog newFragment = new QRCodeScanningDialog();
         newFragment.setOnQRRecognisedListener(qrCodeScanDialogCallback);
 
-        newFragment.show(fragmentManager, Constants.DIALOG.QR_CODE_SCANNING);
+        newFragment.show(fragmentManager, Constants.Dialog.QR_CODE_SCANNING);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         newFragment.setDeviceName(deviceName);
         newFragment.setQrCodeAuthenticationCallback(qrCodeAuthenticationCallback);
 
-        newFragment.show(fragmentManager, Constants.DIALOG.AUTHENTICATION_QR_CODE_GENERATOR);
+        newFragment.show(fragmentManager, Constants.Dialog.AUTHENTICATION_QR_CODE_GENERATOR);
     }
 
     @Override
@@ -216,7 +216,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public void requestPermissions(@NonNull List<String> unauthorisedPermissions) {
-        Permissions.request(this, unauthorisedPermissions.toArray(new String[]{}), Constants.RQ_CODE.PERMISSIONS);
+        Permissions.request(this, unauthorisedPermissions.toArray(new String[]{}), Constants.RqCode.PERMISSIONS);
     }
 
     @NonNull
@@ -294,7 +294,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                                 addOnActivityResultHandler(new OnActivityResultHandler() {
                                     @Override
                                     public int getRequestCode() {
-                                        return Constants.RQ_CODE.LOCATION_SETTINGS;
+                                        return Constants.RqCode.LOCATION_SETTINGS;
                                     }
 
                                     @Override
@@ -316,7 +316,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                                 // and check the result in onActivityResult().
                                 resolvable.startResolutionForResult(
                                         P2pModeSelectActivity.this,
-                                        Constants.RQ_CODE.LOCATION_SETTINGS);
+                                        Constants.RqCode.LOCATION_SETTINGS);
                             } catch (IntentSender.SendIntentException e) {
                                 // Ignore the error.
                                 Timber.e(e);
