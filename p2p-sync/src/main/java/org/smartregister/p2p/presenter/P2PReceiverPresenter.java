@@ -171,7 +171,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
         resetState();
-        startAdvertisingMode();
+        prepareForAdvertising(false);
     }
 
     @Override
@@ -180,7 +180,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: And show the user an error
         view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
         resetState();
-        startAdvertisingMode();
+        prepareForAdvertising(false);
     }
 
     @Override
@@ -189,7 +189,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Go back to advertising mode
         resetState();
         view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
-        startAdvertisingMode();
+        prepareForAdvertising(false);
     }
 
     @Override
@@ -197,10 +197,9 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
         if (connectionLevel != null) {
             if (connectionLevel.equals(ConnectionLevel.RECEIVED_HASH_KEY)) {
-                // Do nothing for now
                 processPayload(endpointId, payload);
             } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
-                // Should get the details to authorize
+                // Authorize the connection from the details received
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
                 // Waiting for the hash key
@@ -232,7 +231,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                             if (sendingDevice.getAppLifetimeKey()
                                     .equals(appLifetimeKey)) {
-                                //Todo: Get the records sent last time
+                                // Todo: Get the records sent last time
 
                             } else {
                                 // Clear the device history records && update device app key
@@ -368,7 +367,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onDisconnected(@NonNull String endpointId) {
         Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
         resetState();
-        startAdvertisingMode();
+        prepareForAdvertising(false);
     }
 
     @Override
@@ -445,7 +444,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 , Toast.LENGTH_LONG);
 
         resetState();
-        startAdvertisingMode();
+        prepareForAdvertising(false);
     }
 
     @Nullable
