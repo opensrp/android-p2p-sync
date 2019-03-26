@@ -23,8 +23,7 @@ import timber.log.Timber;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
  */
 
-public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContract.BasePresenter
-        , SyncLifecycleCallback {
+public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContract.BasePresenter {
 
     protected P2pModeSelectContract.View view;
     protected P2pModeSelectContract.Interactor interactor;
