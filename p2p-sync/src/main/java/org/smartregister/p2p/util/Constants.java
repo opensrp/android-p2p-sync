@@ -10,16 +10,21 @@ public interface Constants {
 
     Strategy STRATEGY = Strategy.P2P_STAR;
 
-    interface DIALOG {
+    interface Dialog {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";
         String START_RECEIVE_MODE_PROGRESS = "dialog_start_receive_mode_progress";
         String QR_CODE_SCANNING = "qr_code_scanner";
         String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
     }
 
-    interface RQ_CODE {
+    interface RqCode {
         int PERMISSIONS = 2;
         int LOCATION_SETTINGS = 3;
         int BARCODE_SCANNER_GOOGLE_PLAY_FIX = 4;
+    }
+
+    interface Prefs {
+        String NAME = "android-p2p-sync";
+        String KEY_HASH = "hash-key";
     }
 }
