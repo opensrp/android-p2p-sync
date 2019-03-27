@@ -1,7 +1,6 @@
 package org.smartregister.p2p.presenter;
 
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -13,6 +12,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
@@ -31,7 +31,6 @@ import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.List;
-
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -213,22 +212,31 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             String payloadAsString = new String(payload.asBytes());
 
-            final Map<String, Object> basicDeviceDetails = (Map<String, Object>) new Gson()
-                    .fromJson(payloadAsString, Map.class);
+
+            Map<String, Object> basicDeviceDetails = null;
+            try {
+                basicDeviceDetails = (Map<String, Object>) new Gson()
+                        .fromJson(payloadAsString, Map.class);
+            } catch (JsonSyntaxException e) {
+                Timber.e(e);
+            }
+
             if (basicDeviceDetails == null || basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID) == null) {
                 Timber.e("Hash key was sent was null");
                 disconnectAndReset(endpointId);
             } else {
                 connectionLevel = ConnectionLevel.RECEIVED_HASH_KEY;
+
                 // Check if the device has been interacting with this app if it's state when it started
                 // and now is the same
                 // Should be done in the background
+                final Map<String, Object> finalBasicDeviceDetails  = basicDeviceDetails;
                 checkIfDeviceKeyHasChanged(basicDeviceDetails, new GenericAsyncTask.OnFinishedCallback<SendingDevice>() {
                     @Override
                     public void onSuccess(@Nullable SendingDevice result) {
                         if (result != null) {
                             final SendingDevice sendingDevice = result;
-                            final String appLifetimeKey = (String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY);
+                            final String appLifetimeKey = (String) finalBasicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY);
 
                             if (sendingDevice.getAppLifetimeKey()
                                     .equals(appLifetimeKey)) {
@@ -245,7 +253,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                     @Override
                                     public void onSuccess(@Nullable Integer result) {
                                         if (result != null) {
-                                            Timber.e("%d records deleted", (int) result);
+                                            Timber.e(view.getString(R.string.log_records_deleted), (int) result);
                                         }
 
                                         // Todo: get the records sent last time and continue with the process
@@ -253,7 +261,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                                     @Override
                                     public void onError(Exception e) {
-                                        Timber.e("An error occurred trying to delete the P2P received history of the device %s"
+                                        Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
                                                 , sendingDevice.getDeviceUniqueId());
                                     }
                                 });
@@ -264,7 +272,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                             Tasker.run(new Callable<Void>() {
                                 @Override
                                 public Void call() throws Exception {
-                                    registerSendingDevice(basicDeviceDetails);
+                                    registerSendingDevice(finalBasicDeviceDetails);
 
                                     return null;
                                 }
@@ -277,7 +285,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                 @Override
                                 public void onError(Exception e) {
                                     Timber.e(e);
-                                    view.showToast("An error occurred trying to save the new sender details", Toast.LENGTH_LONG);
+                                    view.showToast(view.getString(R.string.an_error_occurred_trying_to_save_new_sender_details), Toast.LENGTH_LONG);
 
                                     disconnectAndReset(endpointId);
                                 }
@@ -294,7 +302,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             }
 
         } else {
-            Timber.e("Hash key was sent in an invalid format");
+            Timber.e(view.getString(R.string.log_hash_key_was_sent_in_an_invalid_format));
             disconnectAndReset(endpointId);
         }
     }
@@ -325,17 +333,23 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             String authenticationDetailsJson = new String(payload.asBytes());
 
-            Map<String, Object> map = (Map<String, Object>) new Gson()
-                    .fromJson(authenticationDetailsJson, Map.class);
+            // Validate json is a map
+            Map<String, Object> map = null;
+            try {
+                map = (Map<String, Object>) new Gson()
+                        .fromJson(authenticationDetailsJson, Map.class);
+            } catch (JsonSyntaxException e) {
+                Timber.e(e);
+            }
 
             if (map == null) {
-                onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+                onConnectionAuthorizationRejected(view.getString(R.string.reason_authorization_rejected_by_sender_details_invalid));
             } else {
                 P2PLibrary.getInstance().getP2PAuthorizationService()
                         .authorizeConnection(map, P2PReceiverPresenter.this);
             }
         } else {
-            onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
+            onConnectionAuthorizationRejected(view.getString(R.string.reason_authorization_rejected_by_sender_details_invalid));
         }
     }
 
@@ -446,6 +460,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionAuthorizationRejected(@NonNull String reason) {
+        Timber.e(reason);
         interactor.closeAllEndpoints();
         interactor.connectedTo(null);
         view.showToast(String.format(view.getContext().getString(R.string.connection_could_not_be_authorized)
