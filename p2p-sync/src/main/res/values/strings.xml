@@ -52,7 +52,13 @@
     <string name="accept_connection_to_device_with_code">Accept connection to %s with code %s</string>
     <string name="authentication_failed">Authentication failed</string>
     <string name="authentication_cancelled_with_reason">Authentication cancelled : %s</string>
-    <string name="an_error_occured">An error occured!</string>
+    <string name="an_error_occured">An error occurred!</string>
     <string name="error_occurred_trying_to_get_mac_address">An error occurred trying to get your WiFi Mac address</string>
     <string name="log_getting_mac_address_not_successful">Getting device mac address was not successful! It failed</string>
+    <string name="log_records_deleted">%d records deleted</string>
+    <string name="log_error_occurred_trying_to_delete_p2p_received_history_on_device">An error occurred trying to delete the P2P received history of the device %s</string>
+    <string name="an_error_occurred_trying_to_save_new_sender_details">An error occurred trying to save the new sender details</string>
+    <string name="log_hash_key_was_sent_in_an_invalid_format">Hash key was sent in an invalid format</string>
+    <string name="reason_authorization_rejected_by_sender_details_invalid">Authorization details sent by receiver are invalid</string>
+    <string name="reason_authorization_rejected_by_receiver_details_invalid">Authorization details sent by receiver are invalid</string>
 </resources>

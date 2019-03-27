@@ -291,6 +291,42 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
+    public void performAuthorization(@NonNull Payload payload) {
+        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+            String authenticationDetailsJson = new String(payload.asBytes());
+
+            // Validate json is a map
+            Map<String, Object> map = null;
+            try {
+                map = (Map<String, Object>) new Gson()
+                        .fromJson(authenticationDetailsJson, Map.class);
+            } catch (JsonSyntaxException e) {
+                Timber.e(e);
+            }
+
+            if (map == null) {
+                onConnectionAuthorizationRejected(view.getString(R.string.reason_authorization_rejected_by_receiver_details_invalid));
+            } else {
+                P2PLibrary.getInstance()
+                        .getP2PAuthorizationService()
+                        .authorizeConnection(map, P2PSenderPresenter.this);
+            }
+        } else {
+            onConnectionAuthorizationRejected(view.getString(R.string.reason_authorization_rejected_by_receiver_details_invalid));
+        }
+    }
+
+    @Override
+    public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
+        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+            // Show a simple message of the text sent
+            String message = new String(payload.asBytes());
+            view.showToast(message, Toast.LENGTH_LONG);
+            view.displayMessage(String.format(view.getString(R.string.chat_message_format), endpointId, message));
+        }
+    }
+
+    @Override
     public void onDisconnected(@NonNull String endpointId) {
         Timber.e(view.getString(R.string.log_disconnected), endpointId);
         view.displayMessage(view.getString(R.string.disconnected));
@@ -305,45 +341,16 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
-        P2PAuthorizationService p2PAuthorizationService = P2PLibrary.getInstance()
-                .getP2PAuthorizationService();
-
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
         if (connectionLevel != null) {
             if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
                 // Do nothing until the hash_key has been received on the other side
             } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    String authenticationDetailsJson = new String(payload.asBytes());
-
-                    // Validate json is a map
-
-                    Map<String, Object> map = null;
-                    try {
-                        map = (Map<String, Object>) new Gson()
-                                .fromJson(authenticationDetailsJson, Map.class);
-                    } catch (JsonSyntaxException e) {
-                        Timber.e(e);
-                    }
-
-                    if (map == null) {
-                        onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                    } else {
-                        p2PAuthorizationService.authorizeConnection(map
-                                , P2PSenderPresenter.this);
-                    }
-                } else {
-                    onConnectionAuthorizationRejected("Authorization details sent by receiver are invalid");
-                }
+                performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
                 // Do nothing for now
-                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-                    // Show a simple message of the text sent
-                    String message = new String(payload.asBytes());
-                    view.showToast(message, Toast.LENGTH_LONG);
-                    view.displayMessage(endpointId + ": " + message);
-                }
+                processPayload(endpointId, payload);
             }
         }
     }
