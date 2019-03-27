@@ -89,6 +89,8 @@ public interface P2pModeSelectContract {
 
         @Nullable
         DiscoveredDevice getCurrentPeerDevice();
+
+        void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice);
     }
 
     interface ReceiverPresenter extends BasePresenter {
