@@ -38,7 +38,7 @@ public interface SyncLifecycleCallback extends BaseSyncConnectionAuthenticator.A
 
     void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update);
 
-    interface SyncConnectionLifecycleCallback {
+    void performAuthorization(@NonNull Payload payload);
 
-    }
+    void processPayload(@NonNull String endpointId, @NonNull Payload payload);
 }

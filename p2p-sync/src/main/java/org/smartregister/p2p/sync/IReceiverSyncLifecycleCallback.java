@@ -1,7 +1,6 @@
 package org.smartregister.p2p.sync;
 
 import android.support.annotation.NonNull;
-
 import com.google.android.gms.nearby.connection.Payload;
 
 /**
@@ -13,4 +12,6 @@ public interface IReceiverSyncLifecycleCallback extends SyncLifecycleCallback {
     void onStartedAdvertising(Object result);
 
     void onAdvertisingFailed(@NonNull Exception e);
+
+    void processHashKey(@NonNull final String endpointId, @NonNull Payload payload);
 }

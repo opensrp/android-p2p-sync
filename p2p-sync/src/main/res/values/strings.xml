@@ -54,4 +54,5 @@
     <string name="authentication_cancelled_with_reason">Authentication cancelled : %s</string>
     <string name="an_error_occured">An error occured!</string>
     <string name="error_occurred_trying_to_get_mac_address">An error occurred trying to get your WiFi Mac address</string>
+    <string name="log_getting_mac_address_not_successful">Getting device mac address was not successful! It failed</string>
 </resources>

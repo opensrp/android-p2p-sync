@@ -279,15 +279,13 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
-        if (hashKeyPayloadId != 0) {
-            if (hashKeyPayloadId == update.getPayloadId()) {
-                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
-                    connectionLevel = ConnectionLevel.SENT_HASH_KEY;
-                } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
-                    hashKeyPayloadId = 0;
+        if (hashKeyPayloadId != 0 && hashKeyPayloadId == update.getPayloadId()) {
+            if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                connectionLevel = ConnectionLevel.SENT_HASH_KEY;
+            } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
+                hashKeyPayloadId = 0;
 
-                    //Todo: Should retry sending the hash key if the connection to the device is still alive
-                }
+                //Todo: Should retry sending the hash key if the connection to the device is still alive
             }
         }
     }

@@ -147,10 +147,12 @@ public final class P2PLibrary {
             return p2PAuthorizationService;
         }
 
+        @NonNull
         public Context getContext() {
             return context;
         }
 
+        @NonNull
         public String getDbPassphrase() {
             return dbPassphrase;
         }
