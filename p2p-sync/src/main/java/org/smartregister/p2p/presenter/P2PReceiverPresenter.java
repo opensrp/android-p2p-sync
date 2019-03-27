@@ -22,6 +22,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.AppDatabase;
+import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -30,6 +31,7 @@ import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -244,7 +246,29 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                             if (sendingDevice.getAppLifetimeKey()
                                     .equals(appLifetimeKey)) {
-                                // Todo: Get the records sent last time
+                                Tasker.run(new Callable<List<P2pReceivedHistory>>() {
+                                    @Override
+                                    public List<P2pReceivedHistory> call() throws Exception {
+                                        return P2PLibrary.getInstance().getDb()
+                                                .p2pReceivedHistoryDao()
+                                                .getDeviceReceivedHistory(sendingDevice.getDeviceId());
+                                    }
+                                }, new GenericAsyncTask.OnFinishedCallback<List<P2pReceivedHistory>>() {
+                                    @Override
+                                    public void onSuccess(@Nullable List<P2pReceivedHistory> result) {
+                                        if (result == null) {
+                                            result = new ArrayList<>();
+                                        }
+
+                                        sendLastReceivedRecords(result);
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        Timber.e(e);
+                                        disconnectAndReset(endpointId);
+                                    }
+                                });
 
                             } else {
                                 // Clear the device history records && update device app key
@@ -260,13 +284,14 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                             Timber.e(view.getString(R.string.log_records_deleted), (int) result);
                                         }
 
-                                        // Todo: get the records sent last time and continue with the process
+                                        sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
                                     }
 
                                     @Override
                                     public void onError(Exception e) {
                                         Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
                                                 , sendingDevice.getDeviceId());
+                                        disconnectAndReset(endpointId);
                                     }
                                 });
 
@@ -277,13 +302,12 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                 @Override
                                 public Void call() throws Exception {
                                     registerSendingDevice(finalBasicDeviceDetails);
-
                                     return null;
                                 }
                             }, new GenericAsyncTask.OnFinishedCallback<Void>() {
                                 @Override
                                 public void onSuccess(@Nullable Void result) {
-                                    // Todo: get the records sent last time and continue with the process
+                                    sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
                                 }
 
                                 @Override
@@ -308,6 +332,14 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         } else {
             Timber.e(view.getString(R.string.log_hash_key_was_sent_in_an_invalid_format));
             disconnectAndReset(endpointId);
+        }
+    }
+
+    @Override
+    public void sendLastReceivedRecords(@NonNull List<P2pReceivedHistory> receivedHistory) {
+        if (currentSender != null) {
+            interactor.sendMessage(new Gson().toJson(receivedHistory));
+            connectionLevel = ConnectionLevel.SENT_RECEIVED_HISTORY;
         }
     }
 

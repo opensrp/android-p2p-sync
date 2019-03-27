@@ -62,7 +62,7 @@ public class GenericAsyncTask<T> extends AsyncTask<Void, Void, T> {
 
     public interface OnFinishedCallback<T> {
 
-        void onSuccess(@NonNull T result);
+        void onSuccess(@Nullable T result);
 
         void onError(Exception e);
     }

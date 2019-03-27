@@ -6,6 +6,8 @@ package org.smartregister.p2p.sync;
 public enum ConnectionLevel {
     AUTHENTICATED,
     AUTHORIZED,
+    SENT_HASH_KEY,
     RECEIVED_HASH_KEY,
-    SENT_HASH_KEY
+    SENT_RECEIVED_HISTORY,
+    RECEIPT_OF_RECEIVED_HISTORY
 }
