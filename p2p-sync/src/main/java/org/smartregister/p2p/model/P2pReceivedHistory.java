@@ -3,44 +3,47 @@ package org.smartregister.p2p.model;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 26/03/2019
  */
 
-@Entity(tableName = "p2p_received_history")
+@Entity(tableName = "p2p_received_history", primaryKeys = {"entity_type", "sending_device_id"})
 public class P2pReceivedHistory {
 
-    @PrimaryKey
-    private int id;
-
+    @NonNull
     @ColumnInfo(name = "sending_device_id")
-    private int sendingDeviceId;
+    private String sendingDeviceId;
 
-    @ColumnInfo(name = "entity_name")
-    private String entityName;
+    @NonNull
+    @ColumnInfo(name = "entity_type")
+    private String entityType;
 
-    public int getId() {
-        return id;
-    }
+    @ColumnInfo(name = "last_record_id")
+    private long lastRecordId;
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getSendingDeviceId() {
+    public String getSendingDeviceId() {
         return sendingDeviceId;
     }
 
-    public void setSendingDeviceId(int sendingDeviceId) {
+    public void setSendingDeviceId(String sendingDeviceId) {
         this.sendingDeviceId = sendingDeviceId;
     }
 
-    public String getEntityName() {
-        return entityName;
+    public String getEntityType() {
+        return entityType;
     }
 
-    public void setEntityName(String entityName) {
-        this.entityName = entityName;
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public long getLastRecordId() {
+        return lastRecordId;
+    }
+
+    public void setLastRecordId(long lastRecordId) {
+        this.lastRecordId = lastRecordId;
     }
 }

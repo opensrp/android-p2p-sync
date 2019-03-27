@@ -226,7 +226,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             }
 
             if (basicDeviceDetails == null || basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID) == null) {
-                Timber.e("Hash key was sent was null");
+                Timber.e(view.getString(R.string.log_hash_key_sent_was_null));
                 disconnectAndReset(endpointId);
             } else {
                 connectionLevel = ConnectionLevel.RECEIVED_HASH_KEY;
@@ -266,7 +266,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                     @Override
                                     public void onError(Exception e) {
                                         Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
-                                                , sendingDevice.getDeviceUniqueId());
+                                                , sendingDevice.getDeviceId());
                                     }
                                 });
 
@@ -313,7 +313,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     private void registerSendingDevice(Map<String, Object> basicDeviceDetails) {
         SendingDevice sendingDevice = new SendingDevice();
-        sendingDevice.setDeviceUniqueId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
+        sendingDevice.setDeviceId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
         sendingDevice.setAppLifetimeKey((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY));
 
         P2PLibrary.getInstance().getDb()
@@ -329,7 +329,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         db.sendingDeviceDao().update(sendingDevice);
 
         return db.p2pReceivedHistoryDao()
-                .clearDeviceRecords(sendingDevice.getId());
+                .clearDeviceRecords(sendingDevice.getDeviceId());
     }
 
     @Override
