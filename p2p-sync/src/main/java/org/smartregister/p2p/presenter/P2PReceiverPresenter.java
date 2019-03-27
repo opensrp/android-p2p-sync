@@ -177,18 +177,22 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onConnectionUnknownError(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         //Todo: Go back to advertising mode
         //Todo: And show the user an error
-        view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
-        resetState();
-        prepareForAdvertising(false);
+        if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+            view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
+            resetState();
+            prepareForAdvertising(false);
+        }
     }
 
     @Override
     public void onConnectionBroken(@NonNull String endpointId) {
         //Todo: Show the user an error
         //Todo: Go back to advertising mode
-        resetState();
-        view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
-        prepareForAdvertising(false);
+        if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+            resetState();
+            view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
+            prepareForAdvertising(false);
+        }
     }
 
     @Override
@@ -388,9 +392,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onDisconnected(@NonNull String endpointId) {
-        Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
-        resetState();
-        prepareForAdvertising(false);
+        if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+            Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
+            resetState();
+            prepareForAdvertising(false);
+        }
     }
 
     @Override
@@ -445,6 +451,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     private void resetState() {
+        if (currentSender != null) {
+            interactor.disconnectFromEndpoint(currentSender.getEndpointId());
+        }
+
         connectionLevel = null;
         view.dismissAllDialogs();
         currentSender = null;
@@ -475,5 +485,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public DiscoveredDevice getCurrentPeerDevice() {
         return currentSender;
+    }
+
+    @Override
+    public void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice) {
+        currentSender = discoveredDevice;
     }
 }

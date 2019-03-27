@@ -43,7 +43,12 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
 
         interactor.stopAdvertising();
         interactor.stopDiscovering();
-        interactor.closeAllEndpoints();
+
+        if (getCurrentPeerDevice() != null) {
+            interactor.disconnectFromEndpoint(getCurrentPeerDevice().getEndpointId());
+        }
+
+        setCurrentDevice(null);
 
         interactor.cleanupResources();
         interactor = null;
