@@ -60,10 +60,13 @@ public class Device {
      * @return  WLAN0 MAC address or NULL if unable to get the mac address
      */
     public static String getMacAddress() {
+        String macAddress = null;
         try {
             List<NetworkInterface> all = Collections.list(NetworkInterface.getNetworkInterfaces());
             for (NetworkInterface nif : all) {
-                if (!nif.getName().equalsIgnoreCase("wlan0")) continue;
+                if (!nif.getName().equalsIgnoreCase("wlan0")) {
+                    continue;
+                }
 
                 byte[] macBytes = nif.getHardwareAddress();
                 if (macBytes == null) {
@@ -78,12 +81,15 @@ public class Device {
                 if (res1.length() > 0) {
                     res1.deleteCharAt(res1.length() - 1);
                 }
-                return res1.toString();
+
+                macAddress = res1.toString();
+                break;
             }
         } catch (SocketException ex) {
             Timber.e(ex);
         }
-        return null;
+
+        return macAddress;
     }
 
 }

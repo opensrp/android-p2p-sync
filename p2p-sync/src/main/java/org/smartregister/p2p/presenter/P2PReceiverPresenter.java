@@ -208,7 +208,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
     }
 
-    private void processHashKey(@NonNull final String endpointId, @NonNull Payload payload) {
+    @Override
+    public void processHashKey(@NonNull final String endpointId, @NonNull Payload payload) {
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             String payloadAsString = new String(payload.asBytes());
 
@@ -238,13 +239,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                                 Tasker.run(new Callable<Integer>() {
                                     @Override
                                     public Integer call() throws Exception {
-                                        AppDatabase db = P2PLibrary.getInstance().getDb();
-
-                                        sendingDevice.setAppLifetimeKey(appLifetimeKey);
-                                        db.sendingDeviceDao().update(sendingDevice);
-
-                                        return db.p2pReceivedHistoryDao()
-                                                .clearDeviceRecords(sendingDevice.getId());
+                                        return clearDeviceHistoryAndUpdateDeviceKey(sendingDevice, appLifetimeKey);
                                     }
                                 }, new GenericAsyncTask.OnFinishedCallback<Integer>() {
                                     @Override
@@ -269,13 +264,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                             Tasker.run(new Callable<Void>() {
                                 @Override
                                 public Void call() throws Exception {
-                                    SendingDevice sendingDevice = new SendingDevice();
-                                    sendingDevice.setDeviceUniqueId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
-                                    sendingDevice.setAppLifetimeKey((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY));
-
-                                    P2PLibrary.getInstance().getDb()
-                                            .sendingDeviceDao()
-                                            .insert(sendingDevice);
+                                    registerSendingDevice(basicDeviceDetails);
 
                                     return null;
                                 }
@@ -310,7 +299,29 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
     }
 
-    private void performAuthorization(@NonNull Payload payload) {
+    private void registerSendingDevice(Map<String, Object> basicDeviceDetails) {
+        SendingDevice sendingDevice = new SendingDevice();
+        sendingDevice.setDeviceUniqueId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
+        sendingDevice.setAppLifetimeKey((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY));
+
+        P2PLibrary.getInstance().getDb()
+                .sendingDeviceDao()
+                .insert(sendingDevice);
+    }
+
+    @NonNull
+    private Integer clearDeviceHistoryAndUpdateDeviceKey(SendingDevice sendingDevice, String appLifetimeKey) {
+        AppDatabase db = P2PLibrary.getInstance().getDb();
+
+        sendingDevice.setAppLifetimeKey(appLifetimeKey);
+        db.sendingDeviceDao().update(sendingDevice);
+
+        return db.p2pReceivedHistoryDao()
+                .clearDeviceRecords(sendingDevice.getId());
+    }
+
+    @Override
+    public void performAuthorization(@NonNull Payload payload) {
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             String authenticationDetailsJson = new String(payload.asBytes());
 
@@ -328,7 +339,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
     }
 
-    private void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
+    @Override
+    public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             // Show a simple message of the text sent
             String message = new String(payload.asBytes());
@@ -345,22 +357,19 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails
             , @NonNull GenericAsyncTask.OnFinishedCallback<SendingDevice> onFinishedCallback) {
-        GenericAsyncTask<SendingDevice> genericAsyncTask = new GenericAsyncTask<>(new Callable<SendingDevice>() {
+        Tasker.run(new Callable<SendingDevice>() {
             @Override
             public SendingDevice call() throws Exception {
                 return P2PLibrary.getInstance().getDb()
                         .sendingDeviceDao()
                         .getSendingDevice((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
             }
-        });
-
-        genericAsyncTask.setOnFinishedCallback(onFinishedCallback);
-        genericAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }, onFinishedCallback);
     }
 
     @Override
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
-
+        // Do nothing for now
     }
 
     @Override

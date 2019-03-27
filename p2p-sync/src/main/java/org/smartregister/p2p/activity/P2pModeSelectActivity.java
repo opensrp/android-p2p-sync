@@ -8,8 +8,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
@@ -114,7 +112,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                             P2PLibrary.getInstance()
                                     .setDeviceUniqueIdentifier(result);
                         } else {
-                            Timber.e("Getting device mac address was not successful! It failed");
+                            Timber.e(getString(R.string.log_getting_mac_address_not_successful));
                             showFatalErrorDialog(R.string.an_error_occured, R.string.error_occurred_trying_to_get_mac_address);
                         }
                     }
