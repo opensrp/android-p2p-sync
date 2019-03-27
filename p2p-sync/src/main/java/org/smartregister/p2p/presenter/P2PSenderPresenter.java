@@ -165,6 +165,14 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
+    public void processReceivedHistory(@NonNull Payload payload) {
+        if (currentReceiver != null) {
+            // Todo: I should process the received history here and use it to fetch records from the DB
+            connectionLevel = ConnectionLevel.RECEIPT_OF_RECEIVED_HISTORY;
+        }
+    }
+
+    @Override
     public void onConnectionInitiated(@NonNull final String endpointId, @NonNull final ConnectionInfo connectionInfo) {
         // Easier working with the device which we requested connection to, otherwise the callback for error should be called
         // so that we can work with other devices
@@ -356,6 +364,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
                 // Do nothing for now
+                processReceivedHistory(payload);
+            } else if (connectionLevel.equals(ConnectionLevel.RECEIPT_OF_RECEIVED_HISTORY)) {
                 processPayload(endpointId, payload);
             }
         }
