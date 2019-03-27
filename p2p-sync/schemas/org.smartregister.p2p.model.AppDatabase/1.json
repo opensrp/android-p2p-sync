@@ -2,75 +2,61 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "29c5cef9b2b7110b713f68e04b744cc7",
+    "identityHash": "8a6115b536954578a0df0ca107873202",
     "entities": [
       {
         "tableName": "sending_devices",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `device_unique_id` TEXT, `app_lifetime_key` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`device_id` TEXT NOT NULL, `app_lifetime_key` TEXT NOT NULL, PRIMARY KEY(`device_id`))",
         "fields": [
           {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "deviceUniqueId",
-            "columnName": "device_unique_id",
+            "fieldPath": "deviceId",
+            "columnName": "device_id",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           },
           {
             "fieldPath": "appLifetimeKey",
             "columnName": "app_lifetime_key",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "device_id"
           ],
-          "autoGenerate": true
+          "autoGenerate": false
         },
-        "indices": [
-          {
-            "name": "index_sending_devices_device_unique_id",
-            "unique": false,
-            "columnNames": [
-              "device_unique_id"
-            ],
-            "createSql": "CREATE  INDEX `index_sending_devices_device_unique_id` ON `${TABLE_NAME}` (`device_unique_id`)"
-          }
-        ],
+        "indices": [],
         "foreignKeys": []
       },
       {
         "tableName": "p2p_received_history",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `sending_device_id` INTEGER NOT NULL, `entity_name` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sending_device_id` TEXT NOT NULL, `entity_type` TEXT NOT NULL, `last_record_id` INTEGER NOT NULL, PRIMARY KEY(`entity_type`, `sending_device_id`))",
         "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
           {
             "fieldPath": "sendingDeviceId",
             "columnName": "sending_device_id",
-            "affinity": "INTEGER",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "entityName",
-            "columnName": "entity_name",
+            "fieldPath": "entityType",
+            "columnName": "entity_type",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastRecordId",
+            "columnName": "last_record_id",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
           "columnNames": [
-            "id"
+            "entity_type",
+            "sending_device_id"
           ],
           "autoGenerate": false
         },
@@ -80,7 +66,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"29c5cef9b2b7110b713f68e04b744cc7\")"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"8a6115b536954578a0df0ca107873202\")"
     ]
   }
 }

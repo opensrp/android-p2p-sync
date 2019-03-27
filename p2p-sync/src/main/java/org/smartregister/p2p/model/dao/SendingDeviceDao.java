@@ -21,6 +21,6 @@ public interface SendingDeviceDao {
     @Update
     void update(@NonNull SendingDevice sendingDevice);
 
-    @Query("SELECT * FROM sending_devices WHERE device_unique_id = :deviceUniqueId LIMIT 1")
+    @Query("SELECT * FROM sending_devices WHERE device_id = :deviceUniqueId LIMIT 1")
     SendingDevice getSendingDevice(@NonNull String deviceUniqueId);
 }

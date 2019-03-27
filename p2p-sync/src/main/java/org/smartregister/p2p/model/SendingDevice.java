@@ -3,6 +3,7 @@ package org.smartregister.p2p.model;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 26/03/2019
@@ -10,29 +11,21 @@ import android.arch.persistence.room.PrimaryKey;
 @Entity(tableName = "sending_devices")
 public class SendingDevice {
 
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @NonNull
+    @PrimaryKey
+    @ColumnInfo(name = "device_id")
+    private String deviceId;
 
-    @ColumnInfo(name = "device_unique_id", index = true)
-    private String deviceUniqueId;
-
+    @NonNull
     @ColumnInfo(name = "app_lifetime_key")
     private String appLifetimeKey;
 
-    public int getId() {
-        return id;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getDeviceUniqueId() {
-        return deviceUniqueId;
-    }
-
-    public void setDeviceUniqueId(String deviceUniqueId) {
-        this.deviceUniqueId = deviceUniqueId;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getAppLifetimeKey() {
