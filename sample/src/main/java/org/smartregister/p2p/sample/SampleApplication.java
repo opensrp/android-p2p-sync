@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
+import org.smartregister.p2p.sample.dao.SampleReceiverDao;
+import org.smartregister.p2p.sample.dao.SampleSenderDao;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +24,7 @@ public class SampleApplication extends Application implements P2PAuthorizationSe
         P2PLibrary.init(new P2PLibrary.Options(this
                 , "p92ksdicsdj$*Dj"
                 , String.format("%s %s", Build.MANUFACTURER, Build.MODEL)
-                , this));
+                , this, new SampleReceiverDao(), new SampleSenderDao()));
     }
 
     @Override
