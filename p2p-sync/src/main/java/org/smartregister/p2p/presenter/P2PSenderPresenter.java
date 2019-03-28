@@ -349,9 +349,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
         Timber.i(view.getString(R.string.log_received_payload_from_endpoint), endpointId);
         if (connectionLevel != null) {
-            if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
-                // Do nothing until the hash_key has been received on the other side
-            } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
+            // We ignore the authorized state since we should not process anything at this point but more
+            // at #onConnectionAuthorized
+            if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {

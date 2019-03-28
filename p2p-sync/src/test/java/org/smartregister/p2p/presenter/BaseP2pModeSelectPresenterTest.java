@@ -3,6 +3,8 @@ package org.smartregister.p2p.presenter;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +36,7 @@ public class BaseP2pModeSelectPresenterTest {
     @Test
     public void sendTextMessageShouldCallInteractorSendMessage() {
         String message = "Hello world";
+        p2PModeSelectPresenter.setCurrentDevice(new DiscoveredDevice("endpointid", Mockito.mock(DiscoveredEndpointInfo.class)));
         p2PModeSelectPresenter.sendTextMessage(message);
 
         Mockito.verify(interactor, Mockito.times(1))
@@ -52,13 +55,27 @@ public class BaseP2pModeSelectPresenterTest {
                 .stopAdvertising();
         Mockito.verify(interactor, Mockito.times(1))
                 .stopDiscovering();
-        Mockito.verify(interactor, Mockito.times(1))
-                .closeAllEndpoints();
+        Mockito.verify(interactor, Mockito.times(0))
+                .disconnectFromEndpoint(Mockito.anyString());
         Mockito.verify(interactor, Mockito.times(1))
                 .cleanupResources();
     }
 
+    @Test
+    public void onStopShouldDisconnectFromConnectedEndpoint() {
+        String endpointId = "endpointId";
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+
+        p2PModeSelectPresenter.setCurrentDevice(discoveredDevice);
+        p2PModeSelectPresenter.onStop();
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .disconnectFromEndpoint(ArgumentMatchers.eq(endpointId));
+    }
+
     private class P2pModeSelectPresenter extends BaseP2pModeSelectPresenter {
+
+        private DiscoveredDevice currentDevice;
 
         protected P2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view, @NonNull P2pModeSelectContract.Interactor p2pModeSelectInteractor) {
             super(view, p2pModeSelectInteractor);
@@ -67,7 +84,12 @@ public class BaseP2pModeSelectPresenterTest {
         @Nullable
         @Override
         public DiscoveredDevice getCurrentPeerDevice() {
-            return Mockito.mock(DiscoveredDevice.class);
+            return currentDevice;
+        }
+
+        @Override
+        public void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice) {
+            currentDevice = discoveredDevice;
         }
     }
 }
