@@ -34,6 +34,8 @@ import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.model.dao.ReceiverTransferDao;
+import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.Shadowzzbd;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
@@ -68,7 +70,8 @@ public class P2pModeSelectInteractorTest {
         shadowzzbd.setMockZzbd(mockedZzbd);
 
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application,
-                "password", username, Mockito.mock(P2PAuthorizationService.class)));
+                "password", username, Mockito.mock(P2PAuthorizationService.class)
+                , Mockito.mock(ReceiverTransferDao.class), Mockito.mock(SenderTransferDao.class)));
     }
 
     @Test
