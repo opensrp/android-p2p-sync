@@ -391,11 +391,8 @@ public class P2PReceiverPresenterTest {
     public void onConnectionUnknownErrorShouldRestartAdvertisingAndResetState() {
         String endpointId = "id";
 
-        DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
-
-        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
-
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+        p2PReceiverPresenter.setCurrentDevice(discoveredDevice);
         p2PReceiverPresenter.onConnectionUnknownError(endpointId, Mockito.mock(ConnectionResolution.class));
 
         Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
@@ -406,12 +403,8 @@ public class P2PReceiverPresenterTest {
     @Test
     public void onConnectionBrokenShouldRestartAdvertisingAndResetState() {
         String endpointId = "id";
-
-        DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
-
-        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
-
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+        p2PReceiverPresenter.setCurrentDevice(discoveredDevice);
         p2PReceiverPresenter.onConnectionBroken(endpointId);
 
         Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
@@ -423,11 +416,8 @@ public class P2PReceiverPresenterTest {
     public void onDisconnectedShouldRestartAdvertisingAndResetState() {
         String endpointId = "id";
 
-        DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
-
-        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", discoveredDevice);
-        assertNotNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
-
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+        p2PReceiverPresenter.setCurrentDevice(discoveredDevice);
         p2PReceiverPresenter.onDisconnected(endpointId);
 
         Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
