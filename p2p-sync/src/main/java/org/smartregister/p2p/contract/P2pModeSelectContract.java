@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
@@ -15,6 +16,7 @@ import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
+import org.smartregister.p2p.sync.SyncPackageManifest;
 
 import java.util.List;
 
@@ -110,6 +112,15 @@ public interface P2pModeSelectContract {
         void prepareForDiscovering(boolean returningFromRequestingPermissions);
 
         void startDiscoveringMode();
+
+        void sendSyncComplete();
+
+        long sendManifest(@NonNull SyncPackageManifest syncPackageManifest);
+
+        void sendPayload(@NonNull Payload payload);
+
+        void errorOccurredSync(@NonNull Exception e);
+
     }
 
     interface Interactor extends BaseInteractor {
@@ -140,6 +151,8 @@ public interface P2pModeSelectContract {
          * @return the payloadId
          */
         long sendMessage(@NonNull String message);
+
+        void sendPayload(@NonNull Payload payload);
 
         void connectedTo(@Nullable String endpointId);
 

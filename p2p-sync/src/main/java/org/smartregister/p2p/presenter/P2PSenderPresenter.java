@@ -13,7 +13,9 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
@@ -23,14 +25,24 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.model.DataType;
+import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
+import org.smartregister.p2p.sync.SyncPackageManifest;
+import org.smartregister.p2p.sync.SyncSenderHandler;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 import timber.log.Timber;
 
@@ -44,6 +56,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     private DiscoveredDevice currentReceiver;
     private ConnectionLevel connectionLevel;
     private long hashKeyPayloadId;
+
+    @Nullable
+    private SyncSenderHandler syncSenderHandler;
 
     public P2PSenderPresenter(@NonNull P2pModeSelectContract.View view) {
         super(view);
@@ -111,6 +126,40 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
+    public void sendSyncComplete() {
+        // Do nothing for now
+        syncSenderHandler = null;
+    }
+
+    @Override
+    public long sendManifest(@NonNull SyncPackageManifest syncPackageManifest) {
+        if (getCurrentPeerDevice() != null) {
+            return interactor.sendMessage(new Gson().toJson(syncPackageManifest));
+        }
+
+        return 0;
+    }
+
+    @Override
+    public void sendPayload(@NonNull Payload payload) {
+        if (getCurrentPeerDevice() != null) {
+            interactor.sendPayload(payload);
+        }
+    }
+
+    @Override
+    public void errorOccurredSync(@NonNull Exception e) {
+        Timber.e(e);
+        syncSenderHandler = null;
+
+        if (getCurrentPeerDevice() != null) {
+            interactor.disconnectFromEndpoint(getCurrentPeerDevice().getEndpointId());
+            resetState();
+            prepareForDiscovering(false);
+        }
+    }
+
+    @Override
     public void onStartedDiscovering(@NonNull Object object) {
         // Do nothing here for now
         // Continue showing the progress dialog
@@ -165,10 +214,43 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
-    public void processReceivedHistory(@NonNull Payload payload) {
+    public void processReceivedHistory(@NonNull final String endpointId, @NonNull Payload payload) {
         if (currentReceiver != null) {
-            // Todo: I should process the received history here and use it to fetch records from the DB
             connectionLevel = ConnectionLevel.RECEIPT_OF_RECEIVED_HISTORY;
+
+            if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                try {
+                    Type receivedHistoryListType = new TypeToken<ArrayList<P2pReceivedHistory>>() {}.getType();
+                    final List<P2pReceivedHistory> receivedHistory = new Gson().fromJson(new String(payload.asBytes()), receivedHistoryListType);
+
+                    Tasker.run(new Callable<TreeSet<DataType>>() {
+                        @Override
+                        public TreeSet<DataType> call() throws Exception {
+                            return P2PLibrary.getInstance().getSenderTransferDao()
+                                    .getDataTypes();
+                        }
+                    }, new GenericAsyncTask.OnFinishedCallback<TreeSet<DataType>>() {
+                        @Override
+                        public void onSuccess(@Nullable TreeSet<DataType> result) {
+                            if (result != null) {
+                                syncSenderHandler = new SyncSenderHandler(P2PSenderPresenter.this, result, receivedHistory);
+                                syncSenderHandler.startSyncProcess();
+                            } else {
+                                sendTransactionCompleteCommand();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Timber.e(e);
+                            disconnectAndReset(endpointId);
+                        }
+                    });
+                } catch (JsonParseException ex) {
+                    Timber.e(ex, view.getString(R.string.log_jsonparse_exception_trying_to_process_received_history));
+                    disconnectAndReset(endpointId);
+                }
+            }
         }
     }
 
@@ -299,6 +381,10 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
                 //Todo: Should retry sending the hash key if the connection to the device is still alive
             }
+        } else {
+            if (syncSenderHandler != null) {
+                syncSenderHandler.onPayloadTransferUpdate(update);
+            }
         }
     }
 
@@ -364,7 +450,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
                 // Do nothing for now
-                processReceivedHistory(payload);
+                processReceivedHistory(endpointId, payload);
             } else if (connectionLevel.equals(ConnectionLevel.RECEIPT_OF_RECEIVED_HISTORY)) {
                 processPayload(endpointId, payload);
             }
@@ -423,6 +509,18 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice) {
         currentReceiver = discoveredDevice;
+    }
+
+
+    private void disconnectAndReset(@NonNull String endpointId) {
+        interactor.disconnectFromEndpoint(endpointId);
+        resetState();
+        prepareForDiscovering(false);
+    }
+
+    private void sendTransactionCompleteCommand() {
+        // Todo: Should send some payload that can be received at any connection level on the other side
+        // incase the other side has hung at some point
     }
 
 }

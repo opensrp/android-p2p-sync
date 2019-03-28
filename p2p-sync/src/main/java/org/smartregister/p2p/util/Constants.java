@@ -9,6 +9,7 @@ import com.google.android.gms.nearby.connection.Strategy;
 public interface Constants {
 
     Strategy STRATEGY = Strategy.P2P_STAR;
+    int DEFAULT_SHARE_BATCH_SIZE = 20;
 
     interface Dialog {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";
