@@ -8,7 +8,10 @@ import java.util.UUID;
 import android.support.annotation.Nullable;
 
 import org.smartregister.p2p.model.AppDatabase;
+import org.smartregister.p2p.model.dao.ReceiverTransferDao;
+import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.util.Constants;
 import org.smartregister.p2p.util.Device;
 import org.smartregister.p2p.util.Settings;
 import java.util.concurrent.Callable;
@@ -122,19 +125,47 @@ public final class P2PLibrary {
         return options.getContext();
     }
 
+    @NonNull
+    public ReceiverTransferDao getReceiverTransferDao() {
+        return options.getReceiverTransferDao();
+    }
+
+    @NonNull
+    public SenderTransferDao getSenderTransferDao() {
+        return options.getSenderTransferDao();
+    }
+
+    public int getBatchSize() {
+        return options.getBatchSize();
+    }
+
     public static class Options {
 
         private Context context;
         private String username;
         private String dbPassphrase;
         private P2PAuthorizationService p2PAuthorizationService;
+        private ReceiverTransferDao receiverTransferDao;
+        private SenderTransferDao senderTransferDao;
+        private int batchSize = Constants.DEFAULT_SHARE_BATCH_SIZE;
 
         public Options(@NonNull Context context, @NonNull String dbPassphrase, @NonNull String username
-                , @NonNull P2PAuthorizationService p2PAuthorizationService) {
+                , @NonNull P2PAuthorizationService p2PAuthorizationService, @NonNull ReceiverTransferDao receiverTransferDao
+                , @NonNull SenderTransferDao senderTransferDao) {
             this.context = context;
             this.dbPassphrase = dbPassphrase;
             this.username = username;
             this.p2PAuthorizationService = p2PAuthorizationService;
+            this.receiverTransferDao = receiverTransferDao;
+            this.senderTransferDao = senderTransferDao;
+        }
+
+        public void setBatchSize(int batchSize) {
+            this.batchSize = batchSize;
+        }
+
+        public int getBatchSize() {
+            return batchSize;
         }
 
         @NonNull
@@ -145,6 +176,16 @@ public final class P2PLibrary {
         @NonNull
         public P2PAuthorizationService getP2PAuthorizationService() {
             return p2PAuthorizationService;
+        }
+
+        @NonNull
+        public ReceiverTransferDao getReceiverTransferDao() {
+            return receiverTransferDao;
+        }
+
+        @NonNull
+        public SenderTransferDao getSenderTransferDao() {
+            return senderTransferDao;
         }
 
         @NonNull
