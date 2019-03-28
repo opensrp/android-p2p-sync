@@ -62,4 +62,5 @@
     <string name="reason_authorization_rejected_by_sender_details_invalid">Authorization details sent by receiver are invalid</string>
     <string name="reason_authorization_rejected_by_receiver_details_invalid">Authorization details sent by receiver are invalid</string>
     <string name="log_hash_key_sent_was_null">Hash key was sent was null</string>
+    <string name="log_jsonparse_exception_trying_to_process_received_history">A JSONParseException occurred trying to process received history</string>
 </resources>

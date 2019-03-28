@@ -3,6 +3,11 @@
 
 This library wraps on the Google Nearby Connections API to provide a simple UI and interfaces to be used to easily share records between host applications
 
+## Table of Contents
+
+1. [Getting started](#getting-started)
+2. [Not supported!](#not-supported-(errors-you-might-encounter))
+
 ## Getting started
 
 Add the module to your project(Publishing is not yet supported :worried:
@@ -33,3 +38,13 @@ To start the sending and receiving activity:
     ...
     startActivity(new Intent(this, P2pModeSelectActivity.class));
 ```
+
+
+
+
+### NOT SUPPORTED (ERRORS YOU MIGHT ENCOUNTER)
+
+1. A StackOverflow error or JsonParsingException error
+
+- These errors will happen if you provide objects which are not easily parseable by GSON such as **Realm** objects
+

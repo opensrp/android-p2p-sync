@@ -1,0 +1,253 @@
+package org.smartregister.p2p.sync;
+
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.model.DataType;
+import org.smartregister.p2p.model.P2pReceivedHistory;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.tasks.Tasker;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.concurrent.Callable;
+
+/**
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
+ */
+
+public class SyncSenderHandler {
+
+    private P2pModeSelectContract.SenderPresenter presenter;
+
+    private TreeSet<DataType> dataSyncOrder;
+    private HashMap<String, Long> remainingLastRecordIds = new HashMap<>();
+    private List<P2pReceivedHistory> receivedHistory;
+    private int batchSize;
+
+    private boolean awaitingPayloadTansfer;
+    private Payload awaitingPayload;
+    private String awaitingDataTypeName;
+    private long awaitingDataTypeHighestId;
+
+    private boolean awaitingManifestTransfer;
+    private long awaitingManifestId;
+
+    private int sendMaxRetries = 3;
+    private PayloadRetry payloadRetry;
+
+    public SyncSenderHandler(@NonNull P2pModeSelectContract.SenderPresenter presenter, @NonNull TreeSet<DataType> dataSyncOrder
+            , @Nullable List<P2pReceivedHistory> receivedHistory) {
+        this.presenter = presenter;
+        this.dataSyncOrder = dataSyncOrder;
+        this.receivedHistory = receivedHistory;
+        this.batchSize = P2PLibrary.getInstance().getBatchSize();
+    }
+
+    private void generateRecordsToSend() {
+        for (DataType dataType : dataSyncOrder) {
+            remainingLastRecordIds.put(dataType.getName(), 0l);
+        }
+
+        if (receivedHistory != null && receivedHistory.size() > 0) {
+            for (P2pReceivedHistory dataTypeHistory: receivedHistory) {
+                remainingLastRecordIds.put(dataTypeHistory.getEntityType(), dataTypeHistory.getLastRecordId());
+            }
+        }
+    }
+
+    public void startSyncProcess() {
+        generateRecordsToSend();
+        sendNextManifest();
+    }
+
+    public void sendNextManifest() {
+        if (!dataSyncOrder.isEmpty()) {
+
+            final DataType dataType = dataSyncOrder.first();
+
+            if (dataType.getType() == DataType.Type.NON_MEDIA) {
+                sendJsonDataManifest(dataType);
+            } else if (dataType.getType() == DataType.Type.MEDIA) {
+                sendMultimediaDataManifest(dataType);
+            }
+        } else {
+            presenter.sendSyncComplete();
+        }
+    }
+
+    private void sendMultimediaDataManifest(final DataType dataType) {
+        Tasker.run(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+
+                long lastRecordId = remainingLastRecordIds.get(dataType.getName());
+                MultiMediaData multiMediaData = P2PLibrary.getInstance().getSenderTransferDao()
+                        .getMultiMediaData(dataType, lastRecordId);
+
+                if (multiMediaData != null) {
+                    File file = multiMediaData.getFile();
+                    awaitingDataTypeName = dataType.getName();
+                    awaitingDataTypeHighestId = multiMediaData.getRecordId();
+
+                    return file;
+                } else {
+                    return null;
+                }
+            }
+        }, new GenericAsyncTask.OnFinishedCallback<File>() {
+            @Override
+            public void onSuccess(@Nullable File result) {
+                if (result != null) {
+                    // Create the manifest
+                    awaitingPayload = Payload.fromStream(createFileDataStream(result));
+
+                    String filename = result.getName();
+                    String extension = "";
+
+                    int lastIndex = filename.lastIndexOf(".");
+                    if (lastIndex > -1 && lastIndex < filename.length()) {
+                        extension = filename.substring(lastIndex);
+                    }
+
+                    SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                            , extension
+                            , dataType);
+
+                    awaitingManifestTransfer = true;
+                    awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                } else {
+                    dataSyncOrder.remove(dataType);
+                    sendNextManifest();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                presenter.errorOccurredSync(e);
+            }
+        });
+    }
+
+    private void sendJsonDataManifest(final DataType dataType) {
+        Tasker.run(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+
+                long lastRecordId = remainingLastRecordIds.get(dataType.getName());
+                JsonData jsonData = P2PLibrary.getInstance().getSenderTransferDao()
+                        .getJsonData(dataType, lastRecordId, batchSize);
+
+                if (jsonData != null) {
+                    JSONArray recordsArray = jsonData.getJsonArray();
+                    remainingLastRecordIds.put(dataType.getName(), jsonData.getHighestRecordId());
+
+                    String jsonString = new Gson().toJson(recordsArray);
+                    awaitingDataTypeName = dataType.getName();
+                    awaitingDataTypeHighestId = jsonData.getHighestRecordId();
+
+                    return jsonString;
+                } else {
+                    return null;
+                }
+            }
+        }, new GenericAsyncTask.OnFinishedCallback<String>() {
+            @Override
+            public void onSuccess(@Nullable String result) {
+                if (result != null) {
+                    // Create the manifest
+                    awaitingPayload = Payload.fromStream(createJsonDataStream(result));
+
+                    SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                            , "json"
+                            , dataType);
+
+                    awaitingManifestTransfer = true;
+                    awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                } else {
+                    dataSyncOrder.remove(dataType);
+                    sendNextManifest();
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                presenter.errorOccurredSync(e);
+            }
+        });
+    }
+
+    @NonNull
+    private InputStream createJsonDataStream(@NonNull String json) {
+        return null;
+    }
+
+    @NonNull
+    private InputStream createFileDataStream(@NonNull File file) {
+        return null;
+    }
+
+    private void sendNexPayload() {
+        if (awaitingPayload != null) {
+            presenter.sendPayload(awaitingPayload);
+        }
+    }
+
+    public void onPayloadTransferUpdate(@NonNull PayloadTransferUpdate update) {
+        if (awaitingManifestTransfer) {
+            if (update.getPayloadId() == awaitingManifestId) {
+                awaitingManifestTransfer = false;
+                awaitingManifestId = 0;
+                payloadRetry = null;
+
+                sendNexPayload();
+            }
+        } else if (awaitingPayloadTansfer) {
+            if (awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
+                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                    awaitingPayloadTansfer = false;
+                    awaitingPayload = null;
+
+                    if (awaitingDataTypeName != null) {
+                        remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
+                    }
+
+                    sendNextManifest();
+                } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
+                    // Try to resend the payload until the max retries are done
+                    if (payloadRetry == null) {
+                        payloadRetry = new PayloadRetry(awaitingPayload.getId(), sendMaxRetries);
+                    }
+
+                    if (payloadRetry.retries > 0) {
+                        payloadRetry.retries--;
+                        sendNexPayload();
+                    } else {
+                        presenter.errorOccurredSync(new Exception("Payload send failed up-to " + sendMaxRetries));
+                    }
+                }
+            }
+        }
+    }
+
+    class PayloadRetry {
+        long payloadId;
+        int retries;
+
+        PayloadRetry(long payloadId, int retries) {
+            this.payloadId = payloadId;
+            this.retries = retries;
+        }
+    }
+
+}

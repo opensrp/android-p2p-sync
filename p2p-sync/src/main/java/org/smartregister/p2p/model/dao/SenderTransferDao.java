@@ -1,11 +1,14 @@
 package org.smartregister.p2p.model.dao;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
-import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
+import org.smartregister.p2p.sync.MultiMediaData;
+import org.smartregister.p2p.sync.JsonData;
 
-import java.io.File;
+import java.util.TreeSet;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
@@ -14,8 +17,14 @@ import java.io.File;
 public interface SenderTransferDao {
 
     @WorkerThread
-    JSONArray getJsonData(DataType dataType, long lastRecordId, int batchSize);
+    @Nullable
+    TreeSet<DataType> getDataTypes();
 
     @WorkerThread
-    File getMultiMediaData(DataType dataType, long lastRecordId);
+    @Nullable
+    JsonData getJsonData(@NonNull DataType dataType, long lastRecordId, int batchSize);
+
+    @WorkerThread
+    @Nullable
+    MultiMediaData getMultiMediaData(@NonNull DataType dataType, long lastRecordId);
 }
