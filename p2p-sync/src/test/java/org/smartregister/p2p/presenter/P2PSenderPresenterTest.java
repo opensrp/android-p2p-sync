@@ -33,6 +33,8 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.model.dao.ReceiverTransferDao;
+import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -68,7 +70,8 @@ public class P2PSenderPresenterTest {
     @Before
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
-                ,"password","username", authorizationService));
+                ,"password","username", authorizationService
+                , Mockito.mock(ReceiverTransferDao.class), Mockito.mock(SenderTransferDao.class)));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();
