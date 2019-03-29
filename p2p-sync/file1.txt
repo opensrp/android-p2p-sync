@@ -1,0 +1,1 @@
+This library wraps on the Google Nearby Connections API to provide a simple UI and interfaces to be used to easily share records between host applications

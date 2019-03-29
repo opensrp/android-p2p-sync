@@ -35,10 +35,10 @@ public class DataType implements Comparable<DataType> {
         if (getPosition() == o.getPosition()) {
             return 0;
         } else if (getPosition() < o.getPosition()) {
-            return 1;
+            return -1;
         }
 
-        return -1;
+        return 1;
     }
 
     public enum Type {

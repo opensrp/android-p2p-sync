@@ -1,0 +1,36 @@
+package org.smartregister.p2p.shadows;
+
+import android.support.annotation.NonNull;
+
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
+import org.smartregister.p2p.tasks.Tasker;
+
+import java.util.concurrent.Callable;
+
+/**
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 29/03/2019
+ */
+@Implements(Tasker.class)
+public class ShadowTasker {
+
+    @Implementation
+    public static <T> void run(@NonNull Callable<T> callable
+            , @NonNull GenericAsyncTask.OnFinishedCallback<T> onFinishedCallback) {
+
+        Exception ex = null;
+        T result = null;
+        try {
+            result = callable.call();
+        } catch (Exception e) {
+            ex = e;
+        }
+
+        if (ex != null) {
+            onFinishedCallback.onSuccess(result);
+        } else {
+            onFinishedCallback.onError(ex);
+        }
+    }
+}

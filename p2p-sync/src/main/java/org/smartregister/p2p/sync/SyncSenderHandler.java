@@ -2,6 +2,7 @@ package org.smartregister.p2p.sync;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
@@ -40,7 +41,7 @@ public class SyncSenderHandler {
     private List<P2pReceivedHistory> receivedHistory;
     private int batchSize;
 
-    private boolean awaitingPayloadTansfer;
+    private boolean awaitingPayloadTransfer;
     private Payload awaitingPayload;
     private String awaitingDataTypeName;
     private long awaitingDataTypeHighestId;
@@ -50,6 +51,7 @@ public class SyncSenderHandler {
 
     private int sendMaxRetries = 3;
     private PayloadRetry payloadRetry;
+    private SyncPackageManifest syncPackageManifest;
 
     public SyncSenderHandler(@NonNull P2pModeSelectContract.SenderPresenter presenter, @NonNull TreeSet<DataType> dataSyncOrder
             , @Nullable List<P2pReceivedHistory> receivedHistory) {
@@ -91,7 +93,8 @@ public class SyncSenderHandler {
         }
     }
 
-    private void sendMultimediaDataManifest(final DataType dataType) {
+    @VisibleForTesting
+    public void sendMultimediaDataManifest(@NonNull final DataType dataType) {
         Tasker.run(new Callable<File>() {
             @Override
             public File call() throws Exception {
@@ -128,7 +131,7 @@ public class SyncSenderHandler {
                             extension = filename.substring(lastIndex);
                         }
 
-                        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                        syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                                 , extension
                                 , dataType);
 
@@ -150,7 +153,8 @@ public class SyncSenderHandler {
         });
     }
 
-    private void sendJsonDataManifest(final DataType dataType) {
+    @VisibleForTesting
+    public void sendJsonDataManifest(@NonNull final DataType dataType) {
         Tasker.run(new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -179,7 +183,7 @@ public class SyncSenderHandler {
                     // Create the manifest
                     awaitingPayload = Payload.fromStream(createJsonDataStream(result));
 
-                    SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                    syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                             , "json"
                             , dataType);
 
@@ -213,7 +217,8 @@ public class SyncSenderHandler {
         }
     }
 
-    private void sendNexPayload() {
+    @com.google.android.gms.common.util.VisibleForTesting
+    public void sendNextPayload() {
         if (awaitingPayload != null) {
             presenter.sendPayload(awaitingPayload);
         }
@@ -222,16 +227,36 @@ public class SyncSenderHandler {
     public void onPayloadTransferUpdate(@NonNull PayloadTransferUpdate update) {
         if (awaitingManifestTransfer) {
             if (update.getPayloadId() == awaitingManifestId) {
-                awaitingManifestTransfer = false;
-                awaitingManifestId = 0;
-                payloadRetry = null;
+                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                    awaitingManifestTransfer = false;
+                    awaitingManifestId = 0;
+                    payloadRetry = null;
+                    syncPackageManifest = null;
 
-                sendNexPayload();
+                    sendNextPayload();
+                } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
+                    // Try to resend the manifest until the max retries are done
+                    if (payloadRetry == null) {
+                        payloadRetry = new PayloadRetry(0l, sendMaxRetries);
+                    }
+
+                    if (payloadRetry.retries > 0) {
+                        payloadRetry.retries--;
+
+                        awaitingManifestTransfer = true;
+                        awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                        payloadRetry.payloadId = awaitingManifestId;
+                    } else {
+                        presenter.errorOccurredSync(new Exception("Manifest Payload send failed up-to " + sendMaxRetries));
+                    }
+                } else if (update.getStatus() == PayloadTransferUpdate.Status.CANCELED) {
+                    presenter.errorOccurredSync(new Exception("Manifest Payload sending has been cancelled"));
+                }
             }
-        } else if (awaitingPayloadTansfer) {
+        } else if (awaitingPayloadTransfer) {
             if (awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
                 if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
-                    awaitingPayloadTansfer = false;
+                    awaitingPayloadTransfer = false;
                     awaitingPayload = null;
 
                     if (awaitingDataTypeName != null) {
@@ -247,10 +272,12 @@ public class SyncSenderHandler {
 
                     if (payloadRetry.retries > 0) {
                         payloadRetry.retries--;
-                        sendNexPayload();
+                        sendNextPayload();
                     } else {
                         presenter.errorOccurredSync(new Exception("Payload send failed up-to " + sendMaxRetries));
                     }
+                } else if (update.getStatus() == PayloadTransferUpdate.Status.CANCELED) {
+                    presenter.errorOccurredSync(new Exception("Payload sending has been cancelled"));
                 }
             }
         }
