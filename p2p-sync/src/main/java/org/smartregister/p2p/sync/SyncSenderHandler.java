@@ -15,12 +15,17 @@ import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+
+import timber.log.Timber;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
@@ -108,24 +113,30 @@ public class SyncSenderHandler {
         }, new GenericAsyncTask.OnFinishedCallback<File>() {
             @Override
             public void onSuccess(@Nullable File result) {
-                if (result != null) {
+                if (result != null && result.exists()) {
                     // Create the manifest
-                    awaitingPayload = Payload.fromStream(createFileDataStream(result));
+                    InputStream fileIs = createFileDataStream(result);
 
-                    String filename = result.getName();
-                    String extension = "";
+                    if (fileIs != null) {
+                        awaitingPayload = Payload.fromStream(fileIs);
 
-                    int lastIndex = filename.lastIndexOf(".");
-                    if (lastIndex > -1 && lastIndex < filename.length()) {
-                        extension = filename.substring(lastIndex);
+                        String filename = result.getName();
+                        String extension = "";
+
+                        int lastIndex = filename.lastIndexOf(".");
+                        if (lastIndex > -1 && lastIndex < filename.length()) {
+                            extension = filename.substring(lastIndex);
+                        }
+
+                        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                                , extension
+                                , dataType);
+
+                        awaitingManifestTransfer = true;
+                        awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                    } else {
+                        onError(new Exception("File could not be found"));
                     }
-
-                    SyncPackageManifest syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
-                            , extension
-                            , dataType);
-
-                    awaitingManifestTransfer = true;
-                    awaitingManifestId = presenter.sendManifest(syncPackageManifest);
                 } else {
                     dataSyncOrder.remove(dataType);
                     sendNextManifest();
@@ -189,12 +200,17 @@ public class SyncSenderHandler {
 
     @NonNull
     private InputStream createJsonDataStream(@NonNull String json) {
-        return null;
+        return new ByteArrayInputStream(json.getBytes());
     }
 
-    @NonNull
+    @Nullable
     private InputStream createFileDataStream(@NonNull File file) {
-        return null;
+        try {
+            return new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            Timber.e(e);
+            return null;
+        }
     }
 
     private void sendNexPayload() {
