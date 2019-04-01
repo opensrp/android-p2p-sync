@@ -159,7 +159,8 @@ public class SyncSenderHandler {
             @Override
             public String call() throws Exception {
 
-                long lastRecordId = remainingLastRecordIds.get(dataType.getName());
+                Long nullableRecordId = remainingLastRecordIds.get(dataType.getName());
+                long lastRecordId = nullableRecordId == null ? 0l : nullableRecordId;
                 JsonData jsonData = P2PLibrary.getInstance().getSenderTransferDao()
                         .getJsonData(dataType, lastRecordId, batchSize);
 
@@ -253,39 +254,37 @@ public class SyncSenderHandler {
                     presenter.errorOccurredSync(new Exception("Manifest Payload sending has been cancelled"));
                 }
             }
-        } else if (awaitingPayloadTransfer) {
-            if (awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
-                if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
-                    awaitingPayloadTransfer = false;
-                    awaitingPayload = null;
+        } else if (awaitingPayloadTransfer && awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
+            if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                awaitingPayloadTransfer = false;
+                awaitingPayload = null;
 
-                    if (awaitingDataTypeName != null) {
-                        remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
-                    }
-
-                    sendNextManifest();
-                } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
-                    // Try to resend the payload until the max retries are done
-                    if (payloadRetry == null) {
-                        payloadRetry = new PayloadRetry(awaitingPayload.getId(), sendMaxRetries);
-                    }
-
-                    if (payloadRetry.retries > 0) {
-                        payloadRetry.retries--;
-                        sendNextPayload();
-                    } else {
-                        presenter.errorOccurredSync(new Exception("Payload send failed up-to " + sendMaxRetries));
-                    }
-                } else if (update.getStatus() == PayloadTransferUpdate.Status.CANCELED) {
-                    presenter.errorOccurredSync(new Exception("Payload sending has been cancelled"));
+                if (awaitingDataTypeName != null) {
+                    remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
                 }
+
+                sendNextManifest();
+            } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
+                // Try to resend the payload until the max retries are done
+                if (payloadRetry == null) {
+                    payloadRetry = new PayloadRetry(awaitingPayload.getId(), sendMaxRetries);
+                }
+
+                if (payloadRetry.retries > 0) {
+                    payloadRetry.retries--;
+                    sendNextPayload();
+                } else {
+                    presenter.errorOccurredSync(new Exception("Payload send failed up-to " + sendMaxRetries));
+                }
+            } else if (update.getStatus() == PayloadTransferUpdate.Status.CANCELED) {
+                presenter.errorOccurredSync(new Exception("Payload sending has been cancelled"));
             }
         }
     }
 
     class PayloadRetry {
-        long payloadId;
-        int retries;
+        protected long payloadId;
+        protected int retries;
 
         PayloadRetry(long payloadId, int retries) {
             this.payloadId = payloadId;

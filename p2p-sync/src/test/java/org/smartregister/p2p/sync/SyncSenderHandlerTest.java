@@ -412,7 +412,6 @@ public class SyncSenderHandlerTest {
 
     @Test
     public void createJsonDataStreamShouldCreateReversibleDataStream() throws IOException, JSONException {
-
         JSONArray jsonArray = new JSONArray();
         jsonArray.put(true);
         jsonArray.put(event);
@@ -424,7 +423,7 @@ public class SyncSenderHandlerTest {
         JSONArray resultJsonArray = new Gson().fromJson(readInputStreamAsString(is), JSONArray.class);
 
         assertEquals(jsonArray.length(), resultJsonArray.length());
-        assertEquals(true, resultJsonArray.getBoolean(0));
+        assertTrue(resultJsonArray.getBoolean(0));
         assertEquals("event", (new Gson().fromJson(resultJsonArray.getString(1), DataType.class)).getName());
     }
 
