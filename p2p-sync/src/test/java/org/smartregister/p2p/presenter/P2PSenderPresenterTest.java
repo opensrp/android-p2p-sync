@@ -7,7 +7,10 @@ import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.gson.Gson;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +38,9 @@ import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -55,13 +60,15 @@ public class P2PSenderPresenterTest {
     private P2pModeSelectContract.View view;
     @Mock
     private P2pModeSelectContract.Interactor interactor;
+    @Mock
+    private P2PAuthorizationService authorizationService;
 
     private P2PSenderPresenter p2PSenderPresenter;
 
     @Before
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
-                ,"password","username", Mockito.mock(P2PAuthorizationService.class)));
+                ,"password","username", authorizationService));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();
@@ -545,5 +552,145 @@ public class P2PSenderPresenterTest {
 
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
+    }
+
+    @Test
+    public void performAuthorizationShouldCallOnConnectionAuthorizationDetectedWhenAuthorizationPayloadIsNotBytes() {
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.STREAM)
+                .when(payload)
+                .getType();
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        Mockito.doReturn("name")
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver"
+                , new DiscoveredDevice("id", discoveredEndpointInfo));
+
+        p2PSenderPresenter.performAuthorization(payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .onConnectionAuthorizationRejected(Mockito.anyString());
+    }
+
+    @Test
+    public void performAuthorizationShouldCallOnConnectionAuthorizationDetectedWhenAuthorizationPayloadIsInvalid() {
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+
+        Mockito.doReturn("sip sup".getBytes())
+                .when(payload)
+                .asBytes();
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        Mockito.doReturn("name")
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver"
+                , new DiscoveredDevice("id", discoveredEndpointInfo));
+        p2PSenderPresenter.performAuthorization(payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .onConnectionAuthorizationRejected(Mockito.anyString());
+    }
+
+    @Test
+    public void performAuthorizationShouldAuthorizationServiceWhenAuthorizationPayloadIsValid() {
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+
+        Map<String, Object> authorizationDetails = new HashMap<>();
+        authorizationDetails.put("app-version", 9.9);
+        String payloadString = new Gson().toJson(authorizationDetails);
+
+        Mockito.doReturn(payloadString.getBytes())
+                .when(payload)
+                .asBytes();
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        Mockito.doReturn("name")
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver"
+                , new DiscoveredDevice("id", discoveredEndpointInfo));
+
+        p2PSenderPresenter.performAuthorization(payload);
+
+        Mockito.verify(authorizationService, Mockito.times(1))
+                .authorizeConnection(ArgumentMatchers.any(Map.class)
+                        , ArgumentMatchers.any(P2PAuthorizationService.AuthorizationCallback.class));
+    }
+
+    @Test
+    public void onPayloadReceivedShouldCallPerformAuthorizationWhenConnectionLevelIsAuthenticated() {
+        String endpointId = "endpoint id";
+
+        Payload payload = Mockito.mock(Payload.class);
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        Mockito.doReturn("name")
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver"
+                , new DiscoveredDevice("id", discoveredEndpointInfo));
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .performAuthorization(ArgumentMatchers.eq(payload));
+    }
+
+    @Test
+    public void onPayloadTransferUpdateShouldChangeConnectionLevelToSentHashKeyWhenHashKeyPayloadStatusUpdateIsSuccess() {
+        long payloadId = 9293;
+        String endpointId = "endpointid";
+
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.SUCCESS)
+                .when(update)
+                .getStatus();
+
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "hashKeyPayloadId", payloadId);
+        p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
+
+        assertEquals(ConnectionLevel.SENT_HASH_KEY, ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
+    }
+
+    @Test
+    public void onPayloadTransferUpdateShouldResetHashKeyPayloadIdWhenHashKeyPayloadStatusUpdateIsFailure() {
+        long payloadId = 9293;
+        String endpointId = "endpointid";
+
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.FAILURE)
+                .when(update)
+                .getStatus();
+
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "hashKeyPayloadId", payloadId);
+        p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
+
+        assertEquals(0l, ReflectionHelpers.getField(p2PSenderPresenter, "hashKeyPayloadId"));
     }
 }
