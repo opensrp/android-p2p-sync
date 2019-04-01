@@ -218,7 +218,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             String payloadAsString = new String(payload.asBytes());
 
-
             Map<String, Object> basicDeviceDetails = null;
             try {
                 basicDeviceDetails = (Map<String, Object>) new Gson()
@@ -236,97 +235,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 // Check if the device has been interacting with this app if it's state when it started
                 // and now is the same
                 // Should be done in the background
-                final Map<String, Object> finalBasicDeviceDetails  = basicDeviceDetails;
-                checkIfDeviceKeyHasChanged(basicDeviceDetails, new GenericAsyncTask.OnFinishedCallback<SendingDevice>() {
-                    @Override
-                    public void onSuccess(@Nullable SendingDevice result) {
-                        if (result != null) {
-                            final SendingDevice sendingDevice = result;
-                            final String appLifetimeKey = (String) finalBasicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY);
-
-                            if (sendingDevice.getAppLifetimeKey()
-                                    .equals(appLifetimeKey)) {
-                                Tasker.run(new Callable<List<P2pReceivedHistory>>() {
-                                    @Override
-                                    public List<P2pReceivedHistory> call() throws Exception {
-                                        return P2PLibrary.getInstance().getDb()
-                                                .p2pReceivedHistoryDao()
-                                                .getDeviceReceivedHistory(sendingDevice.getDeviceId());
-                                    }
-                                }, new GenericAsyncTask.OnFinishedCallback<List<P2pReceivedHistory>>() {
-                                    @Override
-                                    public void onSuccess(@Nullable List<P2pReceivedHistory> result) {
-                                        if (result == null) {
-                                            result = new ArrayList<>();
-                                        }
-
-                                        sendLastReceivedRecords(result);
-                                    }
-
-                                    @Override
-                                    public void onError(Exception e) {
-                                        Timber.e(e);
-                                        disconnectAndReset(endpointId);
-                                    }
-                                });
-
-                            } else {
-                                // Clear the device history records && update device app key
-                                Tasker.run(new Callable<Integer>() {
-                                    @Override
-                                    public Integer call() throws Exception {
-                                        return clearDeviceHistoryAndUpdateDeviceKey(sendingDevice, appLifetimeKey);
-                                    }
-                                }, new GenericAsyncTask.OnFinishedCallback<Integer>() {
-                                    @Override
-                                    public void onSuccess(@Nullable Integer result) {
-                                        if (result != null) {
-                                            Timber.e(view.getString(R.string.log_records_deleted), (int) result);
-                                        }
-
-                                        sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
-                                    }
-
-                                    @Override
-                                    public void onError(Exception e) {
-                                        Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
-                                                , sendingDevice.getDeviceId());
-                                        disconnectAndReset(endpointId);
-                                    }
-                                });
-
-                            }
-                        } else {
-                            // This is a new device we should save it
-                            Tasker.run(new Callable<Void>() {
-                                @Override
-                                public Void call() throws Exception {
-                                    registerSendingDevice(finalBasicDeviceDetails);
-                                    return null;
-                                }
-                            }, new GenericAsyncTask.OnFinishedCallback<Void>() {
-                                @Override
-                                public void onSuccess(@Nullable Void result) {
-                                    sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                    Timber.e(e);
-                                    view.showToast(view.getString(R.string.an_error_occurred_trying_to_save_new_sender_details), Toast.LENGTH_LONG);
-
-                                    disconnectAndReset(endpointId);
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        Timber.e(e);
-                        disconnectAndReset(endpointId);
-                    }
-                });
+                Map<String, Object> finalBasicDeviceDetails  = basicDeviceDetails;
+                checkIfDeviceKeyHasChanged(basicDeviceDetails, endpointId);
             }
 
         } else {
@@ -405,8 +315,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         prepareForAdvertising(false);
     }
 
-    private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails
-            , @NonNull GenericAsyncTask.OnFinishedCallback<SendingDevice> onFinishedCallback) {
+    private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails, final @NonNull String endpointId) {
         Tasker.run(new Callable<SendingDevice>() {
             @Override
             public SendingDevice call() throws Exception {
@@ -414,7 +323,92 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                         .sendingDeviceDao()
                         .getSendingDevice((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
             }
-        }, onFinishedCallback);
+        }, new GenericAsyncTask.OnFinishedCallback<SendingDevice>() {
+            @Override
+            public void onSuccess(@Nullable SendingDevice result) {
+                if (result != null) {
+                    final SendingDevice sendingDevice = result;
+                    final String appLifetimeKey = (String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY);
+
+                    if (sendingDevice.getAppLifetimeKey()
+                            .equals(appLifetimeKey)) {
+                        Tasker.run(new Callable<List<P2pReceivedHistory>>() {
+                            @Override
+                            public List<P2pReceivedHistory> call() throws Exception {
+                                return P2PLibrary.getInstance().getDb()
+                                        .p2pReceivedHistoryDao()
+                                        .getDeviceReceivedHistory(sendingDevice.getDeviceId());
+                            }
+                        }, new GenericAsyncTask.OnFinishedCallback<List<P2pReceivedHistory>>() {
+                            @Override
+                            public void onSuccess(@Nullable List<P2pReceivedHistory> result) {
+                                sendLastReceivedRecords(result != null ? result :new ArrayList<P2pReceivedHistory>());
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Timber.e(e);
+                                disconnectAndReset(endpointId);
+                            }
+                        });
+
+                    } else {
+                        // Clear the device history records && update device app key
+                        Tasker.run(new Callable<Integer>() {
+                            @Override
+                            public Integer call() throws Exception {
+                                return clearDeviceHistoryAndUpdateDeviceKey(sendingDevice, appLifetimeKey);
+                            }
+                        }, new GenericAsyncTask.OnFinishedCallback<Integer>() {
+                            @Override
+                            public void onSuccess(@Nullable Integer result) {
+                                if (result != null) {
+                                    Timber.e(view.getString(R.string.log_records_deleted), (int) result);
+                                }
+
+                                sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
+                                        , sendingDevice.getDeviceId());
+                                disconnectAndReset(endpointId);
+                            }
+                        });
+
+                    }
+                } else {
+                    // This is a new device we should save it
+                    Tasker.run(new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            registerSendingDevice(basicDeviceDetails);
+                            return null;
+                        }
+                    }, new GenericAsyncTask.OnFinishedCallback<Void>() {
+                        @Override
+                        public void onSuccess(@Nullable Void result) {
+                            sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            Timber.e(e);
+                            view.showToast(view.getString(R.string.an_error_occurred_trying_to_save_new_sender_details), Toast.LENGTH_LONG);
+
+                            disconnectAndReset(endpointId);
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Timber.e(e);
+                disconnectAndReset(endpointId);
+            }
+        });
     }
 
     @Override
