@@ -28,9 +28,9 @@ public class ShadowTasker {
         }
 
         if (ex != null) {
-            onFinishedCallback.onSuccess(result);
-        } else {
             onFinishedCallback.onError(ex);
+        } else {
+            onFinishedCallback.onSuccess(result);
         }
     }
 }
