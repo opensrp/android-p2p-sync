@@ -177,7 +177,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         Timber.i(view.getString(R.string.log_endpoint_found)
                 , endpointId, discoveredEndpointInfo.getEndpointName(), discoveredEndpointInfo.getServiceId());
 
-        if (currentReceiver == null) {
+        // Reject when already connected or the connecting device is blacklisted
+        if (currentReceiver == null && !blacklistedDevices.contains(endpointId)) {
             currentReceiver = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
             // First stop discovering
@@ -196,6 +197,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 }
             }, new org.smartregister.p2p.sync.SyncConnectionLifecycleCallback(this));
         }
+        // We ignore blacklisted devices and do not request a connection with them
     }
 
     @Override
@@ -266,7 +268,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             syncConnectionAuthenticator.authenticate(currentReceiver, this);
         } else {
             //("Connection was initiated by other device");
-            Timber.e(view.getString(R.string.log_ignoring_connection_initiated_by_other_device)
+            Timber.e(view.getString(R.string.log_rejecting_connection_initiated_by_other_device)
                     , endpointId
                     , connectionInfo.getEndpointName()
                     , connectionInfo.getAuthenticationToken());
@@ -299,7 +301,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onAuthenticationFailed(@NonNull Exception exception) {
         // Reject the connection
         if (currentReceiver != null) {
-            interactor.rejectConnection(currentReceiver.getEndpointId());
+            String endpointId = currentReceiver.getEndpointId();
+            interactor.rejectConnection(endpointId);
         }
 
         view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
@@ -316,7 +319,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onAuthenticationCancelled(@NonNull String reason) {
         // Reject the connection
         if (currentReceiver != null) {
-            interactor.rejectConnection(currentReceiver.getEndpointId());
+            String endpointId = currentReceiver.getEndpointId();
+            interactor.rejectConnection(endpointId);
         }
 
         // Go back to discovering mode
@@ -343,9 +347,16 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
-        resetState();
-        startDiscoveringMode();
+        // If my device is rejected by another device
+        // I should also reject & start blacklisting the device here
+        // so that our device is also able to connect to other devices
+        if (currentReceiver != null) {
+            rejectDeviceOnAuthentication(endpointId);
+
+            view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
+            resetState();
+            startDiscoveringMode();
+        }
     }
 
     @Override
@@ -458,10 +469,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     private void resetState() {
-        if (currentReceiver != null) {
-            interactor.disconnectFromEndpoint(currentReceiver.getEndpointId());
-        }
-
         connectionLevel = null;
         view.dismissAllDialogs();
         currentReceiver = null;
@@ -490,14 +497,19 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onConnectionAuthorizationRejected(@NonNull String reason) {
-        interactor.closeAllEndpoints();
-        interactor.connectedTo(null);
-        view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
-                , currentReceiver.getEndpointName())
-                , Toast.LENGTH_LONG);
+        // Disconnect from the endpoint
+        if (currentReceiver != null) {
+            String endpointId = currentReceiver.getEndpointId();
+            disconnectAndReset(endpointId);
+            addDeviceToBlacklist(endpointId);
 
-        resetState();
-        prepareForDiscovering(false);
+            view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
+                    , currentReceiver.getEndpointName())
+                    , Toast.LENGTH_LONG);
+        } else {
+            resetState();
+            prepareForDiscovering(false);
+        }
     }
 
     @Nullable
@@ -514,6 +526,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     private void disconnectAndReset(@NonNull String endpointId) {
         interactor.disconnectFromEndpoint(endpointId);
+        interactor.connectedTo(null);
+
         resetState();
         prepareForDiscovering(false);
     }

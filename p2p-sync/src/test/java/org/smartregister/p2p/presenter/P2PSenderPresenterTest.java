@@ -541,13 +541,20 @@ public class P2PSenderPresenterTest {
 
     @Test
     public void onConnectionAuthorizationRejectedShouldResetState() {
-        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", Mockito.mock(DiscoveredDevice.class));
+        String endpointId = "endpointId";
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(ConnectionInfo.class));
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
         ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
+
+        Mockito.doNothing()
+                .when(p2PSenderPresenter)
+                .prepareForDiscovering(Mockito.anyBoolean());
 
         p2PSenderPresenter.onConnectionAuthorizationRejected("Incompatible app version");
 
         Mockito.verify(interactor, Mockito.times(1))
-                .closeAllEndpoints();
+                .disconnectFromEndpoint(endpointId);
         Mockito.verify(interactor, Mockito.times(1))
                 .connectedTo(ArgumentMatchers.eq((String) null));
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))

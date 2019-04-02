@@ -2,8 +2,12 @@ package org.smartregister.p2p.presenter;
 
 import android.support.annotation.NonNull;
 
+import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
+
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
@@ -13,6 +17,9 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
 
     protected P2pModeSelectContract.View view;
     protected P2pModeSelectContract.Interactor interactor;
+
+    protected HashMap<String, Long> rejectedDevices = new HashMap<>();
+    protected HashSet<String> blacklistedDevices = new HashSet<>();
 
     public BaseP2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view) {
         this(view, new P2pModeSelectInteractor(view.getContext()));
@@ -60,4 +67,34 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
         return view;
     }
 
+
+    @Override
+    public void addDeviceToRejectedList(@NonNull String endpointId) {
+        rejectedDevices.put(endpointId, System.currentTimeMillis());
+    }
+
+    @Override
+    public boolean addDeviceToBlacklist(@NonNull String endpointId) {
+        rejectedDevices.remove(endpointId);
+        if (blacklistedDevices.contains(endpointId)) {
+            return false;
+        } else {
+            blacklistedDevices.add(endpointId);
+            return true;
+        }
+    }
+
+    @Override
+    public void rejectDeviceOnAuthentication(@NonNull String endpointId) {
+        Long rejectionTime = rejectedDevices.get(endpointId);
+        if (rejectionTime != null) {
+            if ((System.currentTimeMillis() - rejectionTime)/1e3 > P2PLibrary.getInstance().getDeviceMaxRetryConnectionDuration()) {
+                addDeviceToRejectedList(endpointId);
+            } else {
+                addDeviceToBlacklist(endpointId);
+            }
+        } else {
+            addDeviceToRejectedList(endpointId);
+        }
+    }
 }

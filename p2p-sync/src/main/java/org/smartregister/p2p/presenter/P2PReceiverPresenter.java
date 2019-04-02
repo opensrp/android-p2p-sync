@@ -132,7 +132,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         Timber.i(view.getString(R.string.log_connection_initiated_endpoint_auth_code), endpointId, connectionInfo.getEndpointName()
                 , connectionInfo.getAuthenticationToken());
 
-        if (currentSender == null) {
+        // Reject when already connected or the connecting device is blacklisted
+        if (currentSender == null && !blacklistedDevices.contains(endpointId)) {
             currentSender = new DiscoveredDevice(endpointId, connectionInfo);
 
             // First stop advertising
@@ -143,11 +144,12 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new ReceiverConnectionAuthenticator(this);
             syncConnectionAuthenticator.authenticate(currentSender, this);
         } else {
-            Timber.e(view.getString(R.string.log_ignoring_connection_initiated_by_other_device)
+            Timber.e(view.getString(R.string.log_rejecting_connection_initiated_by_other_device)
                     , endpointId
                     , connectionInfo.getEndpointName()
                     , connectionInfo.getAuthenticationToken());
             // We can add connection support for multiple devices here later
+            interactor.rejectConnection(endpointId);
         }
     }
 
@@ -170,9 +172,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
-        resetState();
-        prepareForAdvertising(false);
+        if (currentSender != null) {
+            view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
+            resetState();
+            prepareForAdvertising(false);
+        }
     }
 
     @Override
@@ -181,8 +185,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
-            resetState();
-            prepareForAdvertising(false);
+            disconnectAndReset(endpointId);
         }
     }
 
@@ -191,9 +194,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Show the user an error
         //Todo: Go back to advertising mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
-            resetState();
+            disconnectAndReset(endpointId);
             view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
-            prepareForAdvertising(false);
         }
     }
 
@@ -314,6 +316,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     private void disconnectAndReset(@NonNull String endpointId) {
         interactor.disconnectFromEndpoint(endpointId);
+        interactor.connectedTo(null);
         resetState();
         prepareForAdvertising(false);
     }
@@ -456,10 +459,15 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onAuthenticationFailed(@NonNull Exception exception) {
         // Reject the connection
         if (currentSender != null) {
-            interactor.rejectConnection(currentSender.getEndpointId());
+            String endpointId = currentSender.getEndpointId();
+            interactor.rejectConnection(endpointId);
+
+            rejectDeviceOnAuthentication(endpointId);
         }
 
         view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
+        resetState();
+        prepareForAdvertising(false);
 
         //Todo: Go back to advertising mode
         Timber.e(exception, view.getString(R.string.authentication_failed));
@@ -473,18 +481,17 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onAuthenticationCancelled(@NonNull String reason) {
         // Reject the connection
         if (currentSender != null) {
-            interactor.rejectConnection(currentSender.getEndpointId());
+            String endpointId = currentSender.getEndpointId();
+            interactor.rejectConnection(endpointId);
         }
+        resetState();
+        prepareForAdvertising(false);
 
         // Go back to discovering mode
         Timber.e(view.getString(R.string.log_authentication_cancelled), reason);
     }
 
     private void resetState() {
-        if (currentSender != null) {
-            interactor.disconnectFromEndpoint(currentSender.getEndpointId());
-        }
-
         connectionLevel = null;
         view.dismissAllDialogs();
         currentSender = null;
@@ -500,15 +507,20 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionAuthorizationRejected(@NonNull String reason) {
-        Timber.e(reason);
-        interactor.closeAllEndpoints();
-        interactor.connectedTo(null);
-        view.showToast(String.format(view.getContext().getString(R.string.connection_could_not_be_authorized)
-                , currentSender.getEndpointName())
-                , Toast.LENGTH_LONG);
+        //Timber.e(reason);
+        // Disconnect from the endpoint
+        if (currentSender != null) {
+            String endpointId = currentSender.getEndpointId();
+            disconnectAndReset(endpointId);
+            addDeviceToBlacklist(endpointId);
 
-        resetState();
-        prepareForAdvertising(false);
+            view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
+                    , currentSender.getEndpointName())
+                    , Toast.LENGTH_LONG);
+        } else {
+            resetState();
+            prepareForAdvertising(false);
+        }
     }
 
     @Nullable
