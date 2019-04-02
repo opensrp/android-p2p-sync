@@ -235,7 +235,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 // Check if the device has been interacting with this app if it's state when it started
                 // and now is the same
                 // Should be done in the background
-                Map<String, Object> finalBasicDeviceDetails  = basicDeviceDetails;
                 checkIfDeviceKeyHasChanged(basicDeviceDetails, endpointId);
             }
 
