@@ -91,5 +91,10 @@ public class BaseP2pModeSelectPresenterTest {
         public void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice) {
             currentDevice = discoveredDevice;
         }
+
+        @Override
+        public void disconnectAndReset(@NonNull String endpointId) {
+            // Do nothing in this implementation
+        }
     }
 }
