@@ -5,6 +5,7 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import org.smartregister.p2p.model.P2pReceivedHistory;
 
@@ -28,4 +29,8 @@ public interface P2pReceivedHistoryDao {
 
     @Query("SELECT * FROM p2p_received_history WHERE sending_device_id = :sendingDeviceId")
     List<P2pReceivedHistory> getDeviceReceivedHistory(@NonNull String sendingDeviceId);
+
+    @Nullable
+    @Query("SELECT * FROM p2p_received_history WHERE sending_device_id = :sendingDeviceId AND entity_type = :entityType")
+    P2pReceivedHistory getHistory(@NonNull String sendingDeviceId, @NonNull String entityType);
 }

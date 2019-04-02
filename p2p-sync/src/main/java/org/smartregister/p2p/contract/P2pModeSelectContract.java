@@ -13,6 +13,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
@@ -99,6 +100,8 @@ public interface P2pModeSelectContract {
         boolean addDeviceToBlacklist(@NonNull String endpointId);
 
         void rejectDeviceOnAuthentication(@NonNull String endpointId);
+
+        void disconnectAndReset(@NonNull String endpointId);
     }
 
     interface ReceiverPresenter extends BasePresenter {
@@ -108,6 +111,9 @@ public interface P2pModeSelectContract {
         void prepareForAdvertising(boolean returningFromRequestingPermissions);
 
         void startAdvertisingMode();
+
+        @Nullable
+        SendingDevice getSendingDevice();
 
     }
 

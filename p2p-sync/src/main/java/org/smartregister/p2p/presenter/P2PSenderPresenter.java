@@ -524,7 +524,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
 
-    private void disconnectAndReset(@NonNull String endpointId) {
+    public void disconnectAndReset(@NonNull String endpointId) {
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
 
@@ -535,6 +535,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     private void sendTransactionCompleteCommand() {
         // Todo: Should send some payload that can be received at any connection level on the other side
         // incase the other side has hung at some point
+        syncSenderHandler = null;
     }
 
 }
