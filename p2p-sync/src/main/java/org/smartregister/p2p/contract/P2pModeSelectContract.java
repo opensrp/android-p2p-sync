@@ -93,6 +93,12 @@ public interface P2pModeSelectContract {
         DiscoveredDevice getCurrentPeerDevice();
 
         void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice);
+
+        void addDeviceToRejectedList(@NonNull String endpointId);
+
+        boolean addDeviceToBlacklist(@NonNull String endpointId);
+
+        void rejectDeviceOnAuthentication(@NonNull String endpointId);
     }
 
     interface ReceiverPresenter extends BasePresenter {

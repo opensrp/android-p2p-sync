@@ -139,6 +139,10 @@ public final class P2PLibrary {
         return options.getBatchSize();
     }
 
+    public long getDeviceMaxRetryConnectionDuration() {
+        return options.getDeviceMaxRetryConnectionDuration();
+    }
+
     public static class Options {
 
         private Context context;
@@ -148,6 +152,8 @@ public final class P2PLibrary {
         private ReceiverTransferDao receiverTransferDao;
         private SenderTransferDao senderTransferDao;
         private int batchSize = Constants.DEFAULT_SHARE_BATCH_SIZE;
+
+        private long deviceMaxRetryConnectionDuration = Constants.DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION;
 
         public Options(@NonNull Context context, @NonNull String dbPassphrase, @NonNull String username
                 , @NonNull P2PAuthorizationService p2PAuthorizationService, @NonNull ReceiverTransferDao receiverTransferDao
@@ -196,6 +202,14 @@ public final class P2PLibrary {
         @NonNull
         public String getDbPassphrase() {
             return dbPassphrase;
+        }
+
+        public long getDeviceMaxRetryConnectionDuration() {
+            return deviceMaxRetryConnectionDuration;
+        }
+
+        public void setDeviceMaxRetryConnectionDuration(long deviceMaxRetryConnectionDuration) {
+            this.deviceMaxRetryConnectionDuration = deviceMaxRetryConnectionDuration;
         }
     }
 }

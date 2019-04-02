@@ -10,6 +10,7 @@ public interface Constants {
 
     Strategy STRATEGY = Strategy.P2P_STAR;
     int DEFAULT_SHARE_BATCH_SIZE = 20;
+    int DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION = 2 * 60 * 60;
 
     interface Dialog {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";
