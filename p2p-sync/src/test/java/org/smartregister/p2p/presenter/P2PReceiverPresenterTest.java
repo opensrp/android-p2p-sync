@@ -537,6 +537,7 @@ public class P2PReceiverPresenterTest {
         String endpointId = "endpointId";
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
 
+
         ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", discoveredDevice);
         ReflectionHelpers.setField(p2PReceiverPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
 
