@@ -2,12 +2,11 @@ package org.smartregister.p2p.sample.dao;
 
 import android.support.annotation.NonNull;
 
-import com.google.gson.JsonArray;
-
+import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 
-import java.io.File;
+import java.io.InputStream;
 import java.util.TreeSet;
 
 /**
@@ -22,12 +21,12 @@ public class SampleReceiverDao implements ReceiverTransferDao {
     }
 
     @Override
-    public boolean receiveMultimedia(@NonNull DataType dataType, @NonNull File file) {
-        return false;
+    public long receiveMultimedia(@NonNull DataType dataType, @NonNull InputStream inputStream) {
+        return 0;
     }
 
     @Override
-    public int receiveJson(@NonNull DataType type, @NonNull JsonArray jsonArray) {
-        return 0;
+    public long receiveJson(@NonNull DataType type, @NonNull JSONArray jsonArray) {
+        return 4;
     }
 }

@@ -29,10 +29,9 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
+import org.smartregister.p2p.util.SyncDataConverterUtil;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -420,7 +419,7 @@ public class SyncSenderHandlerTest {
 
         InputStream is = ReflectionHelpers.callInstanceMethod(syncSenderHandler, "createJsonDataStream", ReflectionHelpers.ClassParameter.from(String.class, jsonString));
 
-        JSONArray resultJsonArray = new Gson().fromJson(readInputStreamAsString(is), JSONArray.class);
+        JSONArray resultJsonArray = new Gson().fromJson(SyncDataConverterUtil.readInputStreamAsString(is), JSONArray.class);
 
         assertEquals(jsonArray.length(), resultJsonArray.length());
         assertTrue(resultJsonArray.getBoolean(0));
@@ -469,16 +468,4 @@ public class SyncSenderHandlerTest {
         return history;
     }
 
-    public static String readInputStreamAsString(InputStream in)
-            throws IOException {
-        BufferedInputStream bis = new BufferedInputStream(in);
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        int result = bis.read();
-        while(result != -1) {
-            byte b = (byte)result;
-            buf.write(b);
-            result = bis.read();
-        }
-        return buf.toString();
-    }
 }

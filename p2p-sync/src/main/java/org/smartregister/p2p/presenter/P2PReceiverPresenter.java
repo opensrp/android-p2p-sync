@@ -27,6 +27,7 @@ import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
+import org.smartregister.p2p.sync.SyncReceiverHandler;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
@@ -47,7 +48,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Nullable
     private DiscoveredDevice currentSender;
+    private SendingDevice currentSendingDevice;
     private ConnectionLevel connectionLevel;
+
+    private SyncReceiverHandler syncReceiverHandler;
 
     public P2PReceiverPresenter(@NonNull P2pModeSelectContract.View view) {
         super(view);
@@ -112,6 +116,12 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             });
             interactor.startAdvertising(this);
         }
+    }
+
+    @Nullable
+    @Override
+    public SendingDevice getSendingDevice() {
+        return currentSendingDevice;
     }
 
     @Override
@@ -251,10 +261,12 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (currentSender != null) {
             interactor.sendMessage(new Gson().toJson(receivedHistory));
             connectionLevel = ConnectionLevel.SENT_RECEIVED_HISTORY;
+
+            syncReceiverHandler = new SyncReceiverHandler(this);
         }
     }
 
-    private void registerSendingDevice(Map<String, Object> basicDeviceDetails) {
+    private SendingDevice registerSendingDevice(Map<String, Object> basicDeviceDetails) {
         SendingDevice sendingDevice = new SendingDevice();
         sendingDevice.setDeviceId((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_DEVICE_ID));
         sendingDevice.setAppLifetimeKey((String) basicDeviceDetails.get(Constants.BasicDeviceDetails.KEY_APP_LIFETIME_KEY));
@@ -262,6 +274,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         P2PLibrary.getInstance().getDb()
                 .sendingDeviceDao()
                 .insert(sendingDevice);
+
+        return sendingDevice;
     }
 
     @Nullable
@@ -269,14 +283,19 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         final AppDatabase db = P2PLibrary.getInstance().getDb();
         sendingDevice.setAppLifetimeKey(appLifetimeKey);
 
-        return db.runInTransaction(new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                db.sendingDeviceDao().update(sendingDevice);
-                return db.p2pReceivedHistoryDao()
-                        .clearDeviceRecords(sendingDevice.getDeviceId());
-            }
-        });
+        try {
+            return db.runInTransaction(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    db.sendingDeviceDao().update(sendingDevice);
+                    return db.p2pReceivedHistoryDao()
+                            .clearDeviceRecords(sendingDevice.getDeviceId());
+                }
+            });
+        } catch (RuntimeException e) {
+            Timber.e(e);
+            return null;
+        }
     }
 
     @Override
@@ -306,15 +325,12 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
-        if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-            // Show a simple message of the text sent
-            String message = new String(payload.asBytes());
-            view.showToast(message, Toast.LENGTH_LONG);
-            view.displayMessage(String.format(view.getString(R.string.chat_message_format),endpointId, message));
+        if (syncReceiverHandler != null) {
+            syncReceiverHandler.processPayload(endpointId, payload);
         }
     }
 
-    private void disconnectAndReset(@NonNull String endpointId) {
+    public void disconnectAndReset(@NonNull String endpointId) {
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
         resetState();
@@ -390,7 +406,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     Tasker.run(new Callable<Void>() {
                         @Override
                         public Void call() throws Exception {
-                            registerSendingDevice(basicDeviceDetails);
+                            currentSendingDevice = registerSendingDevice(basicDeviceDetails);
                             return null;
                         }
                     }, new GenericAsyncTask.OnFinishedCallback<Void>() {
@@ -495,6 +511,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         connectionLevel = null;
         view.dismissAllDialogs();
         currentSender = null;
+        currentSendingDevice = null;
     }
 
     @Override
