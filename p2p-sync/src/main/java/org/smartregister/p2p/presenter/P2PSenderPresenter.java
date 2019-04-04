@@ -500,12 +500,13 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Disconnect from the endpoint
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
-            disconnectAndReset(endpointId);
             addDeviceToBlacklist(endpointId);
 
             view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
                     , currentReceiver.getEndpointName())
                     , Toast.LENGTH_LONG);
+
+            disconnectAndReset(endpointId);
         } else {
             resetState();
             prepareForDiscovering(false);
