@@ -65,4 +65,8 @@
     <string name="log_jsonparse_exception_trying_to_process_received_history">A JSONParseException occurred trying to process received history</string>
     <string name="log_error_occurred_processing_non_media_data">An error occurred trying to process non-media data</string>
     <string name="log_error_occurred_processing_media_data">An error occurred trying to process non-media data</string>
+    <string name="log_received_invalid_manifest_from_endpoint">Received invalid manifest from endpoint %s</string>
+    <string name="log_ignoring_payload_since_it_does_not_match_expected_payload">Ignoring payload %d since it does not match the expected payload %d</string>
+    <string name="log_receive_invalid_manifest_from_endpoint">Received invalid manifest from endpoint %s</string>
+    <string name="log_received_payload_without_corresponding_manifest">Received a payload without a corresponding manifest</string>
 </resources>

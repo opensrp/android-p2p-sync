@@ -129,6 +129,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void sendSyncComplete() {
         // Do nothing for now
         syncSenderHandler = null;
+
+
     }
 
     @Override
