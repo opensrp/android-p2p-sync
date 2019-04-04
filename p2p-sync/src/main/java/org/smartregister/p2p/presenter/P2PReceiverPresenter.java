@@ -528,12 +528,13 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         // Disconnect from the endpoint
         if (currentSender != null) {
             String endpointId = currentSender.getEndpointId();
-            disconnectAndReset(endpointId);
             addDeviceToBlacklist(endpointId);
 
             view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
                     , currentSender.getEndpointName())
                     , Toast.LENGTH_LONG);
+
+            disconnectAndReset(endpointId);
         } else {
             resetState();
             prepareForAdvertising(false);
