@@ -115,6 +115,8 @@ public interface P2pModeSelectContract {
         @Nullable
         SendingDevice getSendingDevice();
 
+        void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising);
+
     }
 
     interface SenderPresenter extends BasePresenter {
@@ -132,6 +134,8 @@ public interface P2pModeSelectContract {
         void sendPayload(@NonNull Payload payload);
 
         void errorOccurredSync(@NonNull Exception e);
+
+        void disconnectAndReset(@NonNull String endpointId, boolean startDiscovering);
 
     }
 

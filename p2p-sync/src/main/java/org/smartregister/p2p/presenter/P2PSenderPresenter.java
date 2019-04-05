@@ -56,6 +56,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     private DiscoveredDevice currentReceiver;
     private ConnectionLevel connectionLevel;
     private long hashKeyPayloadId;
+    private long connectionSignalPayloadId;
 
     @Nullable
     private SyncSenderHandler syncSenderHandler;
@@ -130,7 +131,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Do nothing for now
         syncSenderHandler = null;
 
-
+        // Todo: Should send some payload that can be received at any connection level on the other side
+        // incase the other side has hung at some point
+        connectionSignalPayloadId = interactor.sendMessage(Constants.Connection.SYNC_COMPLETE);
     }
 
     @Override
@@ -240,7 +243,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                                 syncSenderHandler = new SyncSenderHandler(P2PSenderPresenter.this, result, receivedHistory);
                                 syncSenderHandler.startSyncProcess();
                             } else {
-                                sendTransactionCompleteCommand();
+                                sendSyncComplete();
                             }
                         }
 
@@ -394,6 +397,12 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
                 //Todo: Should retry sending the hash key if the connection to the device is still alive
             }
+        } else if (connectionSignalPayloadId != 0l) {
+            if (update.getPayloadId() == connectionSignalPayloadId
+                    && currentReceiver != null
+                    && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                disconnectAndReset(currentReceiver.getEndpointId(), false);
+            }
         } else {
             if (syncSenderHandler != null) {
                 syncSenderHandler.onPayloadTransferUpdate(update);
@@ -474,6 +483,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         connectionLevel = null;
         view.dismissAllDialogs();
         currentReceiver = null;
+        view.enableSendReceiveButtons(true);
     }
 
     @Override
@@ -526,19 +536,22 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         currentReceiver = discoveredDevice;
     }
 
-
-    public void disconnectAndReset(@NonNull String endpointId) {
+    @Override
+    public void disconnectAndReset(@NonNull String endpointId, boolean startDiscovering) {
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
+        connectionSignalPayloadId = 0l;
 
         resetState();
-        prepareForDiscovering(false);
+
+        if (startDiscovering) {
+            prepareForDiscovering(false);
+        }
     }
 
-    private void sendTransactionCompleteCommand() {
-        // Todo: Should send some payload that can be received at any connection level on the other side
-        // incase the other side has hung at some point
-        syncSenderHandler = null;
+    @Override
+    public void disconnectAndReset(@NonNull String endpointId) {
+        disconnectAndReset(endpointId, true);
     }
 
 }
