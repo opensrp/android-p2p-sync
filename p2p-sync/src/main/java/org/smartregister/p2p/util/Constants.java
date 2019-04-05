@@ -19,6 +19,10 @@ public interface Constants {
         String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
     }
 
+    interface Connection {
+        String SYNC_COMPLETE = "SYNC-COMPLETE";
+    }
+
     interface RqCode {
         int PERMISSIONS = 2;
         int LOCATION_SETTINGS = 3;

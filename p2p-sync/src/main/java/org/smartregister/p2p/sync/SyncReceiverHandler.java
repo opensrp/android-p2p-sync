@@ -17,6 +17,7 @@ import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.model.dao.P2pReceivedHistoryDao;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
+import org.smartregister.p2p.util.Constants;
 import org.smartregister.p2p.util.SyncDataConverterUtil;
 
 import java.util.HashMap;
@@ -39,9 +40,14 @@ public class SyncReceiverHandler {
     }
 
     public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
-        // TODO: Handle when the manifest is resent in case there was an error on the sender
+        // TODO: Handle when the manifest is present in case there was an error on the sender
         // We should also give the sender the powers to decide when to close the connection and not us
-        if (awaitingManifestReceipt) {
+        if (payload.getType() == Payload.Type.BYTES && null != payload.asBytes()
+                && new String(payload.asBytes()).equals(Constants.Connection.SYNC_COMPLETE)) {
+            // This will only happen after the last payload has been received on the other side
+            // An abort is performed as just a disconnect
+            stopTransferAndReset(false);
+        } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
             processRecords(endpointId, payload);
@@ -51,7 +57,7 @@ public class SyncReceiverHandler {
     public void processManifest(@NonNull String endpointId, @NonNull Payload payload) {
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
             try {
-                SyncPackageManifest syncPackageManifest = new Gson().fromJson(new String(payload.asBytes()), SyncPackageManifest.class);;
+                SyncPackageManifest syncPackageManifest = new Gson().fromJson(new String(payload.asBytes()), SyncPackageManifest.class);
                 awaitingPayloadManifests.put(syncPackageManifest.getPayloadId(), syncPackageManifest);
 
                 awaitingManifestReceipt = false;
@@ -99,14 +105,14 @@ public class SyncReceiverHandler {
                     awaitingPayloadManifests.remove(payload.getId());
                 } else {
                     Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
-                    stopTransferAndReset();
+                    stopTransferAndReset(true);
                 }
             }
 
             @Override
             public void onError(Exception e) {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
-                stopTransferAndReset();
+                stopTransferAndReset(true);
             }
         });
     }
@@ -161,7 +167,7 @@ public class SyncReceiverHandler {
                 } else {
                     Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
                     // We should not continue
-                    stopTransferAndReset();
+                    stopTransferAndReset(true);
                 }
             }
 
@@ -169,15 +175,15 @@ public class SyncReceiverHandler {
             public void onError(Exception e) {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
                 // We should not continue
-                stopTransferAndReset();
+                stopTransferAndReset(true);
             }
         });
     }
 
-    private void stopTransferAndReset() {
+    private void stopTransferAndReset(boolean startAdvertising) {
         DiscoveredDevice peerDevice = receiverPresenter.getCurrentPeerDevice();
         if (peerDevice != null) {
-            receiverPresenter.disconnectAndReset(peerDevice.getEndpointId());
+            receiverPresenter.disconnectAndReset(peerDevice.getEndpointId(), startAdvertising);
         }
     }
 }

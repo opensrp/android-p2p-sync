@@ -330,11 +330,20 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
     }
 
-    public void disconnectAndReset(@NonNull String endpointId) {
+    @Override
+    public void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising) {
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
         resetState();
-        prepareForAdvertising(false);
+
+        if (startAdvertising) {
+            prepareForAdvertising(false);
+        }
+    }
+
+    @Override
+    public void disconnectAndReset(@NonNull String endpointId) {
+        disconnectAndReset(endpointId, true);
     }
 
     private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails, final @NonNull String endpointId) {
@@ -508,8 +517,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     private void resetState() {
+        syncReceiverHandler = null;
         connectionLevel = null;
         view.dismissAllDialogs();
+        view.enableSendReceiveButtons(true);
         currentSender = null;
         currentSendingDevice = null;
     }

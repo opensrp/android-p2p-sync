@@ -60,8 +60,6 @@ public class SyncReceiverHandlerTest {
     @Mock
     private ReceiverTransferDao receiverTransferDao;
 
-    private TreeSet<DataType> dataSyncOrder;
-
     private DataType event = new DataType("event", DataType.Type.NON_MEDIA, 1);
     private DataType client = new DataType("client", DataType.Type.NON_MEDIA, 2);
     private DataType profilePic = new DataType("profile-pic", DataType.Type.MEDIA, 3);
@@ -70,11 +68,6 @@ public class SyncReceiverHandlerTest {
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application, "some password", "username"
                 , authorizationService, receiverTransferDao, senderTransferDao));
-
-        dataSyncOrder = new TreeSet<>();
-        dataSyncOrder.add(profilePic);
-        dataSyncOrder.add(client);
-        dataSyncOrder.add(event);
 
         Mockito.doReturn(view)
                 .when(receiverPresenter)
