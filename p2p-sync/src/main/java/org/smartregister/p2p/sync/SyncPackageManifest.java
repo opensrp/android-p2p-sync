@@ -1,7 +1,11 @@
 package org.smartregister.p2p.sync;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 import org.smartregister.p2p.model.DataType;
+
+import java.util.HashMap;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
@@ -11,6 +15,7 @@ public class SyncPackageManifest {
     private long payloadId;
     private String payloadExtension;
     private DataType dataType;
+    private HashMap<String, String> payloadDetails;
 
     public SyncPackageManifest(long payloadId, @NonNull String payloadExtension, @NonNull DataType dataType) {
         this.payloadId = payloadId;
@@ -28,5 +33,14 @@ public class SyncPackageManifest {
 
     public DataType getDataType() {
         return dataType;
+    }
+
+    @Nullable
+    public HashMap<String, String> getPayloadDetails() {
+        return payloadDetails;
+    }
+
+    public void setPayloadDetails(@Nullable HashMap<String, String> payloadDetails) {
+        this.payloadDetails = payloadDetails;
     }
 }

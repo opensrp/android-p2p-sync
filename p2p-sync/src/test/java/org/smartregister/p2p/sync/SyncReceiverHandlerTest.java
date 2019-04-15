@@ -180,7 +180,7 @@ public class SyncReceiverHandlerTest {
 
         Payload.Stream payloadStream = Mockito.mock(Payload.Stream.class);
 
-        Mockito.doReturn(new ByteArrayInputStream(new Gson().toJson(jsonArray).getBytes()))
+        Mockito.doReturn(new ByteArrayInputStream(jsonArray.toString().getBytes()))
                 .when(payloadStream)
                 .asInputStream();
 

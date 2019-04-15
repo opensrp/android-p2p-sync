@@ -1,5 +1,7 @@
 package org.smartregister.p2p.util;
 
+import android.support.annotation.NonNull;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,6 +13,7 @@ import java.io.InputStream;
 
 public class SyncDataConverterUtil {
 
+    @NonNull
     public static String readInputStreamAsString(InputStream in)
             throws IOException {
         BufferedInputStream bis = new BufferedInputStream(in);

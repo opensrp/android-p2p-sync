@@ -9,7 +9,7 @@ import com.google.android.gms.nearby.connection.Strategy;
 public interface Constants {
 
     Strategy STRATEGY = Strategy.P2P_STAR;
-    int DEFAULT_SHARE_BATCH_SIZE = 20;
+    int DEFAULT_SHARE_BATCH_SIZE = 5;
     int DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION = 2 * 60 * 60;
 
     interface Dialog {
