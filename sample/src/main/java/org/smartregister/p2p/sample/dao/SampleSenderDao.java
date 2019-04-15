@@ -9,8 +9,10 @@ import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.sync.JsonData;
 import org.smartregister.p2p.sync.MultiMediaData;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.TreeSet;
 
 /**
@@ -19,15 +21,22 @@ import java.util.TreeSet;
 
 public class SampleSenderDao implements SenderTransferDao {
 
-    private List<String> records = new ArrayList<>();
+    private List<String> nameRecords = new ArrayList<>();
+    private List<String> personalDetailsRecords = new ArrayList<>();
+
+    private char[] symbols = "ACEFGHJKLMNPQRUVWXYabcdefhijkprstuvwx".toCharArray();
 
     public SampleSenderDao() {
-        records.add("John Doe");
-        records.add("Jane Doe");
-        records.add("Sarah Platlin");
-        records.add("Rose Wambui");
-        records.add("Leo Atieno");
-        records.add("Chris Wamaitha");
+        nameRecords.add("John Doe");
+        nameRecords.add("Jane Doe");
+        nameRecords.add("Sarah Platlin");
+        nameRecords.add("Rose Wambui");
+        nameRecords.add("Leo Atieno");
+        nameRecords.add("Chris Wamaitha");
+
+        for (int i = 0; i < 200; i++) {
+            personalDetailsRecords.add(generateRandomString(10000));
+        }
     }
 
     @Nullable
@@ -35,6 +44,7 @@ public class SampleSenderDao implements SenderTransferDao {
     public TreeSet<DataType> getDataTypes() {
         TreeSet<DataType> dataTypes = new TreeSet<>();
         dataTypes.add(new DataType("names", DataType.Type.NON_MEDIA, 0));
+        dataTypes.add(new DataType("personal_details", DataType.Type.NON_MEDIA, 1));
 
         return dataTypes;
     }
@@ -42,18 +52,46 @@ public class SampleSenderDao implements SenderTransferDao {
     @Nullable
     @Override
     public JsonData getJsonData(@NonNull DataType dataType, long lastRecordId, int batchSize) {
-        if (lastRecordId != 0) {
-            return null;
-        } else {
+        if (dataType.getName().equals("names")) {
             JSONArray jsonArray = new JSONArray();
-            jsonArray.put(records.get(0));
-            jsonArray.put(records.get(1));
-            jsonArray.put(records.get(2));
-            jsonArray.put(records.get(3));
-            jsonArray.put(records.get(4));
-            jsonArray.put(records.get(5));
 
-            return new JsonData(jsonArray, 4);
+            if (lastRecordId >= nameRecords.size()) {
+                return null;
+            } else {
+                int recordsAdded = 0;
+                for (int i = 0; i < batchSize; i++) {
+                    if ((lastRecordId + i) >= nameRecords.size()) {
+                        break;
+                    }
+
+                    String nameRecord = nameRecords.get((int) (lastRecordId + i));
+                    jsonArray.put(nameRecord);
+                    recordsAdded++;
+                }
+
+                return new JsonData(jsonArray, lastRecordId + recordsAdded);
+            }
+        } else if (dataType.getName().equals("personal_details")) {
+            JSONArray jsonArray = new JSONArray();
+
+            if (lastRecordId >= personalDetailsRecords.size()) {
+                return null;
+            } else {
+                int recordsAdded = 0;
+                for (int i = 0; i < batchSize; i++) {
+                    if ((lastRecordId + i) >= personalDetailsRecords.size()) {
+                        break;
+                    }
+
+                    String personDetails = personalDetailsRecords.get((int) (lastRecordId + i));
+                    jsonArray.put(personDetails);
+                    recordsAdded++;
+                }
+
+                return new JsonData(jsonArray, lastRecordId + recordsAdded);
+            }
+        } else {
+            return null;
         }
     }
 
@@ -61,5 +99,18 @@ public class SampleSenderDao implements SenderTransferDao {
     @Override
     public MultiMediaData getMultiMediaData(@NonNull DataType dataType, long lastRecordId) {
         return null;
+    }
+
+    /**
+     * Generate a random string.
+     */
+    private String generateRandomString(int len) {
+        char[] buf = new char[len];
+        Random random = new SecureRandom();
+
+        for (int idx = 0; idx < buf.length; ++idx) {
+            buf[idx] = symbols[random.nextInt(symbols.length)];
+        }
+        return new String(buf);
     }
 }

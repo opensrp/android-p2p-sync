@@ -6,7 +6,6 @@ import android.support.annotation.VisibleForTesting;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.smartregister.p2p.P2PLibrary;
@@ -80,7 +79,6 @@ public class SyncSenderHandler {
 
     public void sendNextManifest() {
         if (!dataSyncOrder.isEmpty()) {
-
             final DataType dataType = dataSyncOrder.first();
 
             if (dataType.getType() == DataType.Type.NON_MEDIA) {
@@ -168,7 +166,7 @@ public class SyncSenderHandler {
                     JSONArray recordsArray = jsonData.getJsonArray();
                     remainingLastRecordIds.put(dataType.getName(), jsonData.getHighestRecordId());
 
-                    String jsonString = new Gson().toJson(recordsArray);
+                    String jsonString = recordsArray.toString();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = jsonData.getHighestRecordId();
 
@@ -218,9 +216,10 @@ public class SyncSenderHandler {
         }
     }
 
-    @com.google.android.gms.common.util.VisibleForTesting
+    @VisibleForTesting
     public void sendNextPayload() {
         if (awaitingPayload != null) {
+            awaitingPayloadTransfer = true;
             presenter.sendPayload(awaitingPayload);
         }
     }

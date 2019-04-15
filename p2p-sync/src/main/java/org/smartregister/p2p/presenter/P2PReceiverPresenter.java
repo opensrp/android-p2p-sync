@@ -363,6 +363,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                     if (sendingDevice.getAppLifetimeKey()
                             .equals(appLifetimeKey)) {
+                        currentSendingDevice = sendingDevice;
                         Tasker.run(new Callable<List<P2pReceivedHistory>>() {
                             @Override
                             public List<P2pReceivedHistory> call() throws Exception {
@@ -388,6 +389,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                         Tasker.run(new Callable<Integer>() {
                             @Override
                             public Integer call() throws Exception {
+                                sendingDevice.setAppLifetimeKey(appLifetimeKey);
+                                currentSendingDevice = sendingDevice;
                                 return clearDeviceHistoryAndUpdateDeviceKey(sendingDevice, appLifetimeKey);
                             }
                         }, new GenericAsyncTask.OnFinishedCallback<Integer>() {
@@ -403,7 +406,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                             @Override
                             public void onError(Exception e) {
-                                Timber.e(e, view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
+                                Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
                                         , sendingDevice.getDeviceId());
                                 disconnectAndReset(endpointId);
                             }
@@ -446,6 +449,9 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
         // Do nothing for now
+        if (syncReceiverHandler != null) {
+            syncReceiverHandler.onPayloadTransferUpdate(endpointId, update);
+        }
     }
 
     @Override

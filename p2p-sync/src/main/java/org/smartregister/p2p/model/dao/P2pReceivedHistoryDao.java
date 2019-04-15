@@ -31,6 +31,6 @@ public interface P2pReceivedHistoryDao {
     List<P2pReceivedHistory> getDeviceReceivedHistory(@NonNull String sendingDeviceId);
 
     @Nullable
-    @Query("SELECT * FROM p2p_received_history WHERE sending_device_id = :sendingDeviceId AND entity_type = :entityType")
+    @Query("SELECT * FROM p2p_received_history WHERE sending_device_id = :sendingDeviceId AND entity_type = :entityType LIMIT 1")
     P2pReceivedHistory getHistory(@NonNull String sendingDeviceId, @NonNull String entityType);
 }

@@ -1,9 +1,12 @@
 package org.smartregister.p2p.sync;
 
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.util.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 
@@ -34,6 +37,7 @@ public class SyncReceiverHandler {
     private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
     private boolean awaitingManifestReceipt = true;
     private HashMap<Long, SyncPackageManifest> awaitingPayloadManifests = new HashMap<>();
+    private SimpleArrayMap<Long, Payload> incomingPayloads = new SimpleArrayMap<>();
 
     public SyncReceiverHandler(@NonNull P2pModeSelectContract.ReceiverPresenter receiverPresenter) {
         this.receiverPresenter = receiverPresenter;
@@ -50,7 +54,16 @@ public class SyncReceiverHandler {
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
-            processRecords(endpointId, payload);
+            incomingPayloads.put(payload.getId(), payload);
+        }
+    }
+
+    public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
+        if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+            Payload payload = incomingPayloads.get(update.getPayloadId());
+            if (payload != null) {
+                processRecords(endpointId, payload);
+            }
         }
     }
 
@@ -88,8 +101,7 @@ public class SyncReceiverHandler {
         Tasker.run(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
-                JSONArray jsonArray = new Gson()
-                        .fromJson(SyncDataConverterUtil.readInputStreamAsString(payload.asStream().asInputStream()), JSONArray.class);
+                JSONArray jsonArray = new JSONArray(SyncDataConverterUtil.readInputStreamAsString(payload.asStream().asInputStream()));
                 SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
                         .receiveJson(syncPackageManifest.getDataType(), jsonArray);
@@ -114,10 +126,10 @@ public class SyncReceiverHandler {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
                 stopTransferAndReset(true);
             }
-        });
+        }, AsyncTask.SERIAL_EXECUTOR);
     }
 
-    private void updateLastRecord(@NonNull String entityName, long lastRecordId) {
+    private synchronized void updateLastRecord(@NonNull String entityName, long lastRecordId) {
         SendingDevice sendingDevice = receiverPresenter.getSendingDevice();
         if (sendingDevice != null) {
             P2pReceivedHistoryDao p2pReceivedHistoryDao = P2PLibrary.getInstance().getDb()
@@ -177,7 +189,7 @@ public class SyncReceiverHandler {
                 // We should not continue
                 stopTransferAndReset(true);
             }
-        });
+        }, AsyncTask.SERIAL_EXECUTOR);
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {
