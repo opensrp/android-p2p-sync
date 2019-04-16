@@ -37,13 +37,12 @@ public class SyncReceiverHandler {
     private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
     private boolean awaitingManifestReceipt = true;
     private HashMap<Long, SyncPackageManifest> awaitingPayloadManifests = new HashMap<>();
-    private SimpleArrayMap<Long, Payload> incomingPayloads = new SimpleArrayMap<>();
 
     public SyncReceiverHandler(@NonNull P2pModeSelectContract.ReceiverPresenter receiverPresenter) {
         this.receiverPresenter = receiverPresenter;
     }
 
-    public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
+    public void processPayload(@NonNull final String endpointId, @NonNull final Payload payload) {
         // TODO: Handle when the manifest is present in case there was an error on the sender
         // We should also give the sender the powers to decide when to close the connection and not us
         if (payload.getType() == Payload.Type.BYTES && null != payload.asBytes()
@@ -54,17 +53,14 @@ public class SyncReceiverHandler {
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
-            incomingPayloads.put(payload.getId(), payload);
+            if (awaitingPayloadManifests.get(payload.getId()) != null) {
+                processRecords(endpointId, payload);
+            }
         }
     }
 
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
-        if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
-            Payload payload = incomingPayloads.get(update.getPayloadId());
-            if (payload != null) {
-                processRecords(endpointId, payload);
-            }
-        }
+        // Do since we are using ParcelFileDescriptor for STREAM data type & BYTES which is sent at once
     }
 
     public void processManifest(@NonNull String endpointId, @NonNull Payload payload) {
