@@ -1,5 +1,6 @@
 package org.smartregister.p2p.sync;
 
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -15,10 +16,10 @@ import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,8 @@ public class SyncSenderHandler {
 
     private boolean awaitingPayloadTransfer;
     private Payload awaitingPayload;
+    private ParcelFileDescriptor awaitingPayloadPipe;
+    private byte[] awaitingBytes;
     private String awaitingDataTypeName;
     private long awaitingDataTypeHighestId;
 
@@ -66,7 +69,7 @@ public class SyncSenderHandler {
         }
 
         if (receivedHistory != null && receivedHistory.size() > 0) {
-            for (P2pReceivedHistory dataTypeHistory: receivedHistory) {
+            for (P2pReceivedHistory dataTypeHistory : receivedHistory) {
                 remainingLastRecordIds.put(dataTypeHistory.getEntityType(), dataTypeHistory.getLastRecordId());
             }
         }
@@ -180,7 +183,11 @@ public class SyncSenderHandler {
             public void onSuccess(@Nullable String result) {
                 if (result != null) {
                     // Create the manifest
-                    awaitingPayload = Payload.fromStream(createJsonDataStream(result));
+                    ParcelFileDescriptor[] payloadPipe = createJsonDataStream(result);
+                    awaitingBytes = result.getBytes();
+
+                    awaitingPayload = Payload.fromStream(payloadPipe[0]);
+                    awaitingPayloadPipe = payloadPipe[1];
 
                     syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                             , "json"
@@ -201,9 +208,15 @@ public class SyncSenderHandler {
         });
     }
 
-    @NonNull
-    private InputStream createJsonDataStream(@NonNull String json) {
-        return new ByteArrayInputStream(json.getBytes());
+    @Nullable
+    private ParcelFileDescriptor[] createJsonDataStream(@NonNull String json) {
+        try {
+            ParcelFileDescriptor[] payloadPipe = ParcelFileDescriptor.createPipe();
+            return payloadPipe;
+        } catch (IOException e) {
+            Timber.e(e);
+            return null;
+        }
     }
 
     @Nullable
@@ -221,10 +234,40 @@ public class SyncSenderHandler {
         if (awaitingPayload != null) {
             awaitingPayloadTransfer = true;
             presenter.sendPayload(awaitingPayload);
+
+            if (awaitingPayloadPipe != null && awaitingBytes != null) {
+                ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
+                try {
+                    int totalLen = awaitingBytes.length;
+                    /*int chunk = 100;
+
+                    int currentLen = 0;
+
+                    while (currentLen < totalLen) {
+                        int sendingChunk = (totalLen - currentLen) < chunk ? (totalLen - currentLen) : chunk;
+
+                        outputStream.write(awaitingBytes, currentLen, sendingChunk);
+                        outputStream.flush();
+
+                        currentLen += sendingChunk;
+                    }*/
+                    Timber.e("Bytes size %s", String.valueOf(totalLen));
+                    outputStream.write(awaitingBytes);
+                    outputStream.flush();
+                    outputStream.close();
+
+                } catch (IOException e) {
+                    Timber.e(e, "Error occurred trying to read bytes into payload pipe");
+                    presenter.errorOccurredSync(e);
+
+                }
+            } else {
+                presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
+            }
         }
     }
 
-    public void onPayloadTransferUpdate(@NonNull PayloadTransferUpdate update) {
+    public void onPayloadTransferUpdate(@NonNull final PayloadTransferUpdate update) {
         if (awaitingManifestTransfer) {
             if (update.getPayloadId() == awaitingManifestId) {
                 if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
@@ -257,6 +300,8 @@ public class SyncSenderHandler {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
                 awaitingPayloadTransfer = false;
                 awaitingPayload = null;
+                awaitingBytes = null;
+                awaitingPayloadPipe = null;
 
                 if (awaitingDataTypeName != null) {
                     remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
