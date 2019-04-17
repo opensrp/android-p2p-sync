@@ -18,9 +18,9 @@ public class ShadowTasker {
     @Implementation
     public static <T> void run(@NonNull Callable<T> callable
             , @NonNull GenericAsyncTask.OnFinishedCallback<T> onFinishedCallback) {
-
         Exception ex = null;
         T result = null;
+
         try {
             result = callable.call();
         } catch (Exception e) {
