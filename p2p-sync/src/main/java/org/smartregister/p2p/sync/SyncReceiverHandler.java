@@ -156,7 +156,8 @@ public class SyncReceiverHandler {
             public Long call() throws Exception {
                 SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
-                        .receiveMultimedia(syncPackageManifest.getDataType(), payload.asStream().asInputStream());
+                        .receiveMultimedia(syncPackageManifest.getDataType(), payload.asFile().asJavaFile()
+                                , syncPackageManifest.getPayloadDetails());
 
                 if (lastRecordId > -1) {
                     updateLastRecord(syncPackageManifest.getDataType().getName(),lastRecordId);

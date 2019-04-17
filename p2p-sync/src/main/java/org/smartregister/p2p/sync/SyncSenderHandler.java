@@ -119,10 +119,9 @@ public class SyncSenderHandler {
             public void onSuccess(@Nullable File result) {
                 if (result != null && result.exists()) {
                     // Create the manifest
-                    InputStream fileIs = createFileDataStream(result);
-
-                    if (fileIs != null) {
-                        awaitingPayload = Payload.fromStream(fileIs);
+                    //InputStream fileIs = createFileDataStream(result);
+                    try {
+                        awaitingPayload = Payload.fromFile(result);
 
                         String filename = result.getName();
                         String extension = "";
@@ -138,8 +137,9 @@ public class SyncSenderHandler {
 
                         awaitingManifestTransfer = true;
                         awaitingManifestId = presenter.sendManifest(syncPackageManifest);
-                    } else {
-                        onError(new Exception("File could not be found"));
+                    } catch (FileNotFoundException e) {
+                        Timber.e(e);
+                        presenter.errorOccurredSync(e);
                     }
                 } else {
                     dataSyncOrder.remove(dataType);
@@ -239,10 +239,11 @@ public class SyncSenderHandler {
             awaitingPayloadTransfer = true;
             presenter.sendPayload(awaitingPayload);
 
-            if (awaitingPayloadPipe != null && awaitingBytes != null) {
-                ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
-                try {
-                    int totalLen = awaitingBytes.length;
+            if (awaitingPayload.getType() == Payload.Type.STREAM) {
+                if (awaitingPayloadPipe != null && awaitingBytes != null) {
+                    ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
+                    try {
+                        int totalLen = awaitingBytes.length;
                     /*int chunk = 100;
 
                     int currentLen = 0;
@@ -255,18 +256,19 @@ public class SyncSenderHandler {
 
                         currentLen += sendingChunk;
                     }*/
-                    Timber.e("Bytes size %s", String.valueOf(totalLen));
-                    outputStream.write(awaitingBytes);
-                    outputStream.flush();
-                    outputStream.close();
+                        Timber.e("Bytes size %s", String.valueOf(totalLen));
+                        outputStream.write(awaitingBytes);
+                        outputStream.flush();
+                        outputStream.close();
 
-                } catch (IOException e) {
-                    Timber.e(e, "Error occurred trying to read bytes into payload pipe");
-                    presenter.errorOccurredSync(e);
+                    } catch (IOException e) {
+                        Timber.e(e, "Error occurred trying to read bytes into payload pipe");
+                        presenter.errorOccurredSync(e);
 
+                    }
+                } else {
+                    presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
                 }
-            } else {
-                presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
             }
         }
     }

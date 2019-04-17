@@ -1,12 +1,15 @@
 package org.smartregister.p2p.model.dao;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.TreeSet;
 
 /**
@@ -26,10 +29,10 @@ public interface ReceiverTransferDao {
      * on a worker thread.
      *
      * @param dataType
-     * @param inputStream
+     * @param file
      * @return > -1 if the process was successful, < 0 if the media was not processed successfully
      */
     @WorkerThread
-    long receiveMultimedia(@NonNull DataType dataType, @NonNull InputStream inputStream);
+    long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, String> multimediaDetails);
 
 }
