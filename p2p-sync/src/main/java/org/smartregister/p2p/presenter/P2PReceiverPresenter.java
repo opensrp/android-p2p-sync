@@ -262,15 +262,19 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 .insert(sendingDevice);
     }
 
-    @NonNull
-    private Integer clearDeviceHistoryAndUpdateDeviceKey(SendingDevice sendingDevice, String appLifetimeKey) {
-        AppDatabase db = P2PLibrary.getInstance().getDb();
-
+    @Nullable
+    private Integer clearDeviceHistoryAndUpdateDeviceKey(final SendingDevice sendingDevice, String appLifetimeKey) {
+        final AppDatabase db = P2PLibrary.getInstance().getDb();
         sendingDevice.setAppLifetimeKey(appLifetimeKey);
-        db.sendingDeviceDao().update(sendingDevice);
 
-        return db.p2pReceivedHistoryDao()
-                .clearDeviceRecords(sendingDevice.getDeviceId());
+        return db.runInTransaction(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                db.sendingDeviceDao().update(sendingDevice);
+                return db.p2pReceivedHistoryDao()
+                        .clearDeviceRecords(sendingDevice.getDeviceId());
+            }
+        });
     }
 
     @Override
@@ -370,7 +374,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                             @Override
                             public void onError(Exception e) {
-                                Timber.e(view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
+                                Timber.e(e, view.getString(R.string.log_error_occurred_trying_to_delete_p2p_received_history_on_device)
                                         , sendingDevice.getDeviceId());
                                 disconnectAndReset(endpointId);
                             }
