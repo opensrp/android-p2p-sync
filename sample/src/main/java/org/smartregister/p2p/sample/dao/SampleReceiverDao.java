@@ -1,11 +1,13 @@
 package org.smartregister.p2p.sample.dao;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -30,8 +32,8 @@ public class SampleReceiverDao implements ReceiverTransferDao {
     }
 
     @Override
-    public long receiveMultimedia(@NonNull DataType dataType, @NonNull InputStream inputStream) {
-        return 0;
+    public long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, String> multimediaDetails) {
+        return -1;
     }
 
     @Override
