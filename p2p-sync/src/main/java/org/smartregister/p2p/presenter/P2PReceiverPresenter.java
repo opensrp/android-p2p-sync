@@ -367,9 +367,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                             public void onSuccess(@Nullable Integer result) {
                                 if (result != null) {
                                     Timber.e(view.getString(R.string.log_records_deleted), (int) result);
+                                    sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
+                                } else {
+                                    onError(new Exception("Clear device history and update device key Transaction failed!"));
                                 }
-
-                                sendLastReceivedRecords(new ArrayList<P2pReceivedHistory>());
                             }
 
                             @Override
