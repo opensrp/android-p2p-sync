@@ -183,18 +183,22 @@ public class SyncSenderHandler {
             public void onSuccess(@Nullable String result) {
                 if (result != null) {
                     // Create the manifest
-                    ParcelFileDescriptor[] payloadPipe = createJsonDataStream(result);
-                    awaitingBytes = result.getBytes();
+                    ParcelFileDescriptor[] payloadPipe = createJsonDataStream();
+                    if (payloadPipe != null) {
+                        awaitingBytes = result.getBytes();
 
-                    awaitingPayload = Payload.fromStream(payloadPipe[0]);
-                    awaitingPayloadPipe = payloadPipe[1];
+                        awaitingPayload = Payload.fromStream(payloadPipe[0]);
+                        awaitingPayloadPipe = payloadPipe[1];
 
-                    syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
-                            , "json"
-                            , dataType);
+                        syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                                , "json"
+                                , dataType);
 
-                    awaitingManifestTransfer = true;
-                    awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                        awaitingManifestTransfer = true;
+                        awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                    } else {
+                        presenter.errorOccurredSync(new Exception("Payload pipe from json data is null"));
+                    }
                 } else {
                     dataSyncOrder.remove(dataType);
                     sendNextManifest();
@@ -209,7 +213,7 @@ public class SyncSenderHandler {
     }
 
     @Nullable
-    private ParcelFileDescriptor[] createJsonDataStream(@NonNull String json) {
+    private ParcelFileDescriptor[] createJsonDataStream() {
         try {
             ParcelFileDescriptor[] payloadPipe = ParcelFileDescriptor.createPipe();
             return payloadPipe;

@@ -61,7 +61,6 @@ public class SyncReceiverHandlerTest {
     private ReceiverTransferDao receiverTransferDao;
 
     private DataType event = new DataType("event", DataType.Type.NON_MEDIA, 1);
-    private DataType client = new DataType("client", DataType.Type.NON_MEDIA, 2);
     private DataType profilePic = new DataType("profile-pic", DataType.Type.MEDIA, 3);
 
     @Before
