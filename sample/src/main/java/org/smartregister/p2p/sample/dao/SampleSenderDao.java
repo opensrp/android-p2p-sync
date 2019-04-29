@@ -37,7 +37,7 @@ public class SampleSenderDao implements SenderTransferDao {
         nameRecords.add("Chris Wamaitha");
 
         for (int i = 0; i < 200; i++) {
-            personalDetailsRecords.add(generateRandomString(50000));
+            personalDetailsRecords.add(generateRandomString(10000));
         }
     }
 
