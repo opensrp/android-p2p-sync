@@ -1,5 +1,7 @@
 package org.smartregister.p2p.sync;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -55,12 +57,15 @@ public class SyncSenderHandler {
     private PayloadRetry payloadRetry;
     private SyncPackageManifest syncPackageManifest;
 
+    private Handler uiHandler;
+
     public SyncSenderHandler(@NonNull P2pModeSelectContract.SenderPresenter presenter, @NonNull TreeSet<DataType> dataSyncOrder
             , @Nullable List<P2pReceivedHistory> receivedHistory) {
         this.presenter = presenter;
         this.dataSyncOrder = dataSyncOrder;
         this.receivedHistory = receivedHistory;
         this.batchSize = P2PLibrary.getInstance().getBatchSize();
+        this.uiHandler = new Handler(Looper.getMainLooper());
     }
 
     private void generateRecordsToSend() {
@@ -261,12 +266,23 @@ public class SyncSenderHandler {
                                 outputStream.flush();
                                 outputStream.close();
 
-                            } catch (IOException e) {
+                            } catch (final IOException e) {
                                 Timber.e(e, "Error occurred trying to read bytes into payload pipe");
-                                presenter.errorOccurredSync(e);
+
+                                uiHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        presenter.errorOccurredSync(e);
+                                    }
+                                });
                             }
                         } else {
-                            presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
+                            uiHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
+                                }
+                            });
                         }
                     }
                 }
