@@ -33,6 +33,6 @@ public interface ReceiverTransferDao {
      * @return > -1 if the process was successful, < 0 if the media was not processed successfully
      */
     @WorkerThread
-    long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, String> multimediaDetails);
+    long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, Object> multimediaDetails, long fileRecordId);
 
 }

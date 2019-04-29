@@ -96,50 +96,60 @@ public class SyncSenderHandler {
 
     @VisibleForTesting
     public void sendMultimediaDataManifest(@NonNull final DataType dataType) {
-        Tasker.run(new Callable<File>() {
+        Tasker.run(new Callable<MultiMediaData>() {
             @Override
-            public File call() throws Exception {
-
+            public MultiMediaData call() throws Exception {
                 long lastRecordId = remainingLastRecordIds.get(dataType.getName());
-                MultiMediaData multiMediaData = P2PLibrary.getInstance().getSenderTransferDao()
+                return P2PLibrary.getInstance().getSenderTransferDao()
                         .getMultiMediaData(dataType, lastRecordId);
-
+            }
+        }, new GenericAsyncTask.OnFinishedCallback<MultiMediaData>() {
+            @Override
+            public void onSuccess(@Nullable MultiMediaData multiMediaData) {
                 if (multiMediaData != null) {
                     File file = multiMediaData.getFile();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = multiMediaData.getRecordId();
 
-                    return file;
-                } else {
-                    return null;
-                }
-            }
-        }, new GenericAsyncTask.OnFinishedCallback<File>() {
-            @Override
-            public void onSuccess(@Nullable File result) {
-                if (result != null && result.exists()) {
-                    // Create the manifest
-                    //InputStream fileIs = createFileDataStream(result);
-                    try {
-                        awaitingPayload = Payload.fromFile(result);
+                    if (file.exists()) {
+                        // Create the manifest
+                        //InputStream fileIs = createFileDataStream(result);
+                        try {
+                            awaitingPayload = Payload.fromFile(file);
 
-                        String filename = result.getName();
-                        String extension = "";
+                            String filename = file.getName();
+                            String extension = "";
 
-                        int lastIndex = filename.lastIndexOf(".");
-                        if (lastIndex > -1 && lastIndex < filename.length()) {
-                            extension = filename.substring(lastIndex);
+                            int lastIndex = filename.lastIndexOf(".");
+                            if (lastIndex > -1 && lastIndex < filename.length()) {
+                                extension = filename.substring(lastIndex);
+                            }
+
+                            syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
+                                    , extension
+                                    , dataType);
+
+                            HashMap<String, String> mediaDetails = multiMediaData.getMediaDetails();
+                            HashMap<String, Object> payloadDetails = new HashMap<>();
+
+                            if (mediaDetails != null) {
+                                for (String key : mediaDetails.keySet()) {
+                                    payloadDetails.put(key, mediaDetails.get(key));
+                                }
+                            }
+
+                            payloadDetails.put("fileRecordId", multiMediaData.getRecordId());
+                            syncPackageManifest.setPayloadDetails(payloadDetails);
+
+                            awaitingManifestTransfer = true;
+                            awaitingManifestId = presenter.sendManifest(syncPackageManifest);
+                        } catch (FileNotFoundException e) {
+                            Timber.e(e);
+                            presenter.errorOccurredSync(e);
                         }
-
-                        syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
-                                , extension
-                                , dataType);
-
-                        awaitingManifestTransfer = true;
-                        awaitingManifestId = presenter.sendManifest(syncPackageManifest);
-                    } catch (FileNotFoundException e) {
-                        Timber.e(e);
-                        presenter.errorOccurredSync(e);
+                    } else {
+                        dataSyncOrder.remove(dataType);
+                        sendNextManifest();
                     }
                 } else {
                     dataSyncOrder.remove(dataType);
@@ -215,8 +225,7 @@ public class SyncSenderHandler {
     @Nullable
     private ParcelFileDescriptor[] createJsonDataStream() {
         try {
-            ParcelFileDescriptor[] payloadPipe = ParcelFileDescriptor.createPipe();
-            return payloadPipe;
+            return ParcelFileDescriptor.createPipe();
         } catch (IOException e) {
             Timber.e(e);
             return null;
@@ -235,42 +244,34 @@ public class SyncSenderHandler {
 
     @VisibleForTesting
     public void sendNextPayload() {
-        if (awaitingPayload != null) {
-            awaitingPayloadTransfer = true;
-            presenter.sendPayload(awaitingPayload);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (awaitingPayload != null) {
+                    awaitingPayloadTransfer = true;
+                    presenter.sendPayload(awaitingPayload);
 
-            if (awaitingPayload.getType() == Payload.Type.STREAM) {
-                if (awaitingPayloadPipe != null && awaitingBytes != null) {
-                    ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
-                    try {
-                        int totalLen = awaitingBytes.length;
-                    /*int chunk = 100;
+                    if (awaitingPayload.getType() == Payload.Type.STREAM) {
+                        if (awaitingPayloadPipe != null && awaitingBytes != null) {
+                            ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
+                            try {
+                                int totalLen = awaitingBytes.length;
+                                Timber.e("Bytes size %s", String.valueOf(totalLen));
+                                outputStream.write(awaitingBytes);
+                                outputStream.flush();
+                                outputStream.close();
 
-                    int currentLen = 0;
-
-                    while (currentLen < totalLen) {
-                        int sendingChunk = (totalLen - currentLen) < chunk ? (totalLen - currentLen) : chunk;
-
-                        outputStream.write(awaitingBytes, currentLen, sendingChunk);
-                        outputStream.flush();
-
-                        currentLen += sendingChunk;
-                    }*/
-                        Timber.e("Bytes size %s", String.valueOf(totalLen));
-                        outputStream.write(awaitingBytes);
-                        outputStream.flush();
-                        outputStream.close();
-
-                    } catch (IOException e) {
-                        Timber.e(e, "Error occurred trying to read bytes into payload pipe");
-                        presenter.errorOccurredSync(e);
-
+                            } catch (IOException e) {
+                                Timber.e(e, "Error occurred trying to read bytes into payload pipe");
+                                presenter.errorOccurredSync(e);
+                            }
+                        } else {
+                            presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
+                        }
                     }
-                } else {
-                    presenter.errorOccurredSync(new Exception("Could not find the payload pipe!"));
                 }
             }
-        }
+        }).start();
     }
 
     public void onPayloadTransferUpdate(@NonNull final PayloadTransferUpdate update) {
