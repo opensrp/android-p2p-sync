@@ -3,6 +3,7 @@ package org.smartregister.p2p.sync;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.util.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
@@ -36,6 +37,7 @@ public class SyncReceiverHandler {
     private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
     private boolean awaitingManifestReceipt = true;
     private HashMap<Long, SyncPackageManifest> awaitingPayloadManifests = new HashMap<>();
+    private SimpleArrayMap<Long, ProcessedChunk> awaitingPayloads = new SimpleArrayMap<>();
 
     public SyncReceiverHandler(@NonNull P2pModeSelectContract.ReceiverPresenter receiverPresenter) {
         this.receiverPresenter = receiverPresenter;
@@ -44,6 +46,7 @@ public class SyncReceiverHandler {
     public void processPayload(@NonNull final String endpointId, @NonNull final Payload payload) {
         // TODO: Handle when the manifest is present in case there was an error on the sender
         // We should also give the sender the powers to decide when to close the connection and not us
+        Timber.e("Received payload from endpoint %s of ID %d and Type %d", endpointId, payload.getId(), payload.getType());
         if (payload.getType() == Payload.Type.BYTES && null != payload.asBytes()
                 && new String(payload.asBytes()).equals(Constants.Connection.SYNC_COMPLETE)) {
             // This will only happen after the last payload has been received on the other side
@@ -52,14 +55,21 @@ public class SyncReceiverHandler {
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
-            if (awaitingPayloadManifests.get(payload.getId()) != null) {
-                processRecords(endpointId, payload);
-            }
+            processPayloadChunk(endpointId, payload);
         }
     }
 
     public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
         // Do since we are using ParcelFileDescriptor for STREAM data type & BYTES which is sent at once
+        Timber.e("Received payload transfer update %d with %,d bytes transfer | PayloadId %d | Total Bytes %,d | From endpoint %s"
+                , update.getStatus(), update.getBytesTransferred(), update.getPayloadId()
+                , update.getTotalBytes(), endpointId);
+        if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+            long payloadId = update.getPayloadId();
+            if (awaitingPayloadManifests.get(payloadId) != null) {
+                finishProcessingData(endpointId, payloadId);
+            }
+        }
     }
 
     public void processManifest(@NonNull String endpointId, @NonNull Payload payload) {
@@ -77,7 +87,7 @@ public class SyncReceiverHandler {
         }
     }
 
-    public void processRecords(@NonNull String endpointId, @NonNull Payload payload) {
+    public void processPayloadChunk(@NonNull String endpointId, @NonNull Payload payload) {
         if (awaitingPayloadManifests.containsKey(payload.getId())) {
             awaitingManifestReceipt = true;
             SyncPackageManifest payloadManifest = awaitingPayloadManifests.get(payload.getId());
@@ -92,12 +102,63 @@ public class SyncReceiverHandler {
         }
     }
 
+    public void finishProcessingData(String endpointId, long payloadId) {
+        ProcessedChunk processedChunk = awaitingPayloads.get(payloadId);
+        SyncPackageManifest payloadManifest = awaitingPayloadManifests.get(payloadId);
+
+        if (processedChunk != null && payloadManifest != null) {
+            if (payloadManifest.getDataType().getType() == DataType.Type.NON_MEDIA) {
+                finishProcessNonMediaData(payloadId);
+            } else {
+                finishProcessingMediaData(payloadId);
+            }
+        } else {
+            // This is probably a manifest
+        }
+    }
+
     private void processNonMediaData(@NonNull final Payload payload) {
+        final long payloadId = payload.getId();
+        awaitingPayloads.put(payloadId, new ProcessedChunk(payload.getType(), ""));
         Tasker.run(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
-                JSONArray jsonArray = new JSONArray(SyncDataConverterUtil.readInputStreamAsString(payload.asStream().asInputStream()));
-                SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
+                String jsonData = SyncDataConverterUtil.readInputStreamAsString(payload.asStream().asInputStream());
+                ProcessedChunk processedChunk = awaitingPayloads.get(payloadId);
+
+                jsonData = processedChunk.getJsonData() + jsonData;
+                processedChunk.setJsonData(jsonData);
+
+                Timber.e("Final JSONDATA size %,d", jsonData.length());
+
+                awaitingPayloads.put(payloadId, processedChunk);
+                return payloadId;
+            }
+        }, new GenericAsyncTask.OnFinishedCallback<Long>() {
+            @Override
+            public void onSuccess(@Nullable Long result) {
+                if (result != null) {
+                    Timber.e("Finished processing chunk for payload %d", payloadId);
+                } else {
+                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                    stopTransferAndReset(true);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                stopTransferAndReset(true);
+            }
+        }, AsyncTask.SERIAL_EXECUTOR);
+    }
+
+    private void finishProcessNonMediaData(final long payloadId) {
+        Tasker.run(new Callable<Long>() {
+            @Override
+            public Long call() throws Exception {
+                JSONArray jsonArray = new JSONArray(awaitingPayloads.get(payloadId).getJsonData());
+                SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
                         .receiveJson(syncPackageManifest.getDataType(), jsonArray);
 
@@ -109,19 +170,20 @@ public class SyncReceiverHandler {
             public void onSuccess(@Nullable Long result) {
                 if (result != null) {
                     // We should save the last ID here and probably keep track of the next batch that we are to receive
-                    awaitingPayloadManifests.remove(payload.getId());
+                    awaitingPayloadManifests.remove(payloadId);
                 } else {
-                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
                     stopTransferAndReset(true);
                 }
             }
 
             @Override
             public void onError(Exception e) {
-                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
                 stopTransferAndReset(true);
             }
         }, AsyncTask.SERIAL_EXECUTOR);
+
     }
 
     private synchronized void updateLastRecord(@NonNull String entityName, long lastRecordId) {
@@ -151,41 +213,61 @@ public class SyncReceiverHandler {
     }
 
     private void processMediaData(@NonNull final Payload payload) {
-        Tasker.run(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
-                long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
-                        .receiveMultimedia(syncPackageManifest.getDataType(), payload.asFile().asJavaFile()
-                                , syncPackageManifest.getPayloadDetails());
+        final long payloadId = payload.getId();
+        ProcessedChunk processedChunk = awaitingPayloads.get(payloadId);
 
-                if (lastRecordId > -1) {
-                    updateLastRecord(syncPackageManifest.getDataType().getName(),lastRecordId);
-                    return lastRecordId;
-                } else {
-                    return null;
+        if (processedChunk == null) {
+            awaitingPayloads.put(payloadId, new ProcessedChunk(payload.getType(), payload));
+        }
+    }
+
+    private void finishProcessingMediaData(@NonNull long payloadId) {
+        ProcessedChunk processedChunk = awaitingPayloads.get(payloadId);
+        final Payload payload = processedChunk.getFileData();
+
+        if (payload != null) {
+            Tasker.run(new Callable<Long>() {
+
+                @Override
+                public Long call() throws Exception {
+                    SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
+                    HashMap<String, Object> payloadDetails = syncPackageManifest.getPayloadDetails();
+                    long fileRecordId = payloadDetails != null ? (new Double((double) payloadDetails.get("fileRecordId"))).longValue() : 0l;
+                    long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
+                            .receiveMultimedia(syncPackageManifest.getDataType(), payload.asFile().asJavaFile()
+                                    , payloadDetails, fileRecordId);
+
+                    if (lastRecordId > -1) {
+                        updateLastRecord(syncPackageManifest.getDataType().getName(), lastRecordId);
+                        return lastRecordId;
+                    } else {
+                        return null;
+                    }
                 }
-            }
-        }, new GenericAsyncTask.OnFinishedCallback<Long>() {
-            @Override
-            public void onSuccess(@Nullable Long result) {
-                if (result != null) {
-                    // We should save the last ID here and probably keep track of the next batch that we are to receive
-                    awaitingPayloadManifests.remove(payload.getId());
-                } else {
-                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+            }, new GenericAsyncTask.OnFinishedCallback<Long>() {
+                @Override
+                public void onSuccess(@Nullable Long result) {
+                    if (result != null) {
+                        // We should save the last ID here and probably keep track of the next batch that we are to receive
+                        awaitingPayloadManifests.remove(payload.getId());
+                    } else {
+                        Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+                        // We should not continue
+                        stopTransferAndReset(true);
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
                     // We should not continue
                     stopTransferAndReset(true);
                 }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
-                // We should not continue
-                stopTransferAndReset(true);
-            }
-        }, AsyncTask.SERIAL_EXECUTOR);
+            }, AsyncTask.SERIAL_EXECUTOR);
+        } else {
+            Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+            stopTransferAndReset(true);
+        }
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {

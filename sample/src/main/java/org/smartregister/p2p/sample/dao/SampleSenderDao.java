@@ -9,8 +9,10 @@ import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.sync.JsonData;
 import org.smartregister.p2p.sync.MultiMediaData;
 
+import java.io.File;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
@@ -24,7 +26,7 @@ public class SampleSenderDao implements SenderTransferDao {
     private List<String> nameRecords = new ArrayList<>();
     private List<String> personalDetailsRecords = new ArrayList<>();
 
-    private char[] symbols = "ACEFGHJKLMNPQRUVWXYabcdefhijkprstuvwx".toCharArray();
+    private char[] symbols = "ABCEFGHJKLMNPQRUVWXYabcdefhijkprstuvwx".toCharArray();
 
     public SampleSenderDao() {
         nameRecords.add("John Doe");
@@ -35,7 +37,7 @@ public class SampleSenderDao implements SenderTransferDao {
         nameRecords.add("Chris Wamaitha");
 
         for (int i = 0; i < 200; i++) {
-            personalDetailsRecords.add(generateRandomString(10000));
+            personalDetailsRecords.add(generateRandomString(50000));
         }
     }
 
@@ -45,6 +47,7 @@ public class SampleSenderDao implements SenderTransferDao {
         TreeSet<DataType> dataTypes = new TreeSet<>();
         dataTypes.add(new DataType("names", DataType.Type.NON_MEDIA, 0));
         dataTypes.add(new DataType("personal_details", DataType.Type.NON_MEDIA, 1));
+        dataTypes.add(new DataType("profile_pics", DataType.Type.MEDIA, 2));
 
         return dataTypes;
     }
@@ -98,7 +101,25 @@ public class SampleSenderDao implements SenderTransferDao {
     @Nullable
     @Override
     public MultiMediaData getMultiMediaData(@NonNull DataType dataType, long lastRecordId) {
-        return null;
+        if (lastRecordId < 4) {
+            HashMap<String, String> imageDetails = new HashMap<>();
+            imageDetails.put("name", "Picture in root folder of my phone");
+
+            File inputFile = new File("/sdcard/1545669737880.png");
+            if (inputFile.exists()) {
+                MultiMediaData multiMediaData = new MultiMediaData(
+                        inputFile,
+                        4
+                );
+                multiMediaData.setMediaDetails(imageDetails);
+
+                return multiMediaData;
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     /**

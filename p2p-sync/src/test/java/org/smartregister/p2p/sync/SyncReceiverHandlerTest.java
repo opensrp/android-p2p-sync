@@ -31,7 +31,6 @@ import org.smartregister.p2p.shadows.ShadowTasker;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.TreeSet;
 
 import static org.junit.Assert.*;
 
@@ -122,7 +121,7 @@ public class SyncReceiverHandlerTest {
 
         syncReceiverHandler.processPayload(endpointId, payload);
         Mockito.verify(syncReceiverHandler, Mockito.times(1))
-                .processRecords(ArgumentMatchers.eq(endpointId), ArgumentMatchers.eq(payload));
+                .processPayloadChunk(ArgumentMatchers.eq(endpointId), ArgumentMatchers.eq(payload));
     }
 
     @Test
@@ -198,7 +197,7 @@ public class SyncReceiverHandlerTest {
 
         ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests"))
                 .put(syncPackageManifest.getPayloadId(), syncPackageManifest);
-        syncReceiverHandler.processRecords(endpointId, payload);
+        syncReceiverHandler.processPayloadChunk(endpointId, payload);
 
         Mockito.verify(receiverTransferDao, Mockito.times(1))
                 .receiveJson(ArgumentMatchers.eq(event), Mockito.any(JSONArray.class));
@@ -235,7 +234,7 @@ public class SyncReceiverHandlerTest {
 
         ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests"))
                 .put(syncPackageManifest.getPayloadId(), syncPackageManifest);
-        syncReceiverHandler.processRecords(endpointId, payload);
+        syncReceiverHandler.processPayloadChunk(endpointId, payload);
 
         Mockito.verify(receiverTransferDao, Mockito.times(1))
                 .receiveMultimedia(ArgumentMatchers.eq(profilePic), ArgumentMatchers.eq(is));

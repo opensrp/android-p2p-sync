@@ -8,7 +8,6 @@ import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -27,13 +26,22 @@ public class SampleReceiverDao implements ReceiverTransferDao {
         TreeSet<DataType> dataTypes = new TreeSet<>();
         dataTypes.add(new DataType("names", DataType.Type.NON_MEDIA, 0));
         dataTypes.add(new DataType("personal_details", DataType.Type.NON_MEDIA, 1));
+        dataTypes.add(new DataType("profile_pics", DataType.Type.MEDIA, 2));
 
         return dataTypes;
     }
 
     @Override
-    public long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, String> multimediaDetails) {
-        return -1;
+    public long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, Object> multimediaDetails, long fileRecordId) {
+        Timber.e("Received multi-media record %s of type %s", multimediaDetails.get("name"), dataType.getName());
+
+        file.renameTo(new File(String.format("/sdcard/%s.%s", System.currentTimeMillis(), "png")));
+
+        if (multimediaDetails != null) {
+            return (new Double((double) multimediaDetails.get("fileRecordId"))).longValue();
+        } else {
+            return -1;
+        }
     }
 
     @Override
