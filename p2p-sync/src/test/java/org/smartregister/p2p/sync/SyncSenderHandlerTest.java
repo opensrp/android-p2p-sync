@@ -1,5 +1,7 @@
 package org.smartregister.p2p.sync;
 
+import android.os.ParcelFileDescriptor;
+
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
@@ -16,9 +18,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
@@ -354,6 +358,8 @@ public class SyncSenderHandlerTest {
         ReflectionHelpers.setField(syncSenderHandler, "awaitingPayload", awaitingPayload);
         syncSenderHandler.onPayloadTransferUpdate(payloadTransferUpdate);
 
+        Robolectric.getBackgroundThreadScheduler().advanceToLastPostedRunnable();
+
         Mockito.verify(syncSenderHandler, Mockito.times(1))
                 .sendNextPayload();
 
@@ -398,65 +404,24 @@ public class SyncSenderHandlerTest {
 
     @Test
     public void sendNextPayloadShouldCallPresenterSendPayloadWhenThereIsAwaitingPayload() {
-        ReflectionHelpers.callInstanceMethod(syncSenderHandler, "sendNextPayload");
+        syncSenderHandler.sendNextPayload();
+
+        Robolectric.flushBackgroundThreadScheduler();
+
         Mockito.verify(senderPresenter, Mockito.times(0))
                 .sendPayload(Mockito.any(Payload.class));
 
         Payload payload = Mockito.mock(Payload.class);
         ReflectionHelpers.setField(syncSenderHandler, "awaitingPayload", payload);
-        ReflectionHelpers.callInstanceMethod(syncSenderHandler, "sendNextPayload");
+
+        syncSenderHandler.sendNextPayload();
+
+        //Robolectric.flushBackgroundThreadScheduler();
+        ShadowApplication.runBackgroundTasks();
+        assertFalse(Robolectric.getBackgroundThreadScheduler().areAnyRunnable());
+
         Mockito.verify(senderPresenter, Mockito.times(1))
-                .sendPayload(Mockito.any(Payload.class));
-    }
-
-    @Test
-    public void createJsonDataStreamShouldCreateReversibleDataStream() throws IOException, JSONException {
-        JSONArray jsonArray = new JSONArray();
-        jsonArray.put(true);
-        jsonArray.put(event);
-
-        String jsonString = new Gson().toJson(jsonArray);
-
-        InputStream is = ReflectionHelpers.callInstanceMethod(syncSenderHandler, "createJsonDataStream", ReflectionHelpers.ClassParameter.from(String.class, jsonString));
-
-        JSONArray resultJsonArray = new Gson().fromJson(SyncDataConverterUtil.readInputStreamAsString(is), JSONArray.class);
-
-        assertEquals(jsonArray.length(), resultJsonArray.length());
-        assertTrue(resultJsonArray.getBoolean(0));
-        assertEquals("event", (new Gson().fromJson(resultJsonArray.getString(1), DataType.class)).getName());
-    }
-
-    @Test
-    public void createFileDataStreamShouldCreateReversibleFileStream() throws IOException, JSONException {
-        syncSenderHandler = new SyncSenderHandler(senderPresenter, dataSyncOrder, null);
-        String fileContent = "This library wraps on the Google Nearby Connections API to provide a " +
-                "simple UI and interfaces to be used to easily share records between host applications";
-
-        File file1 = new File("file1.txt");
-
-        FileWriter fw = new FileWriter("file1.txt");
-        BufferedWriter bw = new BufferedWriter(fw);
-        bw.write(fileContent);
-
-        bw.close();
-        fw.close();
-
-
-        InputStream is = ReflectionHelpers.callInstanceMethod(syncSenderHandler, "createFileDataStream", ReflectionHelpers.ClassParameter.from(File.class, file1));
-
-        // Get the file
-        byte[] buffer = new byte[is.available()];
-        is.read(buffer);
-
-        is.close();
-
-        File resultFile = new File("file2.txt");
-        OutputStream outStream = new FileOutputStream(resultFile);
-        outStream.write(buffer);
-
-        outStream.close();
-
-        assertEquals(FileUtils.fileRead(file1), FileUtils.fileRead(resultFile));
+                .sendPayload(ArgumentMatchers.eq(payload));
     }
 
     private P2pReceivedHistory createReceivedHistory(String entityType, long lastRecordId, String sendingDeviceId) {

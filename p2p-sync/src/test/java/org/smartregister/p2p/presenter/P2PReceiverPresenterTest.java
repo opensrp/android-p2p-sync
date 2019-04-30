@@ -571,11 +571,11 @@ public class P2PReceiverPresenterTest {
     }
 
     @Test
-    public void onPayloadReceivedShouldProcessPayloadWhenConnectionLevelIsReceivedHashKey() {
+    public void onPayloadReceivedShouldProcessPayloadWhenConnectionLevelIsSentReceivedRecords() {
         Payload payload = Mockito.mock(Payload.class);
         String endpointId = "endpoint-id";
 
-        ReflectionHelpers.setField(p2PReceiverPresenter, "connectionLevel", ConnectionLevel.RECEIVED_HASH_KEY);
+        ReflectionHelpers.setField(p2PReceiverPresenter, "connectionLevel", ConnectionLevel.SENT_RECEIVED_HISTORY);
         p2PReceiverPresenter.onPayloadReceived(endpointId, payload);
 
         Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
