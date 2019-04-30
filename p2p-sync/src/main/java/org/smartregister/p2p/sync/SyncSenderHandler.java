@@ -118,7 +118,6 @@ public class SyncSenderHandler {
 
                     if (file.exists()) {
                         // Create the manifest
-                        //InputStream fileIs = createFileDataStream(result);
                         try {
                             awaitingPayload = Payload.fromFile(file);
 
@@ -232,16 +231,6 @@ public class SyncSenderHandler {
         try {
             return ParcelFileDescriptor.createPipe();
         } catch (IOException e) {
-            Timber.e(e);
-            return null;
-        }
-    }
-
-    @Nullable
-    private InputStream createFileDataStream(@NonNull File file) {
-        try {
-            return new FileInputStream(file);
-        } catch (FileNotFoundException e) {
             Timber.e(e);
             return null;
         }

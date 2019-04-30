@@ -1,5 +1,7 @@
 package org.smartregister.p2p.sync;
 
+import android.support.v4.util.SimpleArrayMap;
+
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.gson.Gson;
 
@@ -29,10 +31,14 @@ import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.File;
 import java.util.HashMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 04/04/2019
@@ -187,7 +193,7 @@ public class SyncReceiverHandlerTest {
                 .when(payload)
                 .asStream();
 
-        Mockito.doReturn(Payload.Type.BYTES)
+        Mockito.doReturn(Payload.Type.STREAM)
                 .when(payload)
                 .getType();
 
@@ -197,11 +203,9 @@ public class SyncReceiverHandlerTest {
 
         ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests"))
                 .put(syncPackageManifest.getPayloadId(), syncPackageManifest);
+        assertNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
         syncReceiverHandler.processPayloadChunk(endpointId, payload);
-
-        Mockito.verify(receiverTransferDao, Mockito.times(1))
-                .receiveJson(ArgumentMatchers.eq(event), Mockito.any(JSONArray.class));
-        assertEquals(0, ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests")).size());
+        assertNotNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
     }
 
     @Test
@@ -210,21 +214,19 @@ public class SyncReceiverHandlerTest {
         long payloadId = 923823l;
         Payload payload = Mockito.mock(Payload.class);
 
-        JSONArray jsonArray = new JSONArray();
+        Payload.File payloadFile = Mockito.mock(Payload.File.class);
+        File javaFile = Mockito.mock(File.class);
 
-        Payload.Stream payloadStream = Mockito.mock(Payload.Stream.class);
-        InputStream is = new ByteArrayInputStream(new Gson().toJson(jsonArray).getBytes());
+        Mockito.doReturn(javaFile)
+                .when(payloadFile)
+                .asJavaFile();
 
-        Mockito.doReturn(is)
-                .when(payloadStream)
-                .asInputStream();
-
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", profilePic);
-        Mockito.doReturn(payloadStream)
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "png", profilePic);
+        Mockito.doReturn(payloadFile)
                 .when(payload)
-                .asStream();
+                .asFile();
 
-        Mockito.doReturn(Payload.Type.BYTES)
+        Mockito.doReturn(Payload.Type.FILE)
                 .when(payload)
                 .getType();
 
@@ -234,10 +236,9 @@ public class SyncReceiverHandlerTest {
 
         ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests"))
                 .put(syncPackageManifest.getPayloadId(), syncPackageManifest);
-        syncReceiverHandler.processPayloadChunk(endpointId, payload);
 
-        Mockito.verify(receiverTransferDao, Mockito.times(1))
-                .receiveMultimedia(ArgumentMatchers.eq(profilePic), ArgumentMatchers.eq(is));
-        assertEquals(0, ((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests")).size());
+        assertNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
+        syncReceiverHandler.processPayloadChunk(endpointId, payload);
+        assertNotNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
     }
 }

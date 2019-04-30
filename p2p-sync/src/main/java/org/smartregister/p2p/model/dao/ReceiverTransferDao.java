@@ -8,7 +8,6 @@ import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.TreeSet;
 
