@@ -10,7 +10,30 @@ This library wraps on the Google Nearby Connections API to provide a simple UI a
 
 ## Getting started
 
-Add the module to your project(Publishing is not yet supported :worried:
+Add the module to your project as follows
+
+1. Add the repository to your project-root `build.gradle`
+
+```groovy
+allprojects {
+    repositories {
+        ...
+        
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+}
+```
+
+
+```groovy
+
+dependencies {
+
+    ...
+
+    implementation ('org.smartregister:android-p2p-sync:0.1.0-SNAPSHOT'
+}
+```
 
 
 Initialise the library in the `onCreate` method of your `Application` class
@@ -24,11 +47,27 @@ public class MyApplication extends Application {
         super.onCreate();
         ...
         
-        P2PLibrary.init(new P2PLibrary.ReceiverOptions("John Doe"));
+        P2PLibrary.init(new P2PLibrary.Options(this
+                        , "db_password_here"
+                        , "John Doe"
+                        , this
+                        , new MyReceiverDao()
+                        , new MySenderDao()));
     }
 }
 
 ```
+
+where you should have implemented your own `ReceiverDao` from `org.smartregister.p2p.sample.dao.ReceiverTransferDao` and you should have implemented your own `SenderDao` from the interface `org.smartregister.p2p.sample.dao.SenderTransferDao`
+
+### ReceiverDao
+
+This data access object is supposed to implement methods that receive and process any data that is shared. After processing the data, the host application should return the last record id so that this can be saved and used as the last sync point during the next sync with the same device.
+
+
+### SenderDao
+
+This provides data that is to be sent/shared. It implements methods that provide access to records from the given `lastRecordId`(not inclusive) and should return data with a max of the `batchSize` specified. The id that the host application provides here should be unique and cater for record updates. A simple example would be to use the default SQLite `rowid`
 
 
 To start the sending and receiving activity:
