@@ -1,14 +1,8 @@
 package org.smartregister.p2p.sync;
 
-import android.os.ParcelFileDescriptor;
-
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
-import com.google.gson.Gson;
 
-import org.codehaus.plexus.util.FileUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,15 +27,7 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
-import org.smartregister.p2p.util.SyncDataConverterUtil;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -403,7 +389,7 @@ public class SyncSenderHandlerTest {
     }
 
     @Test
-    public void sendNextPayloadShouldCallPresenterSendPayloadWhenThereIsAwaitingPayload() {
+    public void sendNextPayloadShouldCallPresenterSendPayloadWhenThereIsAwaitingPayload() throws InterruptedException {
         syncSenderHandler.sendNextPayload();
 
         Robolectric.flushBackgroundThreadScheduler();
@@ -419,6 +405,7 @@ public class SyncSenderHandlerTest {
         //Robolectric.flushBackgroundThreadScheduler();
         ShadowApplication.runBackgroundTasks();
         assertFalse(Robolectric.getBackgroundThreadScheduler().areAnyRunnable());
+        Thread.sleep(100);
 
         Mockito.verify(senderPresenter, Mockito.times(1))
                 .sendPayload(ArgumentMatchers.eq(payload));
