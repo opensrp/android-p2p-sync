@@ -326,6 +326,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
             interactor.rejectConnection(endpointId);
+        } else {
+            Timber.e("onAuthenticationCancelled was called and no peer device is connected");
         }
 
         // Go back to discovering mode
@@ -361,6 +363,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
             resetState();
             startDiscoveringMode();
+        } else {
+            Timber.e("onConnectionRejected was called for endpoint %s and no peer device is connected", endpointId);
         }
     }
 
@@ -372,6 +376,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
             resetState();
             prepareForDiscovering(false);
+        } else {
+            Timber.e("onConnectionUnknownError for endpoint %s was called and no peer device is connected", endpointId);
         }
     }
 
@@ -384,6 +390,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken)
                     , endpointId), Toast.LENGTH_LONG);
             prepareForDiscovering(false);
+        } else {
+            Timber.e("onConnectionBroken was called for endpoint %s and no peer device is connected", endpointId);
         }
     }
 
@@ -453,6 +461,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             view.displayMessage(view.getString(R.string.disconnected));
             resetState();
             prepareForDiscovering(false);
+        } else {
+            Timber.e("onDisconnected was called for endpoint %s and no peer device is connected", endpointId);
         }
     }
 

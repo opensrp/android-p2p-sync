@@ -1,5 +1,6 @@
 package org.smartregister.p2p.sample.dao;
 
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -8,6 +9,7 @@ import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.sync.JsonData;
 import org.smartregister.p2p.sync.MultiMediaData;
+import org.smartregister.p2p.tasks.GenericAsyncTask;
 
 import java.io.File;
 import java.security.SecureRandom;
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
@@ -36,9 +39,20 @@ public class SampleSenderDao implements SenderTransferDao {
         nameRecords.add("Leo Atieno");
         nameRecords.add("Chris Wamaitha");
 
-        for (int i = 0; i < 200; i++) {
-            personalDetailsRecords.add(generateRandomString(10000));
-        }
+        GenericAsyncTask<Void> genericAsyncTask = new GenericAsyncTask<>(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                for (int i = 0; i < 200; i++) {
+                    personalDetailsRecords.add(generateRandomString(10000));
+                }
+
+                return null;
+            }
+
+        });
+
+        genericAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
     }
 
     @Nullable
