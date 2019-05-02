@@ -12,20 +12,21 @@ import org.smartregister.p2p.activity.P2pModeSelectActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-    private String[] permissions = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE
+    private String[] permissions = new String[] {
+            Manifest.permission.READ_EXTERNAL_STORAGE
             , Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        requestPermissions();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        requestPermissions();
     }
 
     private void requestPermissions() {

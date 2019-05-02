@@ -21,6 +21,7 @@ import org.smartregister.p2p.model.dao.P2pReceivedHistoryDao;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
+import org.smartregister.p2p.util.NearbyStorageUtil;
 import org.smartregister.p2p.util.SyncDataConverterUtil;
 
 import java.util.HashMap;
@@ -271,6 +272,7 @@ public class SyncReceiverHandler {
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {
+        NearbyStorageUtil.deleteFilesInNearbyFolder(receiverPresenter.getView().getContext());
         DiscoveredDevice peerDevice = receiverPresenter.getCurrentPeerDevice();
         if (peerDevice != null) {
             receiverPresenter.disconnectAndReset(peerDevice.getEndpointId(), startAdvertising);
