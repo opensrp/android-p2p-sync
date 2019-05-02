@@ -16,7 +16,9 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application>
-        <activity android:name=".activity.P2pModeSelectActivity"></activity>
+        <activity
+            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:name=".activity.P2pModeSelectActivity"/>
     </application>
 
 </manifest>
