@@ -115,6 +115,7 @@ public class SyncReceiverHandler {
             }
         } else {
             // This is probably a manifest
+            Timber.e("Ignored finishProcessingData for payload of id %d from endpoint %s because it's Manifest or its ProcessedChunk cannot be found", payloadId, endpointId);
         }
     }
 
