@@ -453,7 +453,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             // Show a simple message of the text sent
             String message = new String(payload.asBytes());
             view.showToast(message, Toast.LENGTH_LONG);
-            view.displayMessage(String.format(view.getString(R.string.chat_message_format), endpointId, message));
         }
     }
 
@@ -461,7 +460,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onDisconnected(@NonNull String endpointId) {
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             Timber.e(view.getString(R.string.log_disconnected), endpointId);
-            view.displayMessage(view.getString(R.string.disconnected));
             resetState();
             prepareForDiscovering(false);
         } else {
@@ -509,7 +507,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         view.showToast(String.format(view.getString(R.string.you_are_connected_to_receiver)
                 , currentReceiver.getEndpointName())
                 , Toast.LENGTH_LONG);
-        view.displayMessage(view.getString(R.string.connected));
     }
 
     private void sendBasicDeviceDetails() {

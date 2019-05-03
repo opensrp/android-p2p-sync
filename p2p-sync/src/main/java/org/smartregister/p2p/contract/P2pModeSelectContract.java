@@ -60,8 +60,6 @@ public interface P2pModeSelectContract {
 
         void showToast(@NonNull String text, int length);
 
-        void displayMessage(@NonNull String text);
-
         @NonNull
         String getString(@StringRes int resId);
 
@@ -72,6 +70,12 @@ public interface P2pModeSelectContract {
         interface OnLocationEnabled {
             void locationEnabled();
         }
+    }
+
+    interface P2PModeSelectView {
+
+        void enableSendReceiveButtons(boolean enable);
+
     }
 
     interface BasePresenter {

@@ -539,7 +539,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         connectionLevel = ConnectionLevel.AUTHORIZED;
         view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
-        view.displayMessage(view.getString(R.string.connected));
     }
 
     @Override
