@@ -1,53 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout
+    android:id="@+id/cl_p2pModeSelectActivity_parentLayout"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activity.P2pModeSelectActivity">
 
-    <EditText
-        android:layout_marginTop="23dp"
-        android:id="@+id/et_p2pModeSelectActivity_messageToSend"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="23dp"
-        android:enabled="false"
-        app:layout_constraintTop_toTopOf="parent"/>
 
-    <Button
-        android:id="@+id/btn_p2pModeSelectActivity_sendMsgBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/et_p2pModeSelectActivity_messageToSend"
-        app:layout_constraintLeft_toLeftOf="@id/et_p2pModeSelectActivity_messageToSend"
-        android:layout_marginTop="23dp"
-        android:enabled="false"
-        android:text="@string/send"/>
-
-    <TextView
-        android:id="@+id/tv_p2pModeSelectActivity_conversationDetails"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="17dp"
-        android:layout_marginLeft="17dp"
-        android:layout_marginRight="17dp"
-        app:layout_constraintTop_toBottomOf="@id/btn_p2pModeSelectActivity_sendMsgBtn"/>
-
-    <Button
-        android:id="@+id/btn_p2pModeSelectActivity_send"
-        android:text="@string/send"
-        style="@style/P2pModeSelect.Buttons.SendReceive"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btn_p2pModeSelectActivity_receive" />
-
-    <Button
-        android:id="@+id/btn_p2pModeSelectActivity_receive"
-        android:text="@string/receive"
-        style="@style/P2pModeSelect.Buttons.SendReceive"
-        app:layout_constraintEnd_toStartOf="@+id/btn_p2pModeSelectActivity_send"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent" />
 </android.support.constraint.ConstraintLayout>

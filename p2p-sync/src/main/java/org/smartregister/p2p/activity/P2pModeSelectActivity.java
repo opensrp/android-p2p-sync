@@ -14,11 +14,8 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -38,6 +35,7 @@ import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
+import org.smartregister.p2p.fragment.P2PModeSelectFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
@@ -55,12 +53,6 @@ import timber.log.Timber;
 
 public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeSelectContract.View {
 
-    private Button sendButton;
-    private Button receiveButton;
-    private Button sendMsgBtn;
-
-    private TextView messagesTv;
-    private EditText messageToSendEt;
 
     private P2pModeSelectContract.SenderPresenter senderBasePresenter;
     private P2pModeSelectContract.ReceiverPresenter receiverBasePresenter;
@@ -69,38 +61,16 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     private ArrayList<OnResumeHandler> onResumeHandlers = new ArrayList<>();
     private ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers = new ArrayList<>();
 
+    private P2PModeSelectFragment p2PModeSelectFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_p2p_mode_select);
 
-        sendButton = findViewById(R.id.btn_p2pModeSelectActivity_send);
-        receiveButton = findViewById(R.id.btn_p2pModeSelectActivity_receive);
-        sendMsgBtn = findViewById(R.id.btn_p2pModeSelectActivity_sendMsgBtn);
-        messagesTv = findViewById(R.id.tv_p2pModeSelectActivity_conversationDetails);
-        messageToSendEt = findViewById(R.id.et_p2pModeSelectActivity_messageToSend);
-
-        sendMsgBtn = findViewById(R.id.btn_p2pModeSelectActivity_sendMsgBtn);
-        messageToSendEt = findViewById(R.id.et_p2pModeSelectActivity_messageToSend);
-
-        sendMsgBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (messageToSendEt.getText() != null) {
-                    String messageToSend = messageToSendEt.getText().toString();
-
-                    // This is not ideal but for testing purposes for now
-                    // It will not be in the any final release
-                    receiverBasePresenter.sendTextMessage(messageToSend);
-                    senderBasePresenter.sendTextMessage(messageToSend);
-                    displayMessage("YOU: " + messageToSend);
-
-                    messageToSendEt.setText("");
-                }
-            }
-        });
 
         prepareTrackingDetails();
+        showP2PModeSelectFragment();
     }
 
     private void prepareTrackingDetails() {
@@ -128,25 +98,24 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     protected void onStart() {
         super.onStart();
         initializePresenters();
+    }
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                senderBasePresenter.onSendButtonClicked();
-            }
-        });
-        receiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                receiverBasePresenter.onReceiveButtonClicked();
-            }
-        });
+    public void showP2PModeSelectFragment() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        p2PModeSelectFragment = new P2PModeSelectFragment();
+        fragmentTransaction.add(R.id.cl_p2pModeSelectActivity_parentLayout, p2PModeSelectFragment);
+        fragmentTransaction.commit();
     }
 
     @Override
     public void enableSendReceiveButtons(boolean enable) {
-        sendButton.setEnabled(enable);
-        receiveButton.setEnabled(enable);
+        if (p2PModeSelectFragment != null && p2PModeSelectFragment.isVisible()) {
+            p2PModeSelectFragment.enableSendReceiveButtons(enable);
+        } else {
+            Timber.e("P2PModeSelectFragment is not available to %s send and receive buttons", (enable ? "enable" : "disable"));
+        }
     }
 
     @Override
@@ -374,19 +343,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                 .show();
     }
 
-    @Override
-    public void displayMessage(@NonNull String text) {
-        String beforeText = messagesTv.getText() != null ? messagesTv.getText().toString() : "";
-
-        // Todo: this should be moved to another method or only called once
-        if (!messageToSendEt.isEnabled()) {
-            messageToSendEt.setEnabled(true);
-            sendMsgBtn.setEnabled(true);
-        }
-
-        messagesTv.setText(String.format("%s\n%s", beforeText, text));
-    }
-
     private void showLocationEnableRejectionDialog() {
         new AlertDialog.Builder(P2pModeSelectActivity.this)
                 .setTitle(R.string.location_service_disabled)
@@ -472,15 +428,15 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     protected void onStop() {
         super.onStop();
 
-        messageToSendEt.setEnabled(false);
-        sendMsgBtn.setEnabled(false);
-
-        sendButton.setOnClickListener(null);
-        receiveButton.setOnClickListener(null);
-
         receiverBasePresenter.onStop();
         senderBasePresenter.onStop();
     }
 
+    public P2pModeSelectContract.SenderPresenter getSenderBasePresenter() {
+        return senderBasePresenter;
+    }
 
+    public P2pModeSelectContract.ReceiverPresenter getReceiverBasePresenter() {
+        return receiverBasePresenter;
+    }
 }
