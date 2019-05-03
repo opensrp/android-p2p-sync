@@ -71,4 +71,7 @@
     <string name="log_received_payload_without_corresponding_manifest">Received a payload without a corresponding manifest</string>
     <string name="peer_to_peer_activity_title">Share data with nearby device</string>
     <string name="skip_this_step">Skip This Step</string>
+    <string name="starting">Starting...</string>
+    <string name="receiving_data">Receiving data</string>
+    <string name="sending_data">Sending data</string>
 </resources>

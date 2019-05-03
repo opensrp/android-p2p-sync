@@ -13,6 +13,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
@@ -31,9 +32,17 @@ public interface P2pModeSelectContract {
 
         void enableSendReceiveButtons(boolean enable);
 
-        void showReceiveProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
+        void showAdvertisingProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
-        boolean removeReceiveProgressDialog();
+        void showSyncProgressDialog(@NonNull String title, @NonNull SyncProgressDialog.SyncProgressDialogCallback syncProgressDialogCallback);
+
+        void updateProgressDialog(@NonNull String progress, @NonNull String summary);
+
+        void updateProgressDialog(int progress);
+
+        boolean removeSyncProgressDialog();
+
+        boolean removeAdvertisingProgressDialog();
 
         void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
@@ -175,6 +184,9 @@ public interface P2pModeSelectContract {
         void sendPayload(@NonNull Payload payload);
 
         void connectedTo(@Nullable String endpointId);
+
+        @Nullable
+        String getCurrentEndpoint();
 
         @NonNull
         String getAppPackageName();

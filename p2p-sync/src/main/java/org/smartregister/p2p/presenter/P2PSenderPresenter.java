@@ -24,6 +24,7 @@ import org.smartregister.p2p.authenticator.SenderConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -504,9 +505,16 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Send the hash key
         sendBasicDeviceDetails();
 
-        view.showToast(String.format(view.getString(R.string.you_are_connected_to_receiver)
-                , currentReceiver.getEndpointName())
-                , Toast.LENGTH_LONG);
+        view.showSyncProgressDialog(view.getString(R.string.sending_data), new SyncProgressDialog.SyncProgressDialogCallback() {
+            @Override
+            public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+                if (interactor.getCurrentEndpoint() != null) {
+                    disconnectAndReset(interactor.getCurrentEndpoint());
+                } else {
+                    Timber.e("Could not stop sending data because no endpoint exists");
+                }
+            }
+        });
     }
 
     private void sendBasicDeviceDetails() {
@@ -549,6 +557,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void disconnectAndReset(@NonNull String endpointId, boolean startDiscovering) {
+        view.removeSyncProgressDialog();
+
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
         connectionSignalPayloadId = 0l;
