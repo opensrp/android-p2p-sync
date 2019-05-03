@@ -114,9 +114,11 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void startDiscoveringMode() {
         if (!interactor.isDiscovering()) {
             view.enableSendReceiveButtons(false);
+            keepScreenOn(true);
             view.showDiscoveringProgressDialog (new P2pModeSelectContract.View.DialogCancelCallback() {
                 @Override
                 public void onCancelClicked(DialogInterface dialogInterface) {
+                    keepScreenOn(false);
                     interactor.stopDiscovering();
                     dialogInterface.dismiss();
                     view.enableSendReceiveButtons(true);
@@ -184,9 +186,10 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
         // Reject when already connected or the connecting device is blacklisted
         if (currentReceiver == null && !blacklistedDevices.contains(endpointId)) {
-            currentReceiver = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
+            setCurrentDevice(new DiscoveredDevice(endpointId, discoveredEndpointInfo));
 
             // First stop discovering
+            keepScreenOn(false);
             interactor.stopDiscovering();
             view.removeDiscoveringProgressDialog();
 
@@ -492,7 +495,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     private void resetState() {
         connectionLevel = null;
         view.dismissAllDialogs();
-        currentReceiver = null;
+        setCurrentDevice(null);
         view.enableSendReceiveButtons(true);
     }
 
@@ -544,6 +547,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void setCurrentDevice(@Nullable DiscoveredDevice discoveredDevice) {
         currentReceiver = discoveredDevice;
+        keepScreenOn(discoveredDevice != null);
     }
 
     @Override
