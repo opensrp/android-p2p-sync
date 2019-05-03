@@ -191,7 +191,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
             , @NonNull final DialogInterface.OnClickListener onClickListener) {
         new android.support.v7.app.AlertDialog.Builder(this)
-                .setTitle(String.format(getString(R.string.accept_connection_dialog_title), receiverDeviceName))
                 .setMessage(String.format(getString(R.string.accept_connection_dialog_content), authenticationCode))
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
