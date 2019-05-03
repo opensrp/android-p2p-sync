@@ -16,7 +16,6 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
@@ -388,7 +387,7 @@ public class SyncSenderHandlerTest {
                 .errorOccurredSync(Mockito.any(Exception.class));
     }
 
-    @Test
+    //@Test
     // This test has been ignored for now
     /*public void sendNextPayloadShouldCallPresenterSendPayloadWhenThereIsAwaitingPayload() throws InterruptedException {
         syncSenderHandler.sendNextPayload();

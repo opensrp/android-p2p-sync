@@ -1,6 +1,9 @@
 package org.smartregister.p2p.presenter;
 
+import android.app.Activity;
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.view.WindowManager;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
@@ -8,6 +11,8 @@ import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
 
 import java.util.HashMap;
 import java.util.HashSet;
+
+import timber.log.Timber;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
@@ -20,6 +25,8 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
 
     protected HashMap<String, Long> rejectedDevices = new HashMap<>();
     protected HashSet<String> blacklistedDevices = new HashSet<>();
+
+    private int keepScreenOnCounter;
 
     public BaseP2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view) {
         this(view, new P2pModeSelectInteractor(view.getContext()));
@@ -95,6 +102,33 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
             }
         } else {
             addDeviceToRejectedList(endpointId);
+        }
+    }
+
+    /**
+     * Enables or disables the keep screen on flag to avoid the device going to sleep while there
+     * is a sync happening
+     *
+     * @param enable {@code TRUE} to enable or {@code FALSE} disable
+     */
+    protected void keepScreenOn(boolean enable) {
+        Context context = getView().getContext();
+        if (context instanceof Activity) {
+            if (enable) {
+                keepScreenOnCounter++;
+
+                if (keepScreenOnCounter == 1) {
+                    ((Activity) context).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            } else {
+                keepScreenOnCounter--;
+
+                if (keepScreenOnCounter == 0) {
+                    ((Activity) context).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            }
+        } else {
+            Timber.e("Could not %s KEEP_SCREEN_ON because the view-context is not an activity", (enable ? "enable" : "disable"));
         }
     }
 }
