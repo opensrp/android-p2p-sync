@@ -35,6 +35,7 @@ import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
@@ -62,6 +63,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     private ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers = new ArrayList<>();
 
     private P2PModeSelectFragment p2PModeSelectFragment;
+    private SyncProgressDialog syncProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +121,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showReceiveProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback) {
+    public void showAdvertisingProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         StartReceiveModeProgressDialog newFragment = new StartReceiveModeProgressDialog();
         newFragment.setDialogCancelCallback(dialogCancelCallback);
@@ -128,18 +130,43 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public boolean removeReceiveProgressDialog() {
-        Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
+    public void showSyncProgressDialog(@NonNull String title, @NonNull SyncProgressDialog.SyncProgressDialogCallback syncProgressDialogCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        syncProgressDialog = SyncProgressDialog.create(title);
+        syncProgressDialog.setSyncProgressDialogCallback(syncProgressDialogCallback);
 
-        if (fragment != null && fragment instanceof DialogFragment) {
-            ((DialogFragment) fragment)
-                    .dismiss();
 
-            return true;
+        syncProgressDialog.show(fragmentManager, Constants.Dialog.SYNC_PROGRESS_DIALOG);
+    }
+
+    @Override
+    public void updateProgressDialog(@NonNull String progress, @NonNull String summary) {
+        if (syncProgressDialog != null) {
+            syncProgressDialog.setProgressText(progress);
+            syncProgressDialog.setSummaryText(summary);
+        } else {
+            Timber.e("Could not update progress dialog with %s/%s because sync progress dialog is null", progress, summary);
         }
+    }
 
-        return false;
+    @Override
+    public void updateProgressDialog(int progress) {
+        if (syncProgressDialog != null) {
+            syncProgressDialog.setProgress(progress);
+        } else {
+            Timber.e("Could not update progress dialog to %d because sync progress dialog is null", progress);
+        }
+    }
+
+    @Override
+    public boolean removeSyncProgressDialog() {
+        syncProgressDialog = null;
+        return removeDialog(Constants.Dialog.SYNC_PROGRESS_DIALOG);
+    }
+
+    @Override
+    public boolean removeAdvertisingProgressDialog() {
+        return removeDialog(Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
     }
 
     @Override
@@ -153,8 +180,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public boolean removeDiscoveringProgressDialog() {
+        return removeDialog(Constants.Dialog.START_SEND_MODE_PROGRESS);
+    }
+
+    private boolean removeDialog(@NonNull String tag) {
         Fragment fragment = getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.START_SEND_MODE_PROGRESS);
+                .findFragmentByTag(tag);
 
         if (fragment != null && fragment instanceof DialogFragment) {
             ((DialogFragment) fragment)

@@ -219,7 +219,7 @@ public class P2PReceiverPresenterTest {
         p2PReceiverPresenter.startAdvertisingMode();
 
         Mockito.verify(view, Mockito.times(1))
-                .showReceiveProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+                .showAdvertisingProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
     }
 
     @Test
@@ -252,7 +252,7 @@ public class P2PReceiverPresenterTest {
                 return null;
             }
         }).when(view)
-                .showReceiveProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+                .showAdvertisingProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
 
 
         p2PReceiverPresenter.startAdvertisingMode();
@@ -274,7 +274,7 @@ public class P2PReceiverPresenterTest {
                 return null;
             }
         }).when(view)
-                .showReceiveProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+                .showAdvertisingProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
 
 
         p2PReceiverPresenter.startAdvertisingMode();
@@ -296,7 +296,7 @@ public class P2PReceiverPresenterTest {
                 return null;
             }
         }).when(view)
-                .showReceiveProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+                .showAdvertisingProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
 
 
         p2PReceiverPresenter.startAdvertisingMode();
@@ -309,7 +309,7 @@ public class P2PReceiverPresenterTest {
         p2PReceiverPresenter.onAdvertisingFailed(Mockito.mock(Exception.class));
 
         Mockito.verify(view, Mockito.times(1))
-                .removeReceiveProgressDialog();
+                .removeAdvertisingProgressDialog();
         Mockito.verify(view, Mockito.times(1))
                 .enableSendReceiveButtons(true);
     }
@@ -324,7 +324,7 @@ public class P2PReceiverPresenterTest {
                 .stopAdvertising();
 
         Mockito.verify(view, Mockito.times(0))
-                .removeReceiveProgressDialog();
+                .removeAdvertisingProgressDialog();
     }
 
     @Test
@@ -352,7 +352,7 @@ public class P2PReceiverPresenterTest {
                 .stopAdvertising();
 
         Mockito.verify(view, Mockito.times(1))
-                .removeReceiveProgressDialog();
+                .removeAdvertisingProgressDialog();
 
         Mockito.verify(view, Mockito.times(1))
                 .showQRCodeGeneratorDialog(ArgumentMatchers.eq(authenticationCode)

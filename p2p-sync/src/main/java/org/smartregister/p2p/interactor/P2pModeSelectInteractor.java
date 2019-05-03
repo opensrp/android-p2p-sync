@@ -251,6 +251,12 @@ public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor
         endpointIdConnected = endpointId;
     }
 
+    @Nullable
+    @Override
+    public String getCurrentEndpoint() {
+        return endpointIdConnected;
+    }
+
     @NonNull
     @Override
     public String getAppPackageName() {

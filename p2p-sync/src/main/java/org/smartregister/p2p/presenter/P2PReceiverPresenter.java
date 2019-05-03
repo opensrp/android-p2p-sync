@@ -20,6 +20,7 @@ import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.AppDatabase;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -107,7 +108,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (!interactor.isAdvertising()) {
             view.enableSendReceiveButtons(false);
             keepScreenOn(true);
-            view.showReceiveProgressDialog(new P2pModeSelectContract.View.DialogCancelCallback() {
+            view.showAdvertisingProgressDialog(new P2pModeSelectContract.View.DialogCancelCallback() {
                 @Override
                 public void onCancelClicked(DialogInterface dialogInterface) {
                     keepScreenOn(false);
@@ -135,7 +136,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onAdvertisingFailed(@NonNull Exception e) {
         view.showToast(view.getString(R.string.an_error_occurred_start_receiving), Toast.LENGTH_LONG);
-        view.removeReceiveProgressDialog();
+        view.removeAdvertisingProgressDialog();
         view.enableSendReceiveButtons(true);
     }
 
@@ -151,7 +152,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             // First stop advertising
             keepScreenOn(false);
             interactor.stopAdvertising();
-            view.removeReceiveProgressDialog();
+            view.removeAdvertisingProgressDialog();
 
             // This can be moved to the library for easy customisation by host applications
             BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new ReceiverConnectionAuthenticator(this);
@@ -335,6 +336,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising) {
+        view.removeSyncProgressDialog();
+
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
         resetState();
@@ -539,6 +542,17 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         connectionLevel = ConnectionLevel.AUTHORIZED;
         view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
+
+        view.showSyncProgressDialog(view.getString(R.string.receiving_data), new SyncProgressDialog.SyncProgressDialogCallback() {
+            @Override
+            public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+                if (interactor.getCurrentEndpoint() != null) {
+                    disconnectAndReset(interactor.getCurrentEndpoint());
+                } else {
+                    Timber.e("Could not stop sending data because no endpoint exists");
+                }
+            }
+        });
     }
 
     @Override
