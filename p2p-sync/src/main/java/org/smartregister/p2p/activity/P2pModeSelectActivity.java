@@ -37,6 +37,7 @@ import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
@@ -107,7 +108,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         p2PModeSelectFragment = new P2PModeSelectFragment();
-        fragmentTransaction.add(R.id.cl_p2pModeSelectActivity_parentLayout, p2PModeSelectFragment);
+        fragmentTransaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, p2PModeSelectFragment);
+        fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 
@@ -134,7 +136,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         FragmentManager fragmentManager = getSupportFragmentManager();
         syncProgressDialog = SyncProgressDialog.create(title);
         syncProgressDialog.setSyncProgressDialogCallback(syncProgressDialogCallback);
-
 
         syncProgressDialog.show(fragmentManager, Constants.Dialog.SYNC_PROGRESS_DIALOG);
     }
@@ -167,6 +168,21 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     public boolean removeAdvertisingProgressDialog() {
         return removeDialog(Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
+    }
+
+    @Override
+    public void showSyncCompleteFragment(@NonNull SuccessfulTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
+        SuccessfulTransferFragment successfulTransferFragment = new SuccessfulTransferFragment();
+        successfulTransferFragment.setOnCloseClickListener(onCloseClickListener);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, successfulTransferFragment);
+        transaction.addToBackStack(null);
+
+        // Commit the transaction
+        transaction.commit();
     }
 
     @Override

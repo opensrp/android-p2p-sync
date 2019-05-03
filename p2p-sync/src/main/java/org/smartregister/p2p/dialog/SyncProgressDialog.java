@@ -27,8 +27,6 @@ public class SyncProgressDialog extends DialogFragment {
     private TextView summaryTextView;
 
     private String title;
-    private String summaryText;
-    private String progressText;
 
     public static SyncProgressDialog create(@NonNull String title) {
         SyncProgressDialog syncProgressDialog = new SyncProgressDialog();
@@ -52,16 +50,12 @@ public class SyncProgressDialog extends DialogFragment {
     }
 
     public void setSummaryText(@NonNull String summaryText) {
-        this.summaryText = summaryText;
-
         if (summaryTextView != null) {
             summaryTextView.setText(summaryText);
         }
     }
 
     public void setProgressText(@NonNull String progressText) {
-        this.progressText = progressText;
-
         if (progressTextView != null) {
             progressTextView.setText(progressText);
         }
