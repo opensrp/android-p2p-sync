@@ -14,6 +14,7 @@ import org.json.JSONArray;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.SendingDevice;
@@ -53,6 +54,12 @@ public class SyncReceiverHandler {
             // This will only happen after the last payload has been received on the other side
             // An abort is performed as just a disconnect
             stopTransferAndReset(false);
+            receiverPresenter.getView().showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
+                @Override
+                public void onCloseClicked() {
+                    receiverPresenter.getView().showP2PModeSelectFragment();
+                }
+            }, "Transfer summary: ");
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {

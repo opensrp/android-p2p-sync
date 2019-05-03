@@ -14,6 +14,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
@@ -32,6 +33,8 @@ public interface P2pModeSelectContract {
 
         void enableSendReceiveButtons(boolean enable);
 
+        void showP2PModeSelectFragment();
+
         void showAdvertisingProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
         void showSyncProgressDialog(@NonNull String title, @NonNull SyncProgressDialog.SyncProgressDialogCallback syncProgressDialogCallback);
@@ -43,6 +46,8 @@ public interface P2pModeSelectContract {
         boolean removeSyncProgressDialog();
 
         boolean removeAdvertisingProgressDialog();
+
+        void showSyncCompleteFragment(@NonNull SuccessfulTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport);
 
         void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 

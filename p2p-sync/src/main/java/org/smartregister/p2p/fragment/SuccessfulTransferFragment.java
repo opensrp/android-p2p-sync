@@ -1,0 +1,67 @@
+package org.smartregister.p2p.fragment;
+
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+
+import org.smartregister.p2p.R;
+
+/**
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 03/05/2019
+ */
+
+public class SuccessfulTransferFragment extends Fragment {
+
+    private Button closeBtn;
+    private OnCloseClickListener onCloseClickListener;
+
+    public void setOnCloseClickListener(@Nullable OnCloseClickListener onCloseClickListener) {
+        this.onCloseClickListener = onCloseClickListener;
+    }
+
+    @Nullable
+    @Override
+    public View getView() {
+        return super.getView();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
+
+        closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onCloseClickListener != null) {
+                    onCloseClickListener.onCloseClicked();
+                }
+            }
+        });
+
+        return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    public interface OnCloseClickListener {
+
+        void onCloseClicked();
+
+    }
+}

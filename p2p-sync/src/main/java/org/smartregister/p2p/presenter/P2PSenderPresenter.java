@@ -25,6 +25,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -413,7 +414,14 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             if (update.getPayloadId() == connectionSignalPayloadId
                     && currentReceiver != null
                     && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+
                 disconnectAndReset(currentReceiver.getEndpointId(), false);
+                view.showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
+                    @Override
+                    public void onCloseClicked() {
+                        view.showP2PModeSelectFragment();
+                    }
+                }, "Transfer summary: ");
             }
         } else {
             if (syncSenderHandler != null) {

@@ -74,4 +74,6 @@
     <string name="starting">Starting...</string>
     <string name="receiving_data">Receiving data</string>
     <string name="sending_data">Sending data</string>
+    <string name="transfer_successful">Transfer successful</string>
+    <string name="close">Close</string>
 </resources>
