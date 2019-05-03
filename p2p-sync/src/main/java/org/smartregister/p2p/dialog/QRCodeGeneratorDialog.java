@@ -64,7 +64,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
 
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         builder.setView(inflater.inflate(R.layout.dialog_qr_code_generation, null))
-                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.skip_this_step, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (qrCodeAuthenticationCallback != null) {
@@ -72,7 +72,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
                         }
                     }
                 })
-                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (qrCodeAuthenticationCallback != null) {
@@ -114,7 +114,7 @@ public class QRCodeGeneratorDialog extends DialogFragment {
             imageViewQrCode.setImageBitmap(bitmap);
 
             ((TextView) getDialog().findViewById(R.id.tv_qrCodeGenDialog_authCode))
-                    .setText(String.format(getString(R.string.accept_connection_to_device_with_code), deviceName, authenticationCode));
+                    .setText(String.format(getString(R.string.scan_this_qr_code_using_sending_device), deviceName));
         } catch (WriterException e) {
             Timber.e(e);
 

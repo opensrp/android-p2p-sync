@@ -50,12 +50,19 @@ public class QRCodeScanningDialog extends DialogFragment {
 
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         builder.setView(inflater.inflate(R.layout.dialog_qr_code_scanning, null))
-                .setTitle(R.string.qr_code_scanning_dialog_title)
                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (qrCodeScanDialogCallback != null) {
                             qrCodeScanDialogCallback.onCancelClicked(dialogInterface);
+                        }
+                    }
+                })
+                .setPositiveButton(R.string.skip_this_step, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (qrCodeScanDialogCallback != null) {
+                            qrCodeScanDialogCallback.onSkipClicked(dialogInterface);
                         }
                     }
                 });
@@ -95,6 +102,8 @@ public class QRCodeScanningDialog extends DialogFragment {
     }
 
     public interface QRCodeScanDialogCallback {
+
+        void onSkipClicked(@NonNull DialogInterface dialogInterface);
 
         void qrCodeScanned(@NonNull SparseArray<Barcode> qrCodeResult, @NonNull DialogInterface dialogInterface);
 

@@ -7,18 +7,16 @@
 
     <Button
         android:id="@+id/btn_p2pModeSelectActivity_send"
-        android:text="@string/send"
+        android:text="@string/send_data"
         style="@style/P2pModeSelect.Buttons.SendReceive"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/btn_p2pModeSelectActivity_receive" />
+        android:layout_marginBottom="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <Button
         android:id="@+id/btn_p2pModeSelectActivity_receive"
-        android:text="@string/receive"
+        android:text="@string/receive_data"
         style="@style/P2pModeSelect.Buttons.SendReceive"
-        app:layout_constraintEnd_toStartOf="@+id/btn_p2pModeSelectActivity_send"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginBottom="20dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_p2pModeSelectActivity_send"/>
 
 </android.support.constraint.ConstraintLayout>

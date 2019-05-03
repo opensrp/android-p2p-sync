@@ -66,6 +66,12 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 @Override
                 public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
                     dialogInterface.dismiss();
+                    authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
+                }
+
+                @Override
+                public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
+                    dialogInterface.dismiss();
                     getPresenter().getView().showConnectionAcceptDialog(discoveredDevice.getEndpointName(), connectionInfo.getAuthenticationToken(), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

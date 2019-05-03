@@ -1,12 +1,12 @@
 <resources>
     <string name="app_name">Android P2P Sync</string>
-    <string name="send">Send</string>
-    <string name="receive">Receive</string>
-    <string name="waiting_for_devices_to_connect">Waiting for sender to connect...</string>
+    <string name="send_data">Send Data</string>
+    <string name="receive_data">Receive Data</string>
+    <string name="waiting_for_devices_to_connect">Waiting for device(sender) to receive data from&#8230;</string>
     <string name="location_service_disabled">Location service disabled</string>
     <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
-    <string name="searching_for_device_to_connect_to">Searching for a devices(recipient) to connect to...</string>
-    <string name="qr_code_scanning_dialog_title">Please scan the QR Code shown on the receiving device</string>
+    <string name="searching_for_device_to_connect_to">Searching for a device(recipient) to send data to&#8230;</string>
+    <string name="qr_code_scanning_dialog_message">Please scan the QR Code shown on the receiving device "%s's", to start the transfer</string>
     <string name="you_are_connected_to_receiver">You are now connected to the receiver %s</string>
     <string name="you_are_connected_to_sender">You are now connected to the sender %s</string>
     <string name="receiver_rejected_the_connection">The receiver rejected the connection</string>
@@ -49,7 +49,7 @@
     <string name="log_could_not_show_google_play_services_resolution_dialog">Could not show Google Play Services resolution dialog since it was not called from an activity</string>
     <string name="could_not_start_camera_source">Could not start camera source.</string>
     <string name="no_permission_to_start_the_camera">Do not have permission to start the camera</string>
-    <string name="accept_connection_to_device_with_code">Accept connection to %s with code %s</string>
+    <string name="scan_this_qr_code_using_sending_device">Scan this QR Code using the sending device,"%s's device", to start transfer</string>
     <string name="authentication_failed">Authentication failed</string>
     <string name="authentication_cancelled_with_reason">Authentication cancelled : %s</string>
     <string name="an_error_occured">An error occurred!</string>
@@ -70,4 +70,5 @@
     <string name="log_receive_invalid_manifest_from_endpoint">Received invalid manifest from endpoint %s</string>
     <string name="log_received_payload_without_corresponding_manifest">Received a payload without a corresponding manifest</string>
     <string name="peer_to_peer_activity_title">Share data with nearby device</string>
+    <string name="skip_this_step">Skip This Step</string>
 </resources>
