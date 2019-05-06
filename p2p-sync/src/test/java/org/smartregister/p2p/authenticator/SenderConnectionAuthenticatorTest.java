@@ -281,7 +281,7 @@ public class SenderConnectionAuthenticatorTest {
     }
 
     @Test
-    public void authenticationShouldShowConnectionAcceptDialogWhenQRCodeScanningIsCancelled() {
+    public void authenticationShouldShowConnectionAcceptDialogWhenQRCodeScanningIsSkipped() {
         String authenticationCode = "iowejncCJD";
         String deviceName = "SAMSUNG SM78";
 
@@ -303,7 +303,7 @@ public class SenderConnectionAuthenticatorTest {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
-                qrCodeScanDialogCallback.onCancelClicked(Mockito.mock(DialogInterface.class));
+                qrCodeScanDialogCallback.onSkipClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
@@ -320,7 +320,7 @@ public class SenderConnectionAuthenticatorTest {
     }
 
     @Test
-    public void authenticationShouldCallAuthenticationSuccessfulWhenQRCodeScanningIsCancelledAndConnectionAcceptedByUser() {
+    public void authenticationShouldCallAuthenticationSuccessfulWhenQRCodeScanningIsSkippedAndConnectionAcceptedByUser() {
         String authenticationCode = "iowejncCJD";
         String deviceName = "SAMSUNG SM78";
 
@@ -342,7 +342,7 @@ public class SenderConnectionAuthenticatorTest {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
-                qrCodeScanDialogCallback.onCancelClicked(Mockito.mock(DialogInterface.class));
+                qrCodeScanDialogCallback.onSkipClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
