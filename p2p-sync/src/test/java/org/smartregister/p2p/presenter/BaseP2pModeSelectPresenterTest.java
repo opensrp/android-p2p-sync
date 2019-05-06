@@ -19,8 +19,15 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
+import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.model.dao.ReceiverTransferDao;
+import org.smartregister.p2p.model.dao.SenderTransferDao;
+import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 /**
@@ -28,6 +35,7 @@ import org.smartregister.p2p.sync.DiscoveredDevice;
  */
 
 @RunWith(RobolectricTestRunner.class)
+@Config(shadows = {ShadowAppDatabase.class})
 public class BaseP2pModeSelectPresenterTest {
 
     @Rule
@@ -41,7 +49,7 @@ public class BaseP2pModeSelectPresenterTest {
 
     @Before
     public void setUp() throws Exception {
-        p2PModeSelectPresenter = new P2pModeSelectPresenter(view, interactor);
+        p2PModeSelectPresenter = Mockito.spy(new P2pModeSelectPresenter(view, interactor));
     }
 
     @Test
@@ -147,6 +155,42 @@ public class BaseP2pModeSelectPresenterTest {
         p2PModeSelectPresenter.keepScreenOn(false);
         p2PModeSelectPresenter.keepScreenOn(false);
         Assert.assertFalse(Shadows.shadowOf(activity.getWindow()).getFlag(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON));
+    }
+
+    @Test
+    public void addDeviceToBlackListShouldReturnFalseWhenDeviceIsAlreadyBlacklisted() {
+        String endpointId = "8923898sdfkjsdf";
+        p2PModeSelectPresenter.blacklistedDevices.add(endpointId);
+
+        Assert.assertFalse(p2PModeSelectPresenter.addDeviceToBlacklist(endpointId));
+    }
+
+    @Test
+    public void rejectedDeviceOnAuthenticationShouldAddDeviceToRejectedListWhenRetryIsNotWithinMaxRetryWindow() {
+        String endpointId = "i090sdjfklsdjf09";
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application, "pass", "username"
+                , Mockito.mock(P2PAuthorizationService.class), Mockito.mock(ReceiverTransferDao.class)
+                , Mockito.mock(SenderTransferDao.class)));
+
+        p2PModeSelectPresenter.rejectedDevices.put(endpointId, System.currentTimeMillis() - (3*60*60*1000));
+        p2PModeSelectPresenter.rejectDeviceOnAuthentication(endpointId);
+
+        Mockito.verify(p2PModeSelectPresenter, Mockito.times(1))
+                .addDeviceToRejectedList(ArgumentMatchers.eq(endpointId));
+    }
+
+    @Test
+    public void rejectedDeviceOnAuthenticationShouldAddDeviceToBlacklistWhenRetryIsWithinMaxRetryWindow() {
+        String endpointId = "i090sdjfklsdjf09";
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application, "pass", "username"
+                , Mockito.mock(P2PAuthorizationService.class), Mockito.mock(ReceiverTransferDao.class)
+                , Mockito.mock(SenderTransferDao.class)));
+
+        p2PModeSelectPresenter.rejectedDevices.put(endpointId, System.currentTimeMillis() - (1*60*60*1000));
+        p2PModeSelectPresenter.rejectDeviceOnAuthentication(endpointId);
+
+        Mockito.verify(p2PModeSelectPresenter, Mockito.times(1))
+                .addDeviceToBlacklist(ArgumentMatchers.eq(endpointId));
     }
 
     private class P2pModeSelectPresenter extends BaseP2pModeSelectPresenter {

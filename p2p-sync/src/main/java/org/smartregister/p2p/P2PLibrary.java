@@ -31,7 +31,7 @@ public final class P2PLibrary {
     @NonNull
     public static P2PLibrary getInstance() {
         if (instance == null) {
-            throw new IllegalStateException(" Instance does not exist!!! Call P2PLibrary.init method"
+            throw new IllegalStateException("Instance does not exist!!! Call P2PLibrary.init method"
                     + "in the onCreate method of "
                     + "your Application class ");
         }
