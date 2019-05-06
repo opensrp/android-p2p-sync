@@ -37,17 +37,22 @@ import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
+import org.smartregister.p2p.model.DataType;
+import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
+import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
+import org.smartregister.p2p.sync.SyncPackageManifest;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,7 +62,7 @@ import static org.junit.Assert.assertNull;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 19/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAppDatabase.class})
+@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class})
 public class P2PSenderPresenterTest {
 
     @Rule
@@ -70,13 +75,19 @@ public class P2PSenderPresenterTest {
     @Mock
     private P2PAuthorizationService authorizationService;
 
+    @Mock
+    private ReceiverTransferDao receiverTransferDao;
+
+    @Mock
+    private SenderTransferDao senderTransferDao;
+
     private P2PSenderPresenter p2PSenderPresenter;
 
     @Before
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
                 ,"password","username", authorizationService
-                , Mockito.mock(ReceiverTransferDao.class), Mockito.mock(SenderTransferDao.class)));
+                , receiverTransferDao, senderTransferDao));
         Mockito.doReturn(RuntimeEnvironment.application)
                 .when(view)
                 .getContext();
@@ -559,7 +570,7 @@ public class P2PSenderPresenterTest {
     }
 
     @Test
-    public void onConnectionAuthorizationRejectedShouldResetState() {
+    public void onConnectionAuthorizationRejectedShouldResetStateWhenCurrentSenderIsNotNull() {
         String endpointId = "endpointId";
         ConnectionInfo connectionInfo = Mockito.mock(ConnectionInfo.class);
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, connectionInfo);
@@ -585,6 +596,33 @@ public class P2PSenderPresenterTest {
                 .prepareForDiscovering(ArgumentMatchers.eq(false));
 
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
+    }
+
+    @Test
+    public void onConnectionAuthorizationRejectedShouldResetStateWhenCurrentSenderIsNull() {
+        String endpointId = "endpointId";
+        ConnectionInfo connectionInfo = Mockito.mock(ConnectionInfo.class);
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
+
+        Mockito.doNothing()
+                .when(p2PSenderPresenter)
+                .prepareForDiscovering(Mockito.anyBoolean());
+
+        Mockito.doReturn("name")
+                .when(connectionInfo)
+                .getEndpointName();
+
+        p2PSenderPresenter.onConnectionAuthorizationRejected("Incompatible app version");
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
+        Mockito.verify(view, Mockito.times(1))
+                .dismissAllDialogs();
+        Mockito.verify(view, Mockito.times(1))
+                .enableSendReceiveButtons(ArgumentMatchers.eq(true));
+
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
     }
 
@@ -798,5 +836,139 @@ public class P2PSenderPresenterTest {
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .keepScreenOn(ArgumentMatchers.eq(true));
+    }
+
+    @Test
+    public void sendManifestShouldCallSendMessageWhenCurrentPeerDeviceIsNotNull() {
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(89l, ".json", new DataType("somedata", DataType.Type.NON_MEDIA, 1));
+        p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+        p2PSenderPresenter.sendManifest(syncPackageManifest);
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .sendMessage(Mockito.anyString());
+    }
+
+    @Test
+    public void sendPayloadShouldCallInteractorSendPayloadWhenCurrentPeerDeviceIsNotNull() {
+        p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+        Payload payload = Mockito.mock(Payload.class);
+
+        p2PSenderPresenter.sendPayload(payload);
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .sendPayload(ArgumentMatchers.eq(payload));
+    }
+
+    @Test
+    public void errorOccurredSyncShouldCallResetStateAndPrepareForDiscoveringWhenCurrentPeerDeviceIsNotNull() {
+        String endpointId = "9sdjskjdjksd";
+        DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
+        p2PSenderPresenter.setCurrentDevice(discoveredDevice);
+
+        Mockito.doReturn(endpointId)
+                .when(discoveredDevice)
+                .getEndpointId();
+
+        p2PSenderPresenter.errorOccurredSync(new Exception("some error"));
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .prepareForDiscovering(ArgumentMatchers.eq(false));
+        Mockito.verify(interactor, Mockito.times(1))
+                .disconnectFromEndpoint(Mockito.eq(endpointId));
+        Mockito.verify(view, Mockito.times(1))
+                .dismissAllDialogs();
+    }
+
+    @Test
+    public void processReceivedHistoryShouldCallSendSyncCompleteWhenDataTypesIsNull() {
+        String endpointId = "89283wklsdf";
+        Payload payload = Mockito.mock(Payload.class);
+
+        ArrayList<P2pReceivedHistory> receivedHistory = new ArrayList<>();
+        receivedHistory.add(new P2pReceivedHistory());
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+
+        Mockito.doReturn(new Gson().toJson(receivedHistory).getBytes())
+                .when(payload)
+                .asBytes();
+
+        Mockito.doReturn(null)
+                .when(senderTransferDao)
+                .getDataTypes();
+
+        p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+        p2PSenderPresenter.processReceivedHistory(endpointId, payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .sendSyncComplete();
+    }
+
+    @Test
+    public void processReceivedHistoryShouldCallStartSyncProcessWhenDataTypesIsNotNullNorEmpty() {
+        String endpointId = "89283wklsdf";
+        Payload payload = Mockito.mock(Payload.class);
+
+        ArrayList<P2pReceivedHistory> receivedHistory = new ArrayList<>();
+        receivedHistory.add(new P2pReceivedHistory());
+
+        TreeSet<DataType> dataTypes = Mockito.spy(new TreeSet<DataType>());
+        dataTypes.add(new DataType("sample-type", DataType.Type.NON_MEDIA, 2));
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+
+        Mockito.doReturn(new Gson().toJson(receivedHistory).getBytes())
+                .when(payload)
+                .asBytes();
+
+        Mockito.doReturn(dataTypes)
+                .when(senderTransferDao)
+                .getDataTypes();
+
+        p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+        p2PSenderPresenter.processReceivedHistory(endpointId, payload);
+
+        Mockito.verify(dataTypes, Mockito.times(1))
+                .first();
+    }
+
+    @Test
+    public void sendAuthorizationDetailsShouldCallInteractorSendMessage() {
+        String appVersion = "0.1.0";
+        HashMap<String, Object> authorizationDetails = new HashMap<>();
+        authorizationDetails.put("app-version", appVersion);
+
+        p2PSenderPresenter.sendAuthorizationDetails(authorizationDetails);
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .sendMessage(ArgumentMatchers.contains(appVersion));
+    }
+
+    @Test
+    public void onPayloadReceivedShouldCallProcessReceivedHistoryWhenConnectionLevelIsSentHashKey() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.SENT_HASH_KEY);
+        String endpointId = "endpointid";
+        Payload payload = Mockito.mock(Payload.class);
+
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .processReceivedHistory(ArgumentMatchers.eq(endpointId), ArgumentMatchers.eq(payload));
+    }
+
+    @Test
+    public void onPayloadReceivedShouldCallProcessPayloadWhenConnectionLevelIsReceiptOfReceivedHistory() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.RECEIPT_OF_RECEIVED_HISTORY);
+        String endpointId = "endpointid";
+        Payload payload = Mockito.mock(Payload.class);
+
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .processPayload(ArgumentMatchers.eq(endpointId), ArgumentMatchers.eq(payload));
     }
 }
