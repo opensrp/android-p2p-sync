@@ -3,6 +3,7 @@ package org.smartregister.p2p.sync;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -24,11 +25,13 @@ import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
+import org.smartregister.p2p.util.Constants;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -76,6 +79,10 @@ public class SyncReceiverHandlerTest {
         Mockito.doReturn(view)
                 .when(receiverPresenter)
                 .getView();
+
+        Mockito.doReturn(RuntimeEnvironment.application)
+                .when(view)
+                .getContext();
 
         Mockito.doAnswer(new Answer() {
             @Override
@@ -240,5 +247,30 @@ public class SyncReceiverHandlerTest {
         assertNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
         syncReceiverHandler.processPayloadChunk(endpointId, payload);
         assertNotNull(((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads")).get(payloadId));
+    }
+
+    @Test
+    public void processPayloadShouldCallShowSyncCompleteFragmentWhenSyncCompleteConnectionSignalPayloadIsReceived() {
+        long payloadId = 9293;
+        String endpointId = "endpointid";
+
+        Payload syncCompletePayload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(payloadId)
+                .when(syncCompletePayload)
+                .getId();
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(syncCompletePayload)
+                .getType();
+
+        Mockito.doReturn(Constants.Connection.SYNC_COMPLETE.getBytes())
+                .when(syncCompletePayload)
+                .asBytes();
+
+        syncReceiverHandler.processPayload(endpointId, syncCompletePayload);
+
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncCompleteFragment(Mockito.any(SuccessfulTransferFragment.OnCloseClickListener.class), Mockito.anyString());
     }
 }

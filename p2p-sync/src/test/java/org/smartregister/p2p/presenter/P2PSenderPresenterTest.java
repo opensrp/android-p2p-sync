@@ -1,6 +1,7 @@
 package org.smartregister.p2p.presenter;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -28,16 +29,20 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
+import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -221,6 +226,9 @@ public class P2PSenderPresenterTest {
 
         Mockito.verify(interactor, Mockito.times(1))
                 .stopDiscovering();
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
 
         Mockito.verify(view, Mockito.times(1))
                 .removeDiscoveringProgressDialog();
@@ -540,6 +548,17 @@ public class P2PSenderPresenterTest {
     }
 
     @Test
+    public void onConnectionAuthorizedShouldCallViewShowSyncProgressDialog() {
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", new DiscoveredDevice("endpointid"
+                , new DiscoveredEndpointInfo("endpointid", "endpoint-name")));
+
+        p2PSenderPresenter.onConnectionAuthorized();
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncProgressDialog(Mockito.eq(view.getString(R.string.sending_data)), Mockito.any(SyncProgressDialog.SyncProgressDialogCallback.class));
+    }
+
+    @Test
     public void onConnectionAuthorizationRejectedShouldResetState() {
         String endpointId = "endpointId";
         ConnectionInfo connectionInfo = Mockito.mock(ConnectionInfo.class);
@@ -707,5 +726,77 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
 
         assertEquals(0l, ReflectionHelpers.getField(p2PSenderPresenter, "hashKeyPayloadId"));
+    }
+
+    @Test
+    public void onPayloadTransferUpdateShouldCallShowSyncCompleteFragmentWhenSyncCompleteConnectionSignalPayloadIsTransferredToReceiver() {
+
+        long payloadId = 9293;
+        String endpointId = "endpointid";
+
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(payloadId)
+                .when(interactor)
+                .sendMessage(ArgumentMatchers.eq(Constants.Connection.SYNC_COMPLETE));
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.SUCCESS)
+                .when(update)
+                .getStatus();
+
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        p2PSenderPresenter.setCurrentDevice(new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class)));
+
+        p2PSenderPresenter.sendSyncComplete();
+        p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
+
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncCompleteFragment(Mockito.any(SuccessfulTransferFragment.OnCloseClickListener.class), Mockito.anyString());
+    }
+
+    @Test
+    public void startDiscoveringModeShouldCallKeepScreenOnWithTrue() {
+        p2PSenderPresenter.startDiscoveringMode();
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(true));
+    }
+
+    @Test
+    public void startDiscoveringModeShouldCallKeepScreenOnWithFalseWhenProgressDialogCancelButtonIsClicked() {
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                P2pModeSelectContract.View.DialogCancelCallback cancelCallback = invocation.getArgument(0);
+
+                cancelCallback.onCancelClicked(Mockito.mock(DialogInterface.class));
+                return null;
+            }
+        }).when(view)
+                .showDiscoveringProgressDialog(ArgumentMatchers.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+
+        p2PSenderPresenter.startDiscoveringMode();
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
+    }
+
+    @Test
+    public void setCurrentDeviceShouldCallKeepScreenOnWithFalseWhenGivenNullDevice() {
+        p2PSenderPresenter.setCurrentDevice(null);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
+    }
+
+    @Test
+    public void setCurrentDeviceShouldCallKeepScreenOnWithTrueWhenGivenNonNullDevice() {
+        p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(true));
     }
 }
