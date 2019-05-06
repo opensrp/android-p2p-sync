@@ -3,7 +3,6 @@ package org.smartregister.p2p.sync;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.Payload;
-import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
