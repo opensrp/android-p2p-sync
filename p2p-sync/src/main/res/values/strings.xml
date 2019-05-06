@@ -76,4 +76,12 @@
     <string name="sending_data">Sending data</string>
     <string name="transfer_successful">Transfer successful</string>
     <string name="close">Close</string>
+    <string name="log_onconnectionrejected_without_peer_device">onConnectionRejected was called for endpoint %s and no peer device is connected</string>
+    <string name="log_onconnectionunknownerror_without_peer_device">onConnectionUnknownError for endpoint %s was called and no peer device is connected</string>
+    <string name="log_onconnectionbroken_without_peer_device">onConnectionBroken was called for endpoint %s and no peer device is connected</string>
+    <string name="log_ondisconnected_without_peer_device">onDisconnected was called for endpoint %s and no peer device is connected</string>
+    <string name="could_not_disconnection_reset_without_endpoint">Could not stop sending data because no endpoint exists</string>
+    <string name="log_onconnectionaccepted_without_peer_device">onConnectionAccepted to endpoint %s without a peer device</string>
+    <string name="onconnectionunknownerror_without_peer_device">onConnectionUnknownError to endpoint %s without a peer device</string>
+    <string name="log_onauthenticationsuccessful_without_peer_device">onAuthenticationSuccessful without a peer device</string>
 </resources>

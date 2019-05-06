@@ -181,6 +181,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     sendAuthorizationDetails(authorizationDetails);
                 }
             });
+        } else {
+            Timber.e(view.getString(R.string.log_onconnectionaccepted_without_peer_device), endpointId);
         }
     }
 
@@ -190,6 +192,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
             resetState();
             prepareForAdvertising(false);
+        } else {
+            Timber.e(view.getString(R.string.log_onconnectionrejected_without_peer_device), endpointId);
         }
     }
 
@@ -200,6 +204,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
             disconnectAndReset(endpointId);
+        } else {
+            Timber.e(view.getString(R.string.onconnectionunknownerror_without_peer_device), endpointId);
         }
     }
 
@@ -210,6 +216,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             disconnectAndReset(endpointId);
             view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
+        } else {
+            Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
     }
 
@@ -466,6 +474,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             Timber.e(view.getString(R.string.log_endpoint_lost), endpointId);
             resetState();
             prepareForAdvertising(false);
+        } else {
+            Timber.e(view.getString(R.string.log_ondisconnected_without_peer_device), endpointId);
         }
     }
 
@@ -489,6 +499,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     P2PReceiverPresenter.this.onPayloadTransferUpdate(s, payloadTransferUpdate);
                 }
             });
+        } else {
+            Timber.e(view.getString(R.string.log_onauthenticationsuccessful_without_peer_device));
         }
     }
 
@@ -549,7 +561,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 if (interactor.getCurrentEndpoint() != null) {
                     disconnectAndReset(interactor.getCurrentEndpoint());
                 } else {
-                    Timber.e("Could not stop sending data because no endpoint exists");
+                    Timber.e(view.getString(R.string.could_not_disconnection_reset_without_endpoint));
                 }
             }
         });
