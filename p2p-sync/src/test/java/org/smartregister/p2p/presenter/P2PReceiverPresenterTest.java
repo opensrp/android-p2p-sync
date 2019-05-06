@@ -27,9 +27,11 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
+import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
@@ -229,9 +231,17 @@ public class P2PReceiverPresenterTest {
         Mockito.verify(interactor, Mockito.times(1))
                 .startAdvertising(Mockito.any(IReceiverSyncLifecycleCallback.class));
     }
+    @Test
+    public void startAdvertisingModeShouldCallKeepScreenOn() {
+        // The interactor.advertising is false by default
+        p2PReceiverPresenter.startAdvertisingMode();
+
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .keepScreenOn(true);
+    }
 
     @Test
-    public void cancelDialogShouldCallStopAdvertisingWhenClicked(){
+    public void progressDialogShouldCallStopAdvertisingWhenCancelClicked(){
         // interactor.advertising is false by default
         Mockito.doAnswer(new Answer() {
             @Override
@@ -261,7 +271,7 @@ public class P2PReceiverPresenterTest {
     }
 
     @Test
-    public void cancelDialogShouldCallDialogIDismissWhenClicked(){
+    public void progressDialogShouldCallDialogDismissWhenCancelClicked(){
         // interactor.advertising is false by default
         final DialogInterface dialogInterface = Mockito.mock(DialogInterface.class);
 
@@ -283,7 +293,7 @@ public class P2PReceiverPresenterTest {
     }
 
     @Test
-    public void cancelDialogShouldEnableButtonsWhenClicked(){
+    public void progressDialogShouldEnableButtonsWhenCancelClicked(){
         // interactor.advertising is false by default
         final DialogInterface dialogInterface = Mockito.mock(DialogInterface.class);
 
@@ -302,6 +312,28 @@ public class P2PReceiverPresenterTest {
         p2PReceiverPresenter.startAdvertisingMode();
         Mockito.verify(view, Mockito.times(1))
                 .enableSendReceiveButtons(true);
+    }
+
+    @Test
+    public void progressDialogShouldCallKeepScreenOnWithFalseWhenCancelClicked(){
+        // interactor.advertising is false by default
+        final DialogInterface dialogInterface = Mockito.mock(DialogInterface.class);
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                P2pModeSelectContract.View.DialogCancelCallback dialogCancelCallback = invocation.getArgument(0);
+                dialogCancelCallback.onCancelClicked(dialogInterface);
+
+                return null;
+            }
+        }).when(view)
+                .showAdvertisingProgressDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+
+
+        p2PReceiverPresenter.startAdvertisingMode();
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
     }
 
     @Test
@@ -350,6 +382,9 @@ public class P2PReceiverPresenterTest {
 
         Mockito.verify(interactor, Mockito.times(1))
                 .stopAdvertising();
+
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
 
         Mockito.verify(view, Mockito.times(1))
                 .removeAdvertisingProgressDialog();
@@ -533,6 +568,18 @@ public class P2PReceiverPresenterTest {
     }
 
     @Test
+    public void onConnectionAuthorizedShouldCallViewShowSyncProgressDialog() {
+        assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "connectionLevel"));
+        ReflectionHelpers.setField(p2PReceiverPresenter, "currentSender", new DiscoveredDevice("endpointid"
+                , new DiscoveredEndpointInfo("endpointid", "endpoint-name")));
+
+        p2PReceiverPresenter.onConnectionAuthorized();
+
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncProgressDialog(Mockito.eq(view.getString(R.string.receiving_data)), Mockito.any(SyncProgressDialog.SyncProgressDialogCallback.class));
+    }
+
+    @Test
     public void onConnectionAuthorizationRejectedShouldResetState() {
         String endpointId = "endpointId";
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
@@ -685,6 +732,22 @@ public class P2PReceiverPresenterTest {
         Mockito.verify(interactor, Mockito.times(1))
                 .sendMessage(ArgumentMatchers.contains("{"));
         assertEquals(ConnectionLevel.SENT_RECEIVED_HISTORY, ReflectionHelpers.getField(p2PReceiverPresenter, "connectionLevel"));
+    }
+
+    @Test
+    public void setCurrentDeviceShouldCallKeepScreenOnWithFalseWhenGivenNullDevice() {
+        p2PReceiverPresenter.setCurrentDevice(null);
+
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(false));
+    }
+
+    @Test
+    public void setCurrentDeviceShouldCallKeepScreenOnWithTrueWhenGivenNonNullDevice() {
+        p2PReceiverPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
+
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .keepScreenOn(ArgumentMatchers.eq(true));
     }
 
 }
