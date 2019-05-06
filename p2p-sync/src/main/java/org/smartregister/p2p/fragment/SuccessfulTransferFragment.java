@@ -1,6 +1,5 @@
 package org.smartregister.p2p.fragment;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,7 +17,6 @@ import org.smartregister.p2p.R;
 
 public class SuccessfulTransferFragment extends Fragment {
 
-    private Button closeBtn;
     private OnCloseClickListener onCloseClickListener;
 
     public void setOnCloseClickListener(@Nullable OnCloseClickListener onCloseClickListener) {
@@ -36,7 +34,7 @@ public class SuccessfulTransferFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
 
-        closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
+        Button closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
