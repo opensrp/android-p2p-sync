@@ -601,7 +601,6 @@ public class P2PSenderPresenterTest {
 
     @Test
     public void onConnectionAuthorizationRejectedShouldResetStateWhenCurrentSenderIsNull() {
-        String endpointId = "endpointId";
         ConnectionInfo connectionInfo = Mockito.mock(ConnectionInfo.class);
 
         ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHENTICATED);
