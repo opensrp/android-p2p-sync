@@ -304,6 +304,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     P2PSenderPresenter.this.onPayloadTransferUpdate(s, payloadTransferUpdate);
                 }
             });
+        } else {
+            Timber.e(view.getString(R.string.log_onauthenticationsuccessful_without_peer_device));
         }
     }
 
@@ -354,6 +356,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     sendAuthorizationDetails(authorizationDetails);
                 }
             });
+        } else {
+            Timber.e(view.getString(R.string.log_onconnectionaccepted_without_peer_device), endpointId);
         }
     }
 
@@ -369,7 +373,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             resetState();
             startDiscoveringMode();
         } else {
-            Timber.e("onConnectionRejected was called for endpoint %s and no peer device is connected", endpointId);
+            Timber.e(view.getString(R.string.log_onconnectionrejected_without_peer_device), endpointId);
         }
     }
 
@@ -382,7 +386,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             resetState();
             prepareForDiscovering(false);
         } else {
-            Timber.e("onConnectionUnknownError for endpoint %s was called and no peer device is connected", endpointId);
+            Timber.e(view.getString(R.string.log_onconnectionunknownerror_without_peer_device), endpointId);
         }
     }
 
@@ -396,7 +400,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     , endpointId), Toast.LENGTH_LONG);
             prepareForDiscovering(false);
         } else {
-            Timber.e("onConnectionBroken was called for endpoint %s and no peer device is connected", endpointId);
+            Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
     }
 
@@ -472,7 +476,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             resetState();
             prepareForDiscovering(false);
         } else {
-            Timber.e("onDisconnected was called for endpoint %s and no peer device is connected", endpointId);
+            Timber.e(view.getString(R.string.log_ondisconnected_without_peer_device), endpointId);
         }
     }
 
