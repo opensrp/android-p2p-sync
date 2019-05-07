@@ -45,7 +45,7 @@ import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
-import org.smartregister.p2p.sync.SyncPackageManifest;
+import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;

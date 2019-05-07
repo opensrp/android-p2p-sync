@@ -19,7 +19,7 @@ import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
 import org.smartregister.p2p.sync.ISenderSyncLifecycleCallback;
-import org.smartregister.p2p.sync.SyncPackageManifest;
+import org.smartregister.p2p.sync.data.SyncPackageManifest;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.smartregister.p2p.sync;
+package org.smartregister.p2p.sync.handler;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +15,9 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
+import org.smartregister.p2p.sync.data.JsonData;
+import org.smartregister.p2p.sync.data.MultiMediaData;
+import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 
@@ -32,7 +35,7 @@ import timber.log.Timber;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 28/03/2019
  */
 
-public class SyncSenderHandler {
+public class SyncSenderHandler extends BaseSyncHandler {
 
     private P2pModeSelectContract.SenderPresenter presenter;
 
