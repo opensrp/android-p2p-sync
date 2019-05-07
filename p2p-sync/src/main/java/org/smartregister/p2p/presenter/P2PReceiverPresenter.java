@@ -28,7 +28,7 @@ import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
-import org.smartregister.p2p.sync.SyncReceiverHandler;
+import org.smartregister.p2p.sync.handler.SyncReceiverHandler;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;

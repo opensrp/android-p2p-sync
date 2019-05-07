@@ -1,4 +1,4 @@
-package org.smartregister.p2p.sync;
+package org.smartregister.p2p.sync.handler;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
@@ -19,6 +19,9 @@ import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.model.dao.P2pReceivedHistoryDao;
+import org.smartregister.p2p.sync.DiscoveredDevice;
+import org.smartregister.p2p.sync.data.ProcessedChunk;
+import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
@@ -34,7 +37,7 @@ import timber.log.Timber;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 02/04/2019
  */
 
-public class SyncReceiverHandler {
+public class SyncReceiverHandler extends BaseSyncHandler {
 
     private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
     private boolean awaitingManifestReceipt = true;
@@ -168,6 +171,7 @@ public class SyncReceiverHandler {
             public Long call() throws Exception {
                 JSONArray jsonArray = new JSONArray(awaitingPayloads.get(payloadId).getJsonData());
                 SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
+                updateTransferProgress(syncPackageManifest.getDataType(), jsonArray.length());
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
                         .receiveJson(syncPackageManifest.getDataType(), jsonArray);
 
@@ -240,6 +244,7 @@ public class SyncReceiverHandler {
                 @Override
                 public Long call() throws Exception {
                     SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
+                    updateTransferProgress(syncPackageManifest.getDataType(), 1);
                     HashMap<String, Object> payloadDetails = syncPackageManifest.getPayloadDetails();
                     long fileRecordId = payloadDetails != null ? (new Double((double) payloadDetails.get("fileRecordId"))).longValue() : 0l;
                     long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()

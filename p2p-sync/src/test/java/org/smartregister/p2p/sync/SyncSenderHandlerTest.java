@@ -26,6 +26,8 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
+import org.smartregister.p2p.sync.data.SyncPackageManifest;
+import org.smartregister.p2p.sync.handler.SyncSenderHandler;
 
 import java.util.ArrayList;
 import java.util.Collection;
