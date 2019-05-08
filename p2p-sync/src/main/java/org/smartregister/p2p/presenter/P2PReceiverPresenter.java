@@ -148,6 +148,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         // Reject when already connected or the connecting device is blacklisted
         if (currentSender == null && !blacklistedDevices.contains(endpointId)) {
             setCurrentDevice(new DiscoveredDevice(endpointId, connectionInfo));
+            getCurrentPeerDevice().setUsername(connectionInfo.getEndpointName());
 
             // First stop advertising
             keepScreenOn(false);
@@ -327,6 +328,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             if (map == null) {
                 onConnectionAuthorizationRejected(view.getString(R.string.reason_authorization_rejected_by_sender_details_invalid));
             } else {
+                getCurrentPeerDevice().setAuthorizationDetails(map);
                 P2PLibrary.getInstance().getP2PAuthorizationService()
                         .authorizeConnection(map, P2PReceiverPresenter.this);
             }

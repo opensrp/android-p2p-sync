@@ -12,6 +12,8 @@ public interface Constants {
     int DEFAULT_SHARE_BATCH_SIZE = 20;
     int DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION = 2 * 60 * 60;
     String NEARBY_DIRECTORY = "Nearby";
+    String RECORDS_TRACK_TAG = "ToTrack";
+    String RECORDS_TRACK_TAG_HR = "ToTrackHR";
 
     interface Dialog {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";

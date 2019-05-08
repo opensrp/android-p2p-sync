@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 
+import java.util.Map;
+
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 15/03/2019
  */
@@ -18,6 +20,12 @@ public class DiscoveredDevice {
 
     @Nullable
     private ConnectionInfo connectionInfo;
+
+    @Nullable
+    private Map<String, Object> authorizationDetails;
+
+    @Nullable
+    private String username;
 
     public DiscoveredDevice(@NonNull String endpointId, @NonNull DiscoveredEndpointInfo discoveredEndpointInfo) {
         this.endpointId = endpointId;
@@ -57,5 +65,23 @@ public class DiscoveredDevice {
     @Nullable
     public ConnectionInfo getConnectionInfo() {
         return connectionInfo;
+    }
+
+    @Nullable
+    public Map<String, Object> getAuthorizationDetails() {
+        return authorizationDetails;
+    }
+
+    public void setAuthorizationDetails(@Nullable Map<String, Object> authorizationDetails) {
+        this.authorizationDetails = authorizationDetails;
+    }
+
+    @Nullable
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(@Nullable String username) {
+        this.username = username;
     }
 }
