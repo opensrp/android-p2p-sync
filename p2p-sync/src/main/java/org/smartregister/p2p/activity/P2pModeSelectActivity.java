@@ -109,7 +109,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         p2PModeSelectFragment = new P2PModeSelectFragment();
         fragmentTransaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, p2PModeSelectFragment);
-        fragmentTransaction.addToBackStack(null);
         fragmentTransaction.commit();
     }
 
@@ -180,7 +179,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
         transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, successfulTransferFragment);
-        transaction.addToBackStack(null);
 
         // Commit the transaction
         transaction.commit();
