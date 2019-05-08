@@ -90,6 +90,8 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 awaitingPayloadManifests.put(syncPackageManifest.getPayloadId(), syncPackageManifest);
 
                 awaitingManifestReceipt = false;
+                receiverPresenter.getView().updateProgressDialog(String.format("Sending %,d %ss"
+                        , syncPackageManifest.getRecordsSize(), syncPackageManifest.getDataType().getName()), "");
             } catch (JsonParseException e) {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_received_invalid_manifest_from_endpoint), endpointId);
             }

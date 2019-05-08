@@ -134,7 +134,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
                             syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                                     , extension
-                                    , dataType);
+                                    , dataType,  1);
 
                             HashMap<String, String> mediaDetails = multiMediaData.getMediaDetails();
                             HashMap<String, Object> payloadDetails = new HashMap<>();
@@ -211,7 +211,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
                         syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                                 , "json"
-                                , dataType);
+                                , dataType
+                                , awaitingDataTypeRecordsBatch);
 
                         awaitingManifestTransfer = true;
                         awaitingManifestId = presenter.sendManifest(syncPackageManifest);
@@ -252,6 +253,13 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
                     if (awaitingPayload.getType() == Payload.Type.STREAM) {
                         if (awaitingPayloadPipe != null && awaitingBytes != null) {
+                            uiHandler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
+                                }
+                            });
+
                             ParcelFileDescriptor.AutoCloseOutputStream outputStream = new ParcelFileDescriptor.AutoCloseOutputStream(awaitingPayloadPipe);
                             try {
                                 int totalLen = awaitingBytes.length;
@@ -278,6 +286,13 @@ public class SyncSenderHandler extends BaseSyncHandler {
                                 }
                             });
                         }
+                    } else if (awaitingPayload.getType() == Payload.Type.FILE) {
+                        uiHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
+                            }
+                        });
                     }
                 }
             }

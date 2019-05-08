@@ -15,12 +15,14 @@ public class SyncPackageManifest {
     private long payloadId;
     private String payloadExtension;
     private DataType dataType;
+    private int recordsSize;
     private HashMap<String, Object> payloadDetails;
 
-    public SyncPackageManifest(long payloadId, @NonNull String payloadExtension, @NonNull DataType dataType) {
+    public SyncPackageManifest(long payloadId, @NonNull String payloadExtension, @NonNull DataType dataType, int recordsSize) {
         this.payloadId = payloadId;
         this.payloadExtension = payloadExtension;
         this.dataType = dataType;
+        this.recordsSize = recordsSize;
     }
 
     public long getPayloadId() {
@@ -42,5 +44,9 @@ public class SyncPackageManifest {
 
     public void setPayloadDetails(@Nullable HashMap<String, Object> payloadDetails) {
         this.payloadDetails = payloadDetails;
+    }
+
+    public int getRecordsSize() {
+        return recordsSize;
     }
 }
