@@ -1,11 +1,17 @@
 package org.smartregister.p2p.util;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import org.smartregister.p2p.R;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Locale;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 02/04/2019
@@ -25,5 +31,20 @@ public class SyncDataConverterUtil {
             result = bis.read();
         }
         return buf.toString();
+    }
+
+    @NonNull
+    public static String generateSummaryReport(@NonNull Context context, @Nullable HashMap<String, Integer> transferItems) {
+        String transferSummary = context.getString(R.string.transfer_summary_content);
+        if (transferItems != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String key: transferItems.keySet()) {
+                stringBuilder.append(String.format(Locale.US, "\n%s: %,d", key, transferItems.get(key)));
+            }
+
+            return String.format(transferSummary, stringBuilder.toString());
+        }
+
+        return String.format(transferSummary, "\n0 Items");
     }
 }

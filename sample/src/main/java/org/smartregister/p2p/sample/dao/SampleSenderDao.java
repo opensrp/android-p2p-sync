@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
+import org.smartregister.p2p.sample.util.Constants;
 import org.smartregister.p2p.sync.data.JsonData;
 import org.smartregister.p2p.sync.data.MultiMediaData;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
@@ -59,9 +60,9 @@ public class SampleSenderDao implements SenderTransferDao {
     @Override
     public TreeSet<DataType> getDataTypes() {
         TreeSet<DataType> dataTypes = new TreeSet<>();
-        dataTypes.add(new DataType("names", DataType.Type.NON_MEDIA, 0));
-        dataTypes.add(new DataType("personal_details", DataType.Type.NON_MEDIA, 1));
-        dataTypes.add(new DataType("profile_pics", DataType.Type.MEDIA, 2));
+        dataTypes.add(new DataType(Constants.NAMES, DataType.Type.NON_MEDIA, 0));
+        dataTypes.add(new DataType(Constants.PERSONAL_DETAILS, DataType.Type.NON_MEDIA, 1));
+        dataTypes.add(new DataType(Constants.PROFILE_PICS, DataType.Type.MEDIA, 2));
 
         return dataTypes;
     }
@@ -69,7 +70,7 @@ public class SampleSenderDao implements SenderTransferDao {
     @Nullable
     @Override
     public JsonData getJsonData(@NonNull DataType dataType, long lastRecordId, int batchSize) {
-        if (dataType.getName().equals("names")) {
+        if (dataType.getName().equals(Constants.NAMES)) {
             JSONArray jsonArray = new JSONArray();
 
             if (lastRecordId >= nameRecords.size()) {
@@ -88,7 +89,7 @@ public class SampleSenderDao implements SenderTransferDao {
 
                 return new JsonData(jsonArray, lastRecordId + recordsAdded);
             }
-        } else if (dataType.getName().equals("personal_details")) {
+        } else if (dataType.getName().equals(Constants.PERSONAL_DETAILS)) {
             JSONArray jsonArray = new JSONArray();
 
             if (lastRecordId >= personalDetailsRecords.size()) {

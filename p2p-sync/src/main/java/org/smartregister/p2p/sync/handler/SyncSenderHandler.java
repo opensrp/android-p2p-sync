@@ -50,6 +50,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
     private byte[] awaitingBytes;
     private String awaitingDataTypeName;
     private long awaitingDataTypeHighestId;
+    private int awaitingDataTypeRecordsBatch;
 
     private boolean awaitingManifestTransfer;
     private long awaitingManifestId;
@@ -116,6 +117,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     File file = multiMediaData.getFile();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = multiMediaData.getRecordId();
+                    awaitingDataTypeRecordsBatch = 1;
 
                     if (file.exists()) {
                         // Create the manifest
@@ -182,11 +184,13 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
                 if (jsonData != null) {
                     JSONArray recordsArray = jsonData.getJsonArray();
+                    //TODO: Check if I should remove this
                     remainingLastRecordIds.put(dataType.getName(), jsonData.getHighestRecordId());
 
                     String jsonString = recordsArray.toString();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = jsonData.getHighestRecordId();
+                    awaitingDataTypeRecordsBatch = recordsArray.length();
 
                     return jsonString;
                 } else {
@@ -311,6 +315,9 @@ public class SyncSenderHandler extends BaseSyncHandler {
             }
         } else if (awaitingPayloadTransfer && awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatch);
+
+                awaitingDataTypeRecordsBatch = 0;
                 awaitingPayloadTransfer = false;
                 awaitingPayload = null;
                 awaitingBytes = null;

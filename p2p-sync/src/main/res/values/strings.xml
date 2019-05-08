@@ -84,4 +84,5 @@
     <string name="log_onconnectionaccepted_without_peer_device">onConnectionAccepted to endpoint %s without a peer device</string>
     <string name="onconnectionunknownerror_without_peer_device">onConnectionUnknownError to endpoint %s without a peer device</string>
     <string name="log_onauthenticationsuccessful_without_peer_device">onAuthenticationSuccessful without a peer device</string>
+    <string name="transfer_summary_content">Transfer Summary: %s</string>
 </resources>

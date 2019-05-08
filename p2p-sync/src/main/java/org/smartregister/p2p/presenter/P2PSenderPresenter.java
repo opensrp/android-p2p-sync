@@ -37,6 +37,7 @@ import org.smartregister.p2p.sync.handler.SyncSenderHandler;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
+import org.smartregister.p2p.util.SyncDataConverterUtil;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -59,6 +60,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     private ConnectionLevel connectionLevel;
     private long hashKeyPayloadId;
     private long connectionSignalPayloadId;
+
+    private HashMap<String, Integer> transferItems;
 
     @Nullable
     private SyncSenderHandler syncSenderHandler;
@@ -133,9 +136,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void sendSyncComplete() {
         // Do nothing for now
+        transferItems = (HashMap<String, Integer>) syncSenderHandler.getTransferProgress().clone();
         syncSenderHandler = null;
 
-        // Todo: Should send some payload that can be received at any connection level on the other side
         // incase the other side has hung at some point
         connectionSignalPayloadId = interactor.sendMessage(Constants.Connection.SYNC_COMPLETE);
     }
@@ -425,7 +428,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     public void onCloseClicked() {
                         view.showP2PModeSelectFragment();
                     }
-                }, "Transfer summary: ");
+                }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), transferItems));
+                transferItems = null;
             }
         } else {
             if (syncSenderHandler != null) {

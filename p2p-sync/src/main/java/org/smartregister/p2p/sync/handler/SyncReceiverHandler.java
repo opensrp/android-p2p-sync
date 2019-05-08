@@ -62,7 +62,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 public void onCloseClicked() {
                     receiverPresenter.getView().showP2PModeSelectFragment();
                 }
-            }, "Transfer summary: ");
+            }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
@@ -171,7 +171,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             public Long call() throws Exception {
                 JSONArray jsonArray = new JSONArray(awaitingPayloads.get(payloadId).getJsonData());
                 SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
-                updateTransferProgress(syncPackageManifest.getDataType(), jsonArray.length());
+                updateTransferProgress(syncPackageManifest.getDataType().getName(), jsonArray.length());
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
                         .receiveJson(syncPackageManifest.getDataType(), jsonArray);
 
@@ -244,7 +244,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 @Override
                 public Long call() throws Exception {
                     SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
-                    updateTransferProgress(syncPackageManifest.getDataType(), 1);
+                    updateTransferProgress(syncPackageManifest.getDataType().getName(), 1);
                     HashMap<String, Object> payloadDetails = syncPackageManifest.getPayloadDetails();
                     long fileRecordId = payloadDetails != null ? (new Double((double) payloadDetails.get("fileRecordId"))).longValue() : 0l;
                     long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()

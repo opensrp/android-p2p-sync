@@ -174,6 +174,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void showSyncCompleteFragment(@NonNull SuccessfulTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
         SuccessfulTransferFragment successfulTransferFragment = new SuccessfulTransferFragment();
         successfulTransferFragment.setOnCloseClickListener(onCloseClickListener);
+        successfulTransferFragment.setTransferSummaryReport(summaryReport);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
