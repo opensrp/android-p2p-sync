@@ -197,7 +197,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             // First stop discovering
             keepScreenOn(false);
             interactor.stopDiscovering();
-            view.removeDiscoveringProgressDialog();
 
             interactor.requestConnection(endpointId, new OnResultCallback() {
                 @Override
@@ -218,7 +217,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onRequestConnectionSuccessful(@Nullable Object result) {
         // Just show a success
         view.showToast(view.getString(R.string.connection_request_successful), Toast.LENGTH_LONG);
-
+        view.removeDiscoveringProgressDialog();
     }
 
     @Override
