@@ -1,4 +1,4 @@
-package org.smartregister.p2p.sync;
+package org.smartregister.p2p.sync.handler;
 
 import android.support.v4.util.SimpleArrayMap;
 
