@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import org.json.JSONArray;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
+import org.smartregister.p2p.sample.util.Constants;
 
 import java.io.File;
 import java.util.HashMap;
@@ -24,9 +25,9 @@ public class SampleReceiverDao implements ReceiverTransferDao {
     @Override
     public TreeSet<DataType> getDataTypes() {
         TreeSet<DataType> dataTypes = new TreeSet<>();
-        dataTypes.add(new DataType("names", DataType.Type.NON_MEDIA, 0));
-        dataTypes.add(new DataType("personal_details", DataType.Type.NON_MEDIA, 1));
-        dataTypes.add(new DataType("profile_pics", DataType.Type.MEDIA, 2));
+        dataTypes.add(new DataType(Constants.NAMES, DataType.Type.NON_MEDIA, 0));
+        dataTypes.add(new DataType(Constants.PERSONAL_DETAILS, DataType.Type.NON_MEDIA, 1));
+        dataTypes.add(new DataType(Constants.PROFILE_PICS, DataType.Type.MEDIA, 2));
 
         return dataTypes;
     }

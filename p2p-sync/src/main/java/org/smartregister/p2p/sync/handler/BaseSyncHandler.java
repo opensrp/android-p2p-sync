@@ -1,9 +1,6 @@
 package org.smartregister.p2p.sync.handler;
 
 import android.support.annotation.NonNull;
-
-import org.smartregister.p2p.model.DataType;
-
 import java.util.HashMap;
 
 /**
@@ -12,15 +9,17 @@ import java.util.HashMap;
 
 public class BaseSyncHandler {
 
-    protected HashMap<String, Integer> transferProgress = new HashMap<>();
+    private HashMap<String, Integer> transferProgress = new HashMap<>();
 
-    protected synchronized void updateTransferProgress(@NonNull DataType dataType, int recordsTransferred) {
-        String dataTypeName = dataType.getName();
-
+    protected synchronized void updateTransferProgress(@NonNull String dataTypeName, int recordsTransferred) {
         if (transferProgress.containsKey(dataTypeName)) {
             transferProgress.put(dataTypeName, transferProgress.get(dataTypeName) + recordsTransferred);
         } else {
             transferProgress.put(dataTypeName, recordsTransferred);
         }
+    }
+
+    public HashMap<String, Integer> getTransferProgress() {
+        return transferProgress;
     }
 }

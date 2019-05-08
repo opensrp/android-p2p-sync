@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import org.smartregister.p2p.R;
 
@@ -18,6 +19,11 @@ import org.smartregister.p2p.R;
 public class SuccessfulTransferFragment extends Fragment {
 
     private OnCloseClickListener onCloseClickListener;
+    private String transferSummary;
+
+    public void setTransferSummaryReport(@NonNull String transferSummaryReport) {
+        this.transferSummary = transferSummaryReport;
+    }
 
     public void setOnCloseClickListener(@Nullable OnCloseClickListener onCloseClickListener) {
         this.onCloseClickListener = onCloseClickListener;
@@ -33,6 +39,8 @@ public class SuccessfulTransferFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
+        ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary))
+                .setText(transferSummary);
 
         Button closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
         closeBtn.setOnClickListener(new View.OnClickListener() {
