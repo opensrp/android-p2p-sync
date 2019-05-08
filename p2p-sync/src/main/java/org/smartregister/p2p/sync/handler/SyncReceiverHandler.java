@@ -171,7 +171,12 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             public Long call() throws Exception {
                 JSONArray jsonArray = new JSONArray(awaitingPayloads.get(payloadId).getJsonData());
                 SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
-                updateTransferProgress(syncPackageManifest.getDataType().getName(), jsonArray.length());
+
+                int recordsSize = jsonArray.length();
+
+                updateTransferProgress(syncPackageManifest.getDataType().getName(), recordsSize);
+                logTransfer(false, syncPackageManifest.getDataType().getName(), receiverPresenter.getCurrentPeerDevice(), recordsSize);
+
                 long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()
                         .receiveJson(syncPackageManifest.getDataType(), jsonArray);
 
@@ -244,7 +249,10 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 @Override
                 public Long call() throws Exception {
                     SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payload.getId());
+
                     updateTransferProgress(syncPackageManifest.getDataType().getName(), 1);
+                    logTransfer(false, syncPackageManifest.getDataType().getName(), receiverPresenter.getCurrentPeerDevice(), 1);
+
                     HashMap<String, Object> payloadDetails = syncPackageManifest.getPayloadDetails();
                     long fileRecordId = payloadDetails != null ? (new Double((double) payloadDetails.get("fileRecordId"))).longValue() : 0l;
                     long lastRecordId = P2PLibrary.getInstance().getReceiverTransferDao()

@@ -315,6 +315,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
             }
         } else if (awaitingPayloadTransfer && awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+
+                logTransfer(true, awaitingDataTypeName, presenter.getCurrentPeerDevice(), awaitingDataTypeRecordsBatch);
                 updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatch);
 
                 awaitingDataTypeRecordsBatch = 0;
