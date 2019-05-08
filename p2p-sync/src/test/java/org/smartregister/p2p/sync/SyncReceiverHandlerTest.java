@@ -105,7 +105,7 @@ public class SyncReceiverHandlerTest {
         long payloadId = 89834l;
         Payload payload = Mockito.mock(Payload.class);
 
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event);
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event, 20);
 
         Mockito.doReturn(payloadId)
                 .when(payload)
@@ -145,7 +145,7 @@ public class SyncReceiverHandlerTest {
         long payloadId = 829832l;
         Payload payload = Mockito.mock(Payload.class);
 
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event);
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event, 20);
         String jsonPackageManifest = new Gson().toJson(syncPackageManifest);
 
         Mockito.doReturn(jsonPackageManifest.getBytes())
@@ -197,7 +197,7 @@ public class SyncReceiverHandlerTest {
                 .when(payloadStream)
                 .asInputStream();
 
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event);
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event, 20);
         Mockito.doReturn(payloadStream)
                 .when(payload)
                 .asStream();
@@ -230,7 +230,7 @@ public class SyncReceiverHandlerTest {
                 .when(payloadFile)
                 .asJavaFile();
 
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "png", profilePic);
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "png", profilePic, 1);
         Mockito.doReturn(payloadFile)
                 .when(payload)
                 .asFile();

@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -25,7 +26,7 @@ public class SyncProgressDialog extends DialogFragment {
     private ProgressBar progressBar;
     private TextView progressTextView;
     private TextView summaryTextView;
-
+    private TextView startingTextView;
     private String title;
 
     public static SyncProgressDialog create(@NonNull String title) {
@@ -51,12 +52,14 @@ public class SyncProgressDialog extends DialogFragment {
 
     public void setSummaryText(@NonNull String summaryText) {
         if (summaryTextView != null) {
+            startingTextView.setVisibility(View.GONE);
             summaryTextView.setText(summaryText);
         }
     }
 
     public void setProgressText(@NonNull String progressText) {
         if (progressTextView != null) {
+            startingTextView.setVisibility(View.GONE);
             progressTextView.setText(progressText);
         }
     }
@@ -101,6 +104,7 @@ public class SyncProgressDialog extends DialogFragment {
         progressBar = getDialog().findViewById(R.id.pb_syncProgressDialog_progressBar);
         progressTextView = getDialog().findViewById(R.id.tv_syncProgressDialog_progressText);
         summaryTextView = getDialog().findViewById(R.id.tv_syncProgressDialog_summaryText);
+        startingTextView = getDialog().findViewById(R.id.tv_syncProgressDialog_startingText);
     }
 
     @Override

@@ -839,7 +839,7 @@ public class P2PSenderPresenterTest {
 
     @Test
     public void sendManifestShouldCallSendMessageWhenCurrentPeerDeviceIsNotNull() {
-        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(89l, ".json", new DataType("somedata", DataType.Type.NON_MEDIA, 1));
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(89l, ".json", new DataType("somedata", DataType.Type.NON_MEDIA, 1), 1);
         p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
         p2PSenderPresenter.sendManifest(syncPackageManifest);
 
