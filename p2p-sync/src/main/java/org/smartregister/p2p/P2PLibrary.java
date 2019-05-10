@@ -7,6 +7,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import java.util.UUID;
 import android.support.annotation.Nullable;
 
+import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.model.AppDatabase;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
@@ -143,6 +144,11 @@ public final class P2PLibrary {
         return options.getDeviceMaxRetryConnectionDuration();
     }
 
+    @Nullable
+    public SyncFinishedCallback getSyncFinishedCallback() {
+        return options.getSyncFinishedCallback();
+    }
+
     public static class Options {
 
         private Context context;
@@ -151,6 +157,7 @@ public final class P2PLibrary {
         private P2PAuthorizationService p2PAuthorizationService;
         private ReceiverTransferDao receiverTransferDao;
         private SenderTransferDao senderTransferDao;
+        private SyncFinishedCallback syncFinishedCallback;
         private int batchSize = Constants.DEFAULT_SHARE_BATCH_SIZE;
 
         private long deviceMaxRetryConnectionDuration = Constants.DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION;
@@ -210,6 +217,15 @@ public final class P2PLibrary {
 
         public void setDeviceMaxRetryConnectionDuration(long deviceMaxRetryConnectionDuration) {
             this.deviceMaxRetryConnectionDuration = deviceMaxRetryConnectionDuration;
+        }
+
+        @Nullable
+        public SyncFinishedCallback getSyncFinishedCallback() {
+            return syncFinishedCallback;
+        }
+
+        public void setSyncFinishedCallback(SyncFinishedCallback syncFinishedCallback) {
+            this.syncFinishedCallback = syncFinishedCallback;
         }
     }
 }

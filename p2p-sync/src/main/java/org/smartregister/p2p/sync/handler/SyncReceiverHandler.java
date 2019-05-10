@@ -13,6 +13,7 @@ import com.google.gson.JsonParseException;
 import org.json.JSONArray;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
+import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
 import org.smartregister.p2p.model.DataType;
@@ -56,13 +57,8 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 && new String(payload.asBytes()).equals(Constants.Connection.SYNC_COMPLETE)) {
             // This will only happen after the last payload has been received on the other side
             // An abort is performed as just a disconnect
-            stopTransferAndReset(false);
-            receiverPresenter.getView().showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
-                @Override
-                public void onCloseClicked() {
-                    receiverPresenter.getView().showP2PModeSelectFragment();
-                }
-            }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
+
+            performSynCompleteOperations();
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
@@ -155,14 +151,18 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 if (result != null) {
                     Timber.e("Finished processing chunk for payload %d", payloadId);
                 } else {
-                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                    String errorMessage = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
+                    Timber.e(errorMessage);
+                    syncErrorOccurred(new Exception(errorMessage));
                     stopTransferAndReset(true);
                 }
             }
 
             @Override
             public void onError(Exception e) {
-                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                String errorMessage = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
+                Timber.e(e, errorMessage);
+                syncErrorOccurred(new Exception(errorMessage));
                 stopTransferAndReset(true);
             }
         }, AsyncTask.SERIAL_EXECUTOR);
@@ -193,14 +193,18 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                     // We should save the last ID here and probably keep track of the next batch that we are to receive
                     awaitingPayloadManifests.remove(payloadId);
                 } else {
-                    Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                    String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
+                    Timber.e(errorMsg);
+                    syncErrorOccurred(new Exception(errorMsg));
                     stopTransferAndReset(true);
                 }
             }
 
             @Override
             public void onError(Exception e) {
-                Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data));
+                String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
+                Timber.e(e, errorMsg);
+                syncErrorOccurred(new Exception(errorMsg));
                 stopTransferAndReset(true);
             }
         }, AsyncTask.SERIAL_EXECUTOR);
@@ -276,7 +280,10 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                         // We should save the last ID here and probably keep track of the next batch that we are to receive
                         awaitingPayloadManifests.remove(payload.getId());
                     } else {
-                        Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+                        String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data);
+                        Exception e = new Exception(errorMsg);
+                        Timber.e(e);
+                        syncErrorOccurred(e);
                         // We should not continue
                         stopTransferAndReset(true);
                     }
@@ -284,19 +291,46 @@ public class SyncReceiverHandler extends BaseSyncHandler {
 
                 @Override
                 public void onError(Exception e) {
-                    Timber.e(e, receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+                    String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data);
+                    Timber.e(e, errorMsg);
+                    syncErrorOccurred(e);
                     // We should not continue
                     stopTransferAndReset(true);
                 }
             }, AsyncTask.SERIAL_EXECUTOR);
         } else {
-            Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
+            String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data);
+            Exception e = new Exception(errorMsg);
+            Timber.e(e);
+            syncErrorOccurred(e);
             stopTransferAndReset(true);
         }
     }
 
     public void sendPayloadReceived(long payloadId) {
         receiverPresenter.sendTextMessage(Constants.Connection.PAYLOAD_RECEIVED + payloadId);
+    }
+
+    protected void performSynCompleteOperations() {
+        SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+        if (syncFinishedCallback != null) {
+            syncFinishedCallback.onSuccess(getTransferProgress());
+        }
+
+        stopTransferAndReset(false);
+        receiverPresenter.getView().showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
+            @Override
+            public void onCloseClicked() {
+                receiverPresenter.getView().showP2PModeSelectFragment();
+            }
+        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
+    }
+
+    protected void syncErrorOccurred(@NonNull Exception e) {
+        SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+        if (syncFinishedCallback != null) {
+            syncFinishedCallback.onFailure(e, getTransferProgress());
+        }
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {

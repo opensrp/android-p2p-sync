@@ -19,6 +19,7 @@ import org.smartregister.p2p.R;
 import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
+import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
@@ -203,7 +204,14 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Go back to advertising mode
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
-            view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
+            String errorMsg = view.getString(R.string.an_error_occurred_before_acceptance_or_rejection);
+
+            SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+            if (syncFinishedCallback != null) {
+                syncFinishedCallback.onFailure(new Exception(errorMsg), syncReceiverHandler.getTransferProgress());
+            }
+
+            view.showToast(errorMsg, Toast.LENGTH_LONG);
             disconnectAndReset(endpointId);
         } else {
             Timber.e(view.getString(R.string.onconnectionunknownerror_without_peer_device), endpointId);
@@ -215,6 +223,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Show the user an error
         //Todo: Go back to advertising mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+
             disconnectAndReset(endpointId);
             view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
         } else {
