@@ -15,7 +15,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
@@ -71,6 +73,11 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_p2p_mode_select);
 
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+            supportActionBar.setHomeAsUpIndicator(R.drawable.ic_action_close);
+        }
 
         prepareTrackingDetails();
         showP2PModeSelectFragment();
@@ -484,5 +491,15 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     public P2pModeSelectContract.ReceiverPresenter getReceiverBasePresenter() {
         return receiverBasePresenter;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
