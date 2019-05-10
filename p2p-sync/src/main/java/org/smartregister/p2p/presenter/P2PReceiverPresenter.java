@@ -22,6 +22,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.AppDatabase;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -33,6 +34,7 @@ import org.smartregister.p2p.sync.handler.SyncReceiverHandler;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
 import org.smartregister.p2p.util.Constants;
+import org.smartregister.p2p.util.SyncDataConverterUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -204,14 +206,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Go back to advertising mode
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
-            String errorMsg = view.getString(R.string.an_error_occurred_before_acceptance_or_rejection);
 
-            SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
-            if (syncFinishedCallback != null) {
-                syncFinishedCallback.onFailure(new Exception(errorMsg), syncReceiverHandler.getTransferProgress());
-            }
-
-            view.showToast(errorMsg, Toast.LENGTH_LONG);
+            view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
             disconnectAndReset(endpointId);
         } else {
             Timber.e(view.getString(R.string.onconnectionunknownerror_without_peer_device), endpointId);
@@ -223,9 +219,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Show the user an error
         //Todo: Go back to advertising mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+            String errorMsg = String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId);
 
-            disconnectAndReset(endpointId);
-            view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId), Toast.LENGTH_LONG);
+            onSyncFailed(new Exception(errorMsg));
+            view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
@@ -570,7 +567,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             @Override
             public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
                 if (interactor.getCurrentEndpoint() != null) {
-                    disconnectAndReset(interactor.getCurrentEndpoint());
+                    onSyncFailed(new Exception("User cancelled sync process"));
                 } else {
                     Timber.e(view.getString(R.string.could_not_disconnection_reset_without_endpoint));
                 }
@@ -595,6 +592,24 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             resetState();
             prepareForAdvertising(false);
         }
+    }
+
+    public void onSyncFailed(@NonNull Exception e) {
+        SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+        if (syncFinishedCallback != null) {
+            syncFinishedCallback.onFailure(e, syncReceiverHandler.getTransferProgress());
+        }
+
+        if (syncReceiverHandler != null) {
+            getView().showSyncCompleteFragment(false, new SyncCompleteTransferFragment.OnCloseClickListener() {
+                @Override
+                public void onCloseClicked() {
+                    getView().showP2PModeSelectFragment();
+                }
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), syncReceiverHandler.getTransferProgress()));
+        }
+
+        disconnectAndReset(interactor.getCurrentEndpoint(), false);
     }
 
     @Nullable

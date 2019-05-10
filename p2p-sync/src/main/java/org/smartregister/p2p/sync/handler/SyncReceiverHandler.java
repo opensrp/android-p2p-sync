@@ -15,7 +15,7 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.SendingDevice;
@@ -318,12 +318,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         }
 
         stopTransferAndReset(false);
-        receiverPresenter.getView().showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
-            @Override
-            public void onCloseClicked() {
-                receiverPresenter.getView().showP2PModeSelectFragment();
-            }
-        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
+        showSyncCompleteFragment(true);
     }
 
     protected void syncErrorOccurred(@NonNull Exception e) {
@@ -331,6 +326,17 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         if (syncFinishedCallback != null) {
             syncFinishedCallback.onFailure(e, getTransferProgress());
         }
+
+        showSyncCompleteFragment(false);
+    }
+
+    protected void showSyncCompleteFragment(boolean isSuccess) {
+        receiverPresenter.getView().showSyncCompleteFragment(isSuccess, new SyncCompleteTransferFragment.OnCloseClickListener() {
+            @Override
+            public void onCloseClicked() {
+                receiverPresenter.getView().showP2PModeSelectFragment();
+            }
+        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {
