@@ -120,6 +120,7 @@ public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor
                     @Override
                     public void onSuccess(Void aVoid) {
                         advertising = true;
+                        // Todo: Fix this, it causes a null object reference on Context
                         String message = context.getString(R.string.advertising_started);
                         // For now this issue does not deal with this
                         Timber.i(message);

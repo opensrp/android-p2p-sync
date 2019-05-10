@@ -32,6 +32,7 @@ public class SampleReceiverDao implements ReceiverTransferDao {
         return dataTypes;
     }
 
+
     @Override
     public long receiveMultimedia(@NonNull DataType dataType, @NonNull File file, @Nullable HashMap<String, Object> multimediaDetails, long fileRecordId) {
         Timber.e("Received multi-media record %s of type %s", multimediaDetails.get("name"), dataType.getName());

@@ -90,4 +90,6 @@
     <string name="transfer_records_track_log_hr_format">Device %s %s %,d of %s. More device info(%s)</string>
     <string name="sent">Sent</string>
     <string name="received">Received</string>
+    <string name="receiving_progress_text">Receiving %,d %ss</string>
+    <string name="sending_progress_text">Sending %,d %ss</string>
 </resources>

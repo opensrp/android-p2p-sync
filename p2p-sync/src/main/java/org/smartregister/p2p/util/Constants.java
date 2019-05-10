@@ -25,6 +25,7 @@ public interface Constants {
 
     interface Connection {
         String SYNC_COMPLETE = "SYNC-COMPLETE";
+        String PAYLOAD_RECEIVED = "PAYLOAD-RECEIVED";
     }
 
     interface RqCode {

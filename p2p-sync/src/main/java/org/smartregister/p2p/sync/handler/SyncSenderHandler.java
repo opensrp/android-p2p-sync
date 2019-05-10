@@ -6,12 +6,14 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.text.TextUtils;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
 import org.json.JSONArray;
 import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -20,6 +22,7 @@ import org.smartregister.p2p.sync.data.MultiMediaData;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.tasks.Tasker;
+import org.smartregister.p2p.util.Constants;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -256,7 +259,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                             uiHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
+                                    presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
                                 }
                             });
 
@@ -299,7 +302,33 @@ public class SyncSenderHandler extends BaseSyncHandler {
         }).start();
     }
 
+    public void processString(@NonNull String message) {
+        if (message.startsWith(Constants.Connection.PAYLOAD_RECEIVED)
+                && awaitingPayloadTransfer
+                && awaitingPayload != null) {
+            String payloadIdString = message.replace(Constants.Connection.PAYLOAD_RECEIVED, "");
+            if (!TextUtils.isEmpty(payloadIdString) && Long.parseLong(payloadIdString) == awaitingPayload.getId()) {
+                updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatch);
+
+                awaitingDataTypeRecordsBatch = 0;
+                awaitingPayloadTransfer = false;
+                awaitingPayload = null;
+                awaitingBytes = null;
+                awaitingPayloadPipe = null;
+
+                if (awaitingDataTypeName != null) {
+                    remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
+                }
+
+                sendNextManifest();
+            }
+        }
+    }
+
     public void onPayloadTransferUpdate(@NonNull final PayloadTransferUpdate update) {
+        Timber.e("Payload transfer update %d with %,d bytes transfer | PayloadId %d | Total Bytes %,d"
+                , update.getStatus(), update.getBytesTransferred(), update.getPayloadId()
+                , update.getTotalBytes());
         if (awaitingManifestTransfer) {
             if (update.getPayloadId() == awaitingManifestId) {
                 if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
@@ -332,19 +361,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
                 logTransfer(true, awaitingDataTypeName, presenter.getCurrentPeerDevice(), awaitingDataTypeRecordsBatch);
-                updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatch);
 
-                awaitingDataTypeRecordsBatch = 0;
-                awaitingPayloadTransfer = false;
-                awaitingPayload = null;
-                awaitingBytes = null;
-                awaitingPayloadPipe = null;
-
-                if (awaitingDataTypeName != null) {
-                    remainingLastRecordIds.put(awaitingDataTypeName, awaitingDataTypeHighestId);
-                }
-
-                sendNextManifest();
             } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
                 // Try to resend the payload until the max retries are done
                 if (payloadRetry == null) {

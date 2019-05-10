@@ -44,7 +44,7 @@ public class SampleSenderDao implements SenderTransferDao {
             @Override
             public Void call() throws Exception {
                 for (int i = 0; i < 200; i++) {
-                    personalDetailsRecords.add(generateRandomString(10000));
+                    personalDetailsRecords.add(generateRandomString(100000));
                 }
 
                 return null;
