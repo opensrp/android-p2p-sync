@@ -79,6 +79,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             long payloadId = update.getPayloadId();
             if (awaitingPayloadManifests.get(payloadId) != null) {
                 finishProcessingData(endpointId, payloadId);
+                sendPayloadReceived(payloadId);
             }
         }
     }
@@ -90,7 +91,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 awaitingPayloadManifests.put(syncPackageManifest.getPayloadId(), syncPackageManifest);
 
                 awaitingManifestReceipt = false;
-                receiverPresenter.getView().updateProgressDialog(String.format("Sending %,d %ss"
+                receiverPresenter.getView().updateProgressDialog(String.format(receiverPresenter.getView().getString(R.string.receiving_progress_text)
                         , syncPackageManifest.getRecordsSize(), syncPackageManifest.getDataType().getName()), "");
             } catch (JsonParseException e) {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_received_invalid_manifest_from_endpoint), endpointId);
@@ -292,6 +293,10 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             Timber.e(receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data));
             stopTransferAndReset(true);
         }
+    }
+
+    public void sendPayloadReceived(long payloadId) {
+        receiverPresenter.sendTextMessage(Constants.Connection.PAYLOAD_RECEIVED + payloadId);
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {

@@ -39,7 +39,7 @@ public class SyncDataConverterUtil {
         if (transferItems != null) {
             StringBuilder stringBuilder = new StringBuilder();
             for (String key: transferItems.keySet()) {
-                stringBuilder.append(String.format(Locale.US, "\n%s: %,d", key, transferItems.get(key)));
+                stringBuilder.append(String.format(Locale.US, "\n%s: %,d records", key, transferItems.get(key)));
             }
 
             return String.format(transferSummary, stringBuilder.toString());

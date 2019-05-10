@@ -468,9 +468,10 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void processPayload(@NonNull String endpointId, @NonNull Payload payload) {
         if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
-            // Show a simple message of the text sent
-            String message = new String(payload.asBytes());
-            view.showToast(message, Toast.LENGTH_LONG);
+
+            if (syncSenderHandler != null) {
+                syncSenderHandler.processString(new String(payload.asBytes()));
+            }
         }
     }
 
