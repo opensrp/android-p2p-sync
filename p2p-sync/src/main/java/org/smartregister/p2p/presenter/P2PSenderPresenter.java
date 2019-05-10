@@ -23,6 +23,7 @@ import org.smartregister.p2p.authenticator.BaseSyncConnectionAuthenticator;
 import org.smartregister.p2p.authenticator.SenderConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
+import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
@@ -137,6 +138,12 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void sendSyncComplete() {
         // Do nothing for now
         transferItems = (HashMap<String, Integer>) syncSenderHandler.getTransferProgress().clone();
+
+        SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+        if (syncFinishedCallback != null) {
+            syncFinishedCallback.onSuccess(transferItems);
+        }
+
         syncSenderHandler = null;
 
         // incase the other side has hung at some point
@@ -162,6 +169,12 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void errorOccurredSync(@NonNull Exception e) {
         Timber.e(e);
+
+        SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
+        if (syncFinishedCallback != null) {
+            syncFinishedCallback.onFailure(e, transferItems);
+        }
+
         syncSenderHandler = null;
 
         if (getCurrentPeerDevice() != null) {
@@ -398,10 +411,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         //Todo: Show the user an error
         //Todo: Go back to discovering mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
-            resetState();
-            view.showToast(String.format(view.getString(R.string.connection_to_endpoint_broken)
-                    , endpointId), Toast.LENGTH_LONG);
-            prepareForDiscovering(false);
+            String errorMsg = String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId);
+            errorOccurredSync(new Exception(errorMsg));
+            view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
