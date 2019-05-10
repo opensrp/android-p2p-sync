@@ -37,7 +37,7 @@ import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
-import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
@@ -170,15 +170,16 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showSyncCompleteFragment(@NonNull SuccessfulTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
-        SuccessfulTransferFragment successfulTransferFragment = new SuccessfulTransferFragment();
-        successfulTransferFragment.setOnCloseClickListener(onCloseClickListener);
-        successfulTransferFragment.setTransferSummaryReport(summaryReport);
+    public void showSyncCompleteFragment(boolean isSuccess, @NonNull SyncCompleteTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
+        SyncCompleteTransferFragment syncCompleteTransferFragment = new SyncCompleteTransferFragment();
+        syncCompleteTransferFragment.setSuccess(isSuccess);
+        syncCompleteTransferFragment.setOnCloseClickListener(onCloseClickListener);
+        syncCompleteTransferFragment.setTransferSummaryReport(summaryReport);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, successfulTransferFragment);
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncCompleteTransferFragment);
 
         // Commit the transaction
         transaction.commit();

@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.smartregister.p2p.R;
@@ -16,10 +17,15 @@ import org.smartregister.p2p.R;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 03/05/2019
  */
 
-public class SuccessfulTransferFragment extends Fragment {
+public class SyncCompleteTransferFragment extends Fragment {
 
     private OnCloseClickListener onCloseClickListener;
     private String transferSummary;
+    private boolean isSuccess;
+
+    public void setSuccess(boolean success) {
+        isSuccess = success;
+    }
 
     public void setTransferSummaryReport(@NonNull String transferSummaryReport) {
         this.transferSummary = transferSummaryReport;
@@ -41,6 +47,11 @@ public class SuccessfulTransferFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
         ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary))
                 .setText(transferSummary);
+
+        if (!isSuccess) {
+            ImageView imageView = view.findViewById(R.id.iv_successfulTransferFragment_successMark);
+            imageView.setImageResource(R.drawable.ic_fail);
+        }
 
         Button closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
         closeBtn.setOnClickListener(new View.OnClickListener() {

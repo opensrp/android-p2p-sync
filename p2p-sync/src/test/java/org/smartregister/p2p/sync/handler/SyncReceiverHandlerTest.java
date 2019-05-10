@@ -24,7 +24,7 @@ import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
@@ -32,7 +32,6 @@ import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.data.ProcessedChunk;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
-import org.smartregister.p2p.sync.handler.SyncReceiverHandler;
 import org.smartregister.p2p.util.Constants;
 
 import java.io.ByteArrayInputStream;
@@ -273,6 +272,8 @@ public class SyncReceiverHandlerTest {
         syncReceiverHandler.processPayload(endpointId, syncCompletePayload);
 
         Mockito.verify(view, Mockito.times(1))
-                .showSyncCompleteFragment(Mockito.any(SuccessfulTransferFragment.OnCloseClickListener.class), Mockito.anyString());
+                .showSyncCompleteFragment(Mockito.eq(true)
+                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
+                        , Mockito.anyString());
     }
 }

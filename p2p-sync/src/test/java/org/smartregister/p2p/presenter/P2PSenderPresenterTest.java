@@ -35,7 +35,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeScanningDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
-import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -791,7 +791,9 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
 
         Mockito.verify(view, Mockito.times(1))
-                .showSyncCompleteFragment(Mockito.any(SuccessfulTransferFragment.OnCloseClickListener.class), Mockito.anyString());
+                .showSyncCompleteFragment(Mockito.eq(true)
+                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
+                        , Mockito.anyString());
     }
 
     @Test

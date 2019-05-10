@@ -26,7 +26,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
-import org.smartregister.p2p.fragment.SuccessfulTransferFragment;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -175,12 +175,20 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             syncFinishedCallback.onFailure(e, transferItems);
         }
 
-        syncSenderHandler = null;
+        if (syncSenderHandler != null) {
+            getView().showSyncCompleteFragment(false, new SyncCompleteTransferFragment.OnCloseClickListener() {
+                @Override
+                public void onCloseClicked() {
+                    getView().showP2PModeSelectFragment();
+                }
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), syncSenderHandler.getTransferProgress()));
+
+            syncSenderHandler = null;
+        }
 
         if (getCurrentPeerDevice() != null) {
             interactor.disconnectFromEndpoint(getCurrentPeerDevice().getEndpointId());
             resetState();
-            prepareForDiscovering(false);
         }
     }
 
@@ -435,7 +443,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
                 disconnectAndReset(currentReceiver.getEndpointId(), false);
-                view.showSyncCompleteFragment(new SuccessfulTransferFragment.OnCloseClickListener() {
+                view.showSyncCompleteFragment(true, new SyncCompleteTransferFragment.OnCloseClickListener() {
                     @Override
                     public void onCloseClicked() {
                         view.showP2PModeSelectFragment();
@@ -539,7 +547,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             @Override
             public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
                 if (interactor.getCurrentEndpoint() != null) {
-                    disconnectAndReset(interactor.getCurrentEndpoint());
+                    errorOccurredSync(new Exception("User cancelled sync process"));
                 } else {
                     Timber.e("Could not stop sending data because no endpoint exists");
                 }
