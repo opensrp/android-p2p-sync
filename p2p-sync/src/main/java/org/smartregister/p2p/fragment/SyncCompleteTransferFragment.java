@@ -51,6 +51,9 @@ public class SyncCompleteTransferFragment extends Fragment {
         if (!isSuccess) {
             ImageView imageView = view.findViewById(R.id.iv_successfulTransferFragment_successMark);
             imageView.setImageResource(R.drawable.ic_fail);
+
+            ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSuccessText))
+                    .setText(R.string.transfer_failed);
         }
 
         Button closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);
