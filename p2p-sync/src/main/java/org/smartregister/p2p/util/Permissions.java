@@ -28,6 +28,17 @@ public abstract class Permissions {
             Manifest.permission.CAMERA
     };
 
+    public static final String[] CRITICAL_PERMISSIONS_WITH_STORAGE = new String[] {
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_STATE,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CAMERA,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
     /**
      * Returns {@link android.content.pm.PermissionInfo#PROTECTION_DANGEROUS} permissions which
      * have not been requested yet/denied by the user from the list of #criticalPermissions
