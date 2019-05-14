@@ -46,6 +46,7 @@ import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
+import org.smartregister.p2p.sync.handler.SyncSenderHandler;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
@@ -240,9 +241,6 @@ public class P2PSenderPresenterTest {
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .keepScreenOn(ArgumentMatchers.eq(false));
-
-        Mockito.verify(view, Mockito.times(1))
-                .removeDiscoveringProgressDialog();
 
         Mockito.verify(interactor, Mockito.times(1))
                 .requestConnection(ArgumentMatchers.eq(endpointId)
@@ -513,7 +511,7 @@ public class P2PSenderPresenterTest {
     }
 
     @Test
-    public void onConnectionBrokenShouldResetStateAndStartDiscoveringMode() {
+    public void onConnectionBrokenShouldResetStateAndShowSyncCompleteFragmentWithFailureStatus() {
         String endpointId = "id";
         DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
 
@@ -522,10 +520,21 @@ public class P2PSenderPresenterTest {
         ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
         assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
 
+        // Add the syncSenderHandler
+        SyncSenderHandler syncSenderHandler = Mockito.mock(SyncSenderHandler.class);
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncSenderHandler)
+                .getTransferProgress();
+        ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
+
         p2PSenderPresenter.onConnectionBroken(endpointId);
 
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncCompleteFragment(ArgumentMatchers.eq(false)
+                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class), Mockito.anyString());
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .prepareForDiscovering(ArgumentMatchers.eq(false));
+                .errorOccurredSync(Mockito.any(Exception.class));
+
         assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
     }
 
@@ -785,6 +794,14 @@ public class P2PSenderPresenterTest {
                 .when(update)
                 .getPayloadId();
 
+        SyncSenderHandler syncSenderHandler = Mockito.mock(SyncSenderHandler.class);
+
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncSenderHandler)
+                .getTransferProgress();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
+
         p2PSenderPresenter.setCurrentDevice(new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class)));
 
         p2PSenderPresenter.sendSyncComplete();
@@ -861,7 +878,7 @@ public class P2PSenderPresenterTest {
     }
 
     @Test
-    public void errorOccurredSyncShouldCallResetStateAndPrepareForDiscoveringWhenCurrentPeerDeviceIsNotNull() {
+    public void errorOccurredSyncShouldCallResetStateAndShowSyncCompleteFragmentWithFailureStatusWhenCurrentPeerDeviceIsNotNull() {
         String endpointId = "9sdjskjdjksd";
         DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
         p2PSenderPresenter.setCurrentDevice(discoveredDevice);
@@ -870,10 +887,17 @@ public class P2PSenderPresenterTest {
                 .when(discoveredDevice)
                 .getEndpointId();
 
+        SyncSenderHandler syncSenderHandler = Mockito.mock(SyncSenderHandler.class);
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncSenderHandler)
+                .getTransferProgress();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
+
         p2PSenderPresenter.errorOccurredSync(new Exception("some error"));
 
-        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
-                .prepareForDiscovering(ArgumentMatchers.eq(false));
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncCompleteFragment(Mockito.eq(false), Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class), Mockito.anyString());
         Mockito.verify(interactor, Mockito.times(1))
                 .disconnectFromEndpoint(Mockito.eq(endpointId));
         Mockito.verify(view, Mockito.times(1))
@@ -899,6 +923,14 @@ public class P2PSenderPresenterTest {
         Mockito.doReturn(null)
                 .when(senderTransferDao)
                 .getDataTypes();
+
+        SyncSenderHandler syncSenderHandler = Mockito.mock(SyncSenderHandler.class);
+
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncSenderHandler)
+                .getTransferProgress();
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
 
         p2PSenderPresenter.setCurrentDevice(Mockito.mock(DiscoveredDevice.class));
         p2PSenderPresenter.processReceivedHistory(endpointId, payload);

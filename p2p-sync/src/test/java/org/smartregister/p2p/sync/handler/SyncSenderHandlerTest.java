@@ -28,6 +28,7 @@ import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.sync.handler.SyncSenderHandler;
+import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -284,7 +285,7 @@ public class SyncSenderHandlerTest {
     }
 
     @Test
-    public void onPayloadTransferUpdateShouldCallSendNextManifestWhenPayloadStatusUpdateForPayloadIsSuccess() {
+    public void onProcessStringShouldCallSendNextManifestWhenPayloadStatusUpdateForPayloadIsSuccess() {
         long payloadId = 9;
         int status = PayloadTransferUpdate.Status.SUCCESS;
 
@@ -292,28 +293,28 @@ public class SyncSenderHandlerTest {
                 .when(syncSenderHandler)
                 .sendNextManifest();
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
-
-        Mockito.doReturn(payloadId)
-                .when(payloadTransferUpdate)
-                .getPayloadId();
-
-        Mockito.doReturn(status)
-                .when(payloadTransferUpdate)
-                .getStatus();
-
         Payload awaitingPayload = Mockito.mock(Payload.class);
 
         Mockito.doReturn(payloadId)
                 .when(awaitingPayload)
                 .getId();
 
+        int dataTypeBatchSize = 20;
+        String dataTypeName = "location";
+
         ReflectionHelpers.setField(syncSenderHandler, "awaitingPayloadTransfer", true);
         ReflectionHelpers.setField(syncSenderHandler, "awaitingPayload", awaitingPayload);
-        syncSenderHandler.onPayloadTransferUpdate(payloadTransferUpdate);
+        ReflectionHelpers.setField(syncSenderHandler, "awaitingDataTypeRecordsBatchSize", dataTypeBatchSize);
+        ReflectionHelpers.setField(syncSenderHandler, "awaitingDataTypeName", dataTypeName);
+
+        syncSenderHandler.processString(Constants.Connection.PAYLOAD_RECEIVED + payloadId);
 
         Mockito.verify(syncSenderHandler, Mockito.times(1))
                 .sendNextManifest();
+
+        //awaitingDataTypeName, awaitingDataTypeRecordsBatchSize
+        Mockito.verify(syncSenderHandler, Mockito.times(1))
+                .updateTransferProgress(Mockito.eq(dataTypeName), Mockito.eq(dataTypeBatchSize));
 
         assertFalse((boolean) ReflectionHelpers.getField(syncSenderHandler, "awaitingPayloadTransfer"));
         assertNull(ReflectionHelpers.getField(syncSenderHandler, "awaitingPayload"));
