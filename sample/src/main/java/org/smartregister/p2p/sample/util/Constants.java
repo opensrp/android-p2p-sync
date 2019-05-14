@@ -6,8 +6,8 @@ package org.smartregister.p2p.sample.util;
 
 public class Constants {
 
-    public static final String NAMES = "Names";
-    public static final String PERSONAL_DETAILS = "Personal Details";
-    public static final String PROFILE_PICS = "Profile Pics";
+    public static final String NAMES = "Name";
+    public static final String PERSONAL_DETAIL = "Personal Detail";
+    public static final String PROFILE_PIC = "Profile Pic";
 
 }

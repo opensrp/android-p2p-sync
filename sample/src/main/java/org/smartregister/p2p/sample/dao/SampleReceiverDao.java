@@ -26,8 +26,8 @@ public class SampleReceiverDao implements ReceiverTransferDao {
     public TreeSet<DataType> getDataTypes() {
         TreeSet<DataType> dataTypes = new TreeSet<>();
         dataTypes.add(new DataType(Constants.NAMES, DataType.Type.NON_MEDIA, 0));
-        dataTypes.add(new DataType(Constants.PERSONAL_DETAILS, DataType.Type.NON_MEDIA, 1));
-        dataTypes.add(new DataType(Constants.PROFILE_PICS, DataType.Type.MEDIA, 2));
+        dataTypes.add(new DataType(Constants.PERSONAL_DETAIL, DataType.Type.NON_MEDIA, 1));
+        dataTypes.add(new DataType(Constants.PROFILE_PIC, DataType.Type.MEDIA, 2));
 
         return dataTypes;
     }
