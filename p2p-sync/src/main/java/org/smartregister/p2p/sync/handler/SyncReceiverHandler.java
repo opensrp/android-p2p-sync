@@ -3,6 +3,7 @@ package org.smartregister.p2p.sync.handler;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.util.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.Payload;
@@ -118,7 +119,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
 
         if (processedChunk != null && payloadManifest != null) {
             if (payloadManifest.getDataType().getType() == DataType.Type.NON_MEDIA) {
-                finishProcessNonMediaData(payloadId);
+                finishProcessingNonMediaData(payloadId);
             } else {
                 finishProcessingMediaData(payloadId);
             }
@@ -168,7 +169,8 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         }, AsyncTask.SERIAL_EXECUTOR);
     }
 
-    private void finishProcessNonMediaData(final long payloadId) {
+    @VisibleForTesting
+    protected void finishProcessingNonMediaData(final long payloadId) {
         Tasker.run(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
@@ -211,7 +213,8 @@ public class SyncReceiverHandler extends BaseSyncHandler {
 
     }
 
-    private synchronized void updateLastRecord(@NonNull String entityName, long lastRecordId) {
+    @VisibleForTesting
+    protected synchronized void updateLastRecord(@NonNull String entityName, long lastRecordId) {
         SendingDevice sendingDevice = receiverPresenter.getSendingDevice();
         if (sendingDevice != null) {
             P2pReceivedHistoryDao p2pReceivedHistoryDao = P2PLibrary.getInstance().getDb()
@@ -246,11 +249,12 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         }
     }
 
-    private void finishProcessingMediaData(@NonNull long payloadId) {
+    @VisibleForTesting
+    protected void finishProcessingMediaData(@NonNull long payloadId) {
         ProcessedChunk processedChunk = awaitingPayloads.get(payloadId);
-        final Payload payload = processedChunk.getFileData();
+        if (processedChunk != null && processedChunk.getFileData() != null) {
+            final Payload payload = processedChunk.getFileData();
 
-        if (payload != null) {
             Tasker.run(new Callable<Long>() {
 
                 @Override
