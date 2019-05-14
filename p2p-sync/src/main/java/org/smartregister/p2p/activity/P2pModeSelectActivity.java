@@ -43,6 +43,7 @@ import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
 import org.smartregister.p2p.handler.OnResumeHandler;
+import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.presenter.P2PReceiverPresenter;
 import org.smartregister.p2p.presenter.P2PSenderPresenter;
 import org.smartregister.p2p.tasks.GenericAsyncTask;
@@ -52,6 +53,7 @@ import org.smartregister.p2p.util.Permissions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import timber.log.Timber;
 
@@ -270,8 +272,20 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @NonNull
     @Override
     public List<String> getUnauthorisedPermissions() {
+        TreeSet<DataType> dataTypes = P2PLibrary.getInstance().getReceiverTransferDao().getDataTypes();
+        boolean hasMediaDataTypes = false;
+
+        for (DataType dataType: dataTypes) {
+            if (dataType.getType() == DataType.Type.MEDIA) {
+                hasMediaDataTypes = true;
+                break;
+            }
+        }
+
         return Permissions.getUnauthorizedCriticalPermissions(
-                getContext(), Permissions.CRITICAL_PERMISSIONS
+                getContext(),
+                hasMediaDataTypes ? Permissions.CRITICAL_PERMISSIONS_WITH_STORAGE
+                        : Permissions.CRITICAL_PERMISSIONS
         );
     }
 
