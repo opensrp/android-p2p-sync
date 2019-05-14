@@ -32,6 +32,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
 import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
@@ -40,6 +41,7 @@ import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.ConnectionLevel;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.IReceiverSyncLifecycleCallback;
+import org.smartregister.p2p.sync.handler.SyncReceiverHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -444,14 +446,28 @@ public class P2PReceiverPresenterTest {
     }
 
     @Test
-    public void onConnectionBrokenShouldRestartAdvertisingAndResetState() {
+    public void onConnectionBrokenShouldShowSyncCompleteFragmentWithFailedStatusAndResetState() {
         String endpointId = "id";
         DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+        Mockito.doReturn(endpointId)
+                .when(interactor)
+                .getCurrentEndpoint();
+
+        SyncReceiverHandler syncReceiverHandler = Mockito.mock(SyncReceiverHandler.class);
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncReceiverHandler)
+                .getTransferProgress();
+
+        ReflectionHelpers.setField(p2PReceiverPresenter, "syncReceiverHandler", syncReceiverHandler);
         p2PReceiverPresenter.setCurrentDevice(discoveredDevice);
         p2PReceiverPresenter.onConnectionBroken(endpointId);
 
         Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
-                .prepareForAdvertising(ArgumentMatchers.eq(false));
+                .onSyncFailed(Mockito.any(Exception.class));
+        Mockito.verify(p2PReceiverPresenter, Mockito.times(1))
+                .disconnectAndReset(ArgumentMatchers.eq(endpointId), Mockito.eq(false));
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncCompleteFragment(Mockito.eq(false), Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class), Mockito.anyString());
         assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
     }
 

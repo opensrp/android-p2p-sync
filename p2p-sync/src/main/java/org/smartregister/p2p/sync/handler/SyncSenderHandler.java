@@ -53,7 +53,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
     private byte[] awaitingBytes;
     private String awaitingDataTypeName;
     private long awaitingDataTypeHighestId;
-    private int awaitingDataTypeRecordsBatch;
+    private int awaitingDataTypeRecordsBatchSize;
 
     private boolean awaitingManifestTransfer;
     private long awaitingManifestId;
@@ -120,7 +120,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     File file = multiMediaData.getFile();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = multiMediaData.getRecordId();
-                    awaitingDataTypeRecordsBatch = 1;
+                    awaitingDataTypeRecordsBatchSize = 1;
 
                     if (file.exists()) {
                         // Create the manifest
@@ -193,7 +193,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     String jsonString = recordsArray.toString();
                     awaitingDataTypeName = dataType.getName();
                     awaitingDataTypeHighestId = jsonData.getHighestRecordId();
-                    awaitingDataTypeRecordsBatch = recordsArray.length();
+                    awaitingDataTypeRecordsBatchSize = recordsArray.length();
 
                     return jsonString;
                 } else {
@@ -215,7 +215,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                         syncPackageManifest = new SyncPackageManifest(awaitingPayload.getId()
                                 , "json"
                                 , dataType
-                                , awaitingDataTypeRecordsBatch);
+                                , awaitingDataTypeRecordsBatchSize);
 
                         awaitingManifestTransfer = true;
                         awaitingManifestId = presenter.sendManifest(syncPackageManifest);
@@ -259,7 +259,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                             uiHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
+                                    presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
                                 }
                             });
 
@@ -293,7 +293,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                         uiHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatch, awaitingDataTypeName), "");
+                                presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
                             }
                         });
                     }
@@ -308,9 +308,9 @@ public class SyncSenderHandler extends BaseSyncHandler {
                 && awaitingPayload != null) {
             String payloadIdString = message.replace(Constants.Connection.PAYLOAD_RECEIVED, "");
             if (!TextUtils.isEmpty(payloadIdString) && Long.parseLong(payloadIdString) == awaitingPayload.getId()) {
-                updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatch);
+                updateTransferProgress(awaitingDataTypeName, awaitingDataTypeRecordsBatchSize);
 
-                awaitingDataTypeRecordsBatch = 0;
+                awaitingDataTypeRecordsBatchSize = 0;
                 awaitingPayloadTransfer = false;
                 awaitingPayload = null;
                 awaitingBytes = null;
@@ -360,7 +360,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
         } else if (awaitingPayloadTransfer && awaitingPayload != null && update.getPayloadId() == awaitingPayload.getId()) {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
-                logTransfer(true, awaitingDataTypeName, presenter.getCurrentPeerDevice(), awaitingDataTypeRecordsBatch);
+                logTransfer(true, awaitingDataTypeName, presenter.getCurrentPeerDevice(), awaitingDataTypeRecordsBatchSize);
 
             } else if (update.getStatus() == PayloadTransferUpdate.Status.FAILURE) {
                 // Try to resend the payload until the max retries are done
