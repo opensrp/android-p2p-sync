@@ -2,7 +2,9 @@ package org.smartregister.p2p.sync.handler;
 
 import android.support.v4.util.SimpleArrayMap;
 
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -30,6 +32,7 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowTasker;
+import org.smartregister.p2p.sync.DiscoveredDevice;
 import org.smartregister.p2p.sync.data.ProcessedChunk;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.util.Constants;
@@ -276,4 +279,209 @@ public class SyncReceiverHandlerTest {
                         , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
                         , Mockito.anyString());
     }
+
+    @Test
+    public void onPayloadTransferUpdateShouldSendAcknowledgementToSenderDeviceWhenTransferStatusUpdateIsSuccessful() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.SUCCESS)
+                .when(update)
+                .getStatus();
+
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, ".json", event, 45);
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+
+        syncReceiverHandler.onPayloadTransferUpdate(endpointId, update);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .sendPayloadReceived(Mockito.eq(payloadId));
+        Mockito.verify(receiverPresenter, Mockito.times(1))
+                .sendTextMessage(Mockito.eq(Constants.Connection.PAYLOAD_RECEIVED + payloadId));
+    }
+
+    @Test
+    public void onPayloadTransferUpdateShouldCallFinishProcessDataWhenTransferStatusUpdateIsSuccessful() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.SUCCESS)
+                .when(update)
+                .getStatus();
+
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, ".json", event, 45);
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        syncReceiverHandler.onPayloadTransferUpdate(endpointId, update);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .finishProcessingData(Mockito.eq(endpointId), Mockito.eq(payloadId));
+    }
+
+    @Test
+    public void finishProcessingDataShouldCallFinishProcessingNonMediaDataWhenDataTypeIsNonMedia() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+
+        // Add the manifest
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event, 45);
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        // Add the processed chunk
+        ProcessedChunk processedChunk = new ProcessedChunk(Payload.Type.STREAM, "[]");
+        ((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads"))
+                .put(payloadId, processedChunk);
+
+        syncReceiverHandler.finishProcessingData(endpointId, payloadId);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .finishProcessingNonMediaData(Mockito.eq(payloadId));
+    }
+
+    @Test
+    public void finishProcessingDataShouldCallFinishProcessingMediaDataWhenDataTypeIsMedia() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        // Add the manifest
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "jpg", profilePic, 1);
+
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        Payload payload = Mockito.mock(Payload.class);
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
+
+        Mockito.doReturn(discoveredDevice)
+                .when(receiverPresenter)
+                .getCurrentPeerDevice();
+
+        // Add the processed chunk
+        ProcessedChunk processedChunk = new ProcessedChunk(Payload.Type.FILE, payload);
+        ((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads"))
+                .put(payloadId, processedChunk);
+
+        syncReceiverHandler.finishProcessingData(endpointId, payloadId);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .finishProcessingMediaData(Mockito.eq(payloadId));
+    }
+
+    @Test
+    public void finishProcessNonMediaDataShouldCallUpdateLastRecord() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        int recordsTransferred = 45;
+        long lastRecordId = 567;
+
+        // Add the manifest
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "json", event, recordsTransferred);
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        // Add the processed chunk
+        ProcessedChunk processedChunk = new ProcessedChunk(Payload.Type.STREAM, "[]");
+        ((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads"))
+                .put(payloadId, processedChunk);
+
+        Mockito.doReturn(lastRecordId)
+                .when(receiverTransferDao)
+                .receiveJson(Mockito.eq(event), Mockito.any(JSONArray.class));
+
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, Mockito.mock(DiscoveredEndpointInfo.class));
+        Mockito.doReturn(discoveredDevice)
+                .when(receiverPresenter)
+                .getCurrentPeerDevice();
+
+        syncReceiverHandler.finishProcessingNonMediaData(payloadId);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .updateTransferProgress(Mockito.eq(event.getName()), Mockito.anyInt());
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .logTransfer(Mockito.eq(false), Mockito.eq(event.getName()), Mockito.any(DiscoveredDevice.class), Mockito.anyInt());
+        Mockito.verify(receiverTransferDao, Mockito.times(1))
+                .receiveJson(Mockito.eq(event), Mockito.any(JSONArray.class));
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .updateLastRecord(Mockito.eq(event.getName()), Mockito.eq(lastRecordId));
+        assertNull(((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests")).get(payloadId));
+    }
+
+    @Test
+    public void finishProcessMediaDataShouldCallUpdateLastRecord() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        long recordId = 823823l;
+
+        // Add the manifest
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, "jpg", profilePic, 1);
+
+        HashMap<String, Object> payloadDetails = new HashMap<>();
+        payloadDetails.put("fileRecordId", (new Long(recordId)).doubleValue());
+
+        syncPackageManifest.setPayloadDetails(payloadDetails);
+
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        Payload payload = Mockito.mock(Payload.class);
+        Payload.File payloadFile = Mockito.mock(Payload.File.class);
+
+        Mockito.doReturn(payloadFile)
+                .when(payload)
+                .asFile();
+
+        Mockito.doReturn(payloadId)
+                .when(payload)
+                .getId();
+
+        File mockedFile = Mockito.mock(File.class);
+        Mockito.doReturn(mockedFile)
+                .when(payloadFile)
+                .asJavaFile();
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
+
+        Mockito.doReturn(discoveredDevice)
+                .when(receiverPresenter)
+                .getCurrentPeerDevice();
+
+        // Add the processed chunk
+        ProcessedChunk processedChunk = new ProcessedChunk(Payload.Type.FILE, payload);
+        ((SimpleArrayMap<Long, ProcessedChunk>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloads"))
+                .put(payloadId, processedChunk);
+
+        Mockito.doReturn(recordId)
+                .when(receiverTransferDao)
+                .receiveMultimedia(Mockito.eq(profilePic)
+                        , Mockito.eq(mockedFile)
+                        , ArgumentMatchers.<HashMap<String, Object>>any()
+                        , Mockito.eq(recordId));
+
+        syncReceiverHandler.finishProcessingMediaData(payloadId);
+
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .updateLastRecord(Mockito.eq(profilePic.getName()), Mockito.eq(recordId));
+        Mockito.verify(syncReceiverHandler, Mockito.times(1))
+                .logTransfer(Mockito.eq(false), Mockito.eq(profilePic.getName()), Mockito.any(DiscoveredDevice.class), Mockito.eq(1));
+        Mockito.verify(receiverTransferDao, Mockito.times(1))
+                .receiveMultimedia(Mockito.eq(profilePic), Mockito.eq(mockedFile), ArgumentMatchers.<HashMap<String, Object>>any(), Mockito.eq(recordId));
+        assertNull(((HashMap<Long, SyncPackageManifest>) ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests")).get(payloadId));
+    }
+
 }

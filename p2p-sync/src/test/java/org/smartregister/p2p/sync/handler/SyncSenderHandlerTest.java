@@ -287,7 +287,6 @@ public class SyncSenderHandlerTest {
     @Test
     public void onProcessStringShouldCallSendNextManifestWhenPayloadStatusUpdateForPayloadIsSuccess() {
         long payloadId = 9;
-        int status = PayloadTransferUpdate.Status.SUCCESS;
 
         Mockito.doNothing()
                 .when(syncSenderHandler)

@@ -11,23 +11,23 @@ import com.google.android.gms.nearby.connection.Payload;
 
 public class ProcessedChunk {
 
-    private int type;
+    private int payloadType;
     private String jsonData;
     private Payload fileData;
 
 
-    public ProcessedChunk(int type, @NonNull String jsonData) {
-        this.type = type;
+    public ProcessedChunk(int payloadType, @NonNull String jsonData) {
+        this.payloadType = payloadType;
         this.jsonData = jsonData;
     }
 
-    public ProcessedChunk(int type, @NonNull Payload fileData) {
-        this.type = type;
+    public ProcessedChunk(int payloadType, @NonNull Payload fileData) {
+        this.payloadType = payloadType;
         this.fileData = fileData;
     }
 
-    public int getType() {
-        return type;
+    public int getPayloadType() {
+        return payloadType;
     }
 
     @Nullable

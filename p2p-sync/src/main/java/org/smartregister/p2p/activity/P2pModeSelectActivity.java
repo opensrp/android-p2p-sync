@@ -499,6 +499,9 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
             case android.R.id.home:
                 finish();
                 break;
+
+            default:
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
