@@ -5,15 +5,14 @@ This library wraps on the Google Nearby Connections API to provide a simple UI a
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Not supported!](#not-supported-(errors-you-might-encounter))
+ 1. [Getting started](#getting-started)
+ 2. [Not supported!](#not-supported-(errors-you-might-encounter))
 
 ## Getting started
 
 Add the module to your project as follows
 
-1. Add the repository to your project-root `build.gradle`
-
+ 1. Add the repository to your project-root `build.gradle`
 ```groovy
 allprojects {
     repositories {
@@ -64,7 +63,6 @@ where you should have implemented your own `ReceiverDao` from `org.smartregister
 
 This data access object is supposed to implement methods that receive and process any data that is shared. After processing the data, the host application should return the last record id so that this can be saved and used as the last sync point during the next sync with the same device.
 
-
 ### SenderDao
 
 This provides data that is to be sent/shared. It implements methods that provide access to records from the given `lastRecordId`(not inclusive) and should return data with a max of the `batchSize` specified. The id that the host application provides here should be unique and cater for record updates. A simple example would be to use the default SQLite `rowid`
@@ -78,12 +76,8 @@ To start the sending and receiving activity:
     startActivity(new Intent(this, P2pModeSelectActivity.class));
 ```
 
-
-
-
 ### NOT SUPPORTED (ERRORS YOU MIGHT ENCOUNTER)
 
-1. A StackOverflow error or JsonParsingException error
+ 1. A StackOverflow error or JsonParsingException error
 
-- These errors will happen if you provide objects which are not easily parseable by GSON such as **Realm** objects
-
+  - These errors will happen if you provide objects which are not easily parseable by GSON such as **Realm** objects
