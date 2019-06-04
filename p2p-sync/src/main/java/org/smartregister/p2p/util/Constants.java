@@ -44,4 +44,13 @@ public interface Constants {
         String KEY_DEVICE_ID = "device-id";
         String KEY_APP_LIFETIME_KEY = "app-lifetime-key";
     }
+
+    interface AuthorizationKeys {
+        String PEER_STATUS = "peer-status";
+    }
+
+    interface PeerStatus {
+        String SENDER = "sender";
+        String RECEIVER = "receiver";
+    }
 }

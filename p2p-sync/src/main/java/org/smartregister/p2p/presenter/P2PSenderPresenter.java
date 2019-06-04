@@ -377,6 +377,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 @Override
                 public void onAuthorizationDetailsProvided(@NonNull Map<String, Object> authorizationDetails) {
                     // Send the authorization details
+                    authorizationDetails.put(Constants.AuthorizationKeys.PEER_STATUS, Constants.PeerStatus.SENDER);
                     sendAuthorizationDetails(authorizationDetails);
                 }
             });
