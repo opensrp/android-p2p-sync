@@ -182,6 +182,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 @Override
                 public void onAuthorizationDetailsProvided(@NonNull Map<String, Object> authorizationDetails) {
                     // Send the authorization details
+                    authorizationDetails.put(Constants.AuthorizationKeys.PEER_STATUS, Constants.PeerStatus.RECEIVER);
                     sendAuthorizationDetails(authorizationDetails);
                 }
             });
