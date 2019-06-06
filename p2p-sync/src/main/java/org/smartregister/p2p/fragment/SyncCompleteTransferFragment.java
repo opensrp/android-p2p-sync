@@ -37,12 +37,6 @@ public class SyncCompleteTransferFragment extends Fragment {
 
     @Nullable
     @Override
-    public View getView() {
-        return super.getView();
-    }
-
-    @Nullable
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
         ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary))
@@ -67,16 +61,6 @@ public class SyncCompleteTransferFragment extends Fragment {
         });
 
         return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
     }
 
     public interface OnCloseClickListener {

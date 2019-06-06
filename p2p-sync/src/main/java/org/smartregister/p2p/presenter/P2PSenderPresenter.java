@@ -25,7 +25,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
@@ -537,13 +537,16 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void onConnectionAuthorized() {
         connectionLevel = ConnectionLevel.AUTHORIZED;
+        startTransfer();
+    }
 
+    public void startTransfer() {
         // Send the hash key
         sendBasicDeviceDetails();
 
-        view.showSyncProgressDialog(view.getString(R.string.sending_data), new SyncProgressDialog.SyncProgressDialogCallback() {
+        view.showSyncProgressFragment(view.getString(R.string.sending_data), new SyncProgressFragment.SyncProgressDialogCallback() {
             @Override
-            public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+            public void onCancelClicked() {
                 if (interactor.getCurrentEndpoint() != null) {
                     errorOccurredSync(new Exception("User cancelled sync process"));
                 } else {

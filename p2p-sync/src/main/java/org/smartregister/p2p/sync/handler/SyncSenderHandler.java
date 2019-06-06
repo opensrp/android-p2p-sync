@@ -259,6 +259,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                             uiHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    presenter.getView().updateProgressDialog(-1);
                                     presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
                                 }
                             });
@@ -293,7 +294,9 @@ public class SyncSenderHandler extends BaseSyncHandler {
                         uiHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                presenter.getView().updateProgressDialog(String.format("Sending %,d %ss", awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
+                                presenter.getView().updateProgressDialog(-1);
+                                presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text)
+                                        , awaitingDataTypeRecordsBatchSize), "");
                             }
                         });
                     }
@@ -376,6 +379,14 @@ public class SyncSenderHandler extends BaseSyncHandler {
                 }
             } else if (update.getStatus() == PayloadTransferUpdate.Status.CANCELED) {
                 presenter.errorOccurredSync(new Exception("Payload sending has been cancelled"));
+            } else if (update.getStatus() == PayloadTransferUpdate.Status.IN_PROGRESS) {
+                // I should update them here
+                if (awaitingBytes != null) {
+                    int maxSize = awaitingBytes.length;
+                    int transferredSize = (int) update.getBytesTransferred();
+
+                    presenter.getView().updateProgressDialog(transferredSize/maxSize);
+                }
             }
         }
     }

@@ -6,7 +6,7 @@
     <string name="location_service_disabled">Location service disabled</string>
     <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
     <string name="searching_for_device_to_connect_to">Searching for a device(recipient) to send data to&#8230;</string>
-    <string name="qr_code_scanning_dialog_message">Please scan the QR Code shown on the receiving device "%s's", to start the transfer</string>
+    <string name="qr_code_scanning_dialog_message">Please scan the QR Code shown on the receiving device \"%s\'s\", to start the transfer</string>
     <string name="you_are_connected_to_receiver">You are now connected to the receiver %s</string>
     <string name="you_are_connected_to_sender">You are now connected to the sender %s</string>
     <string name="receiver_rejected_the_connection">The receiver rejected the connection</string>
@@ -41,15 +41,13 @@
     <string name="disconnected">DISCONNECTED</string>
     <string name="authentication_successful_receiver_can_accept_connection">Authentication successful! Receiver can accept connection</string>
     <string name="chat_message_format">%s: %s</string>
-    <string name="device_authentication_failed">Device %s authentication failed</string>
-    <string name="device_authenticated_successfully">Device %s authenticated successfully</string>
     <string name="log_detector_dependencies_are_not_yet_available">Detector dependencies are not yet available.</string>
     <string name="barcode_detector_dependencies_cannot_be_downloaded">Barcode detector dependencies cannot be downloaded due to low device storage</string>
     <string name="log_unable_to_start_camera_source">Unable to start camera source.</string>
     <string name="log_could_not_show_google_play_services_resolution_dialog">Could not show Google Play Services resolution dialog since it was not called from an activity</string>
     <string name="could_not_start_camera_source">Could not start camera source.</string>
     <string name="no_permission_to_start_the_camera">Do not have permission to start the camera</string>
-    <string name="scan_this_qr_code_using_sending_device">Scan this QR Code using the sending device,"%s's device", to start transfer</string>
+    <string name="scan_this_qr_code_using_sending_device">Scan this QR Code using the sending device, \"%s\'s device\", to confirm the correct device</string>
     <string name="authentication_failed">Authentication failed</string>
     <string name="authentication_cancelled_with_reason">Authentication cancelled : %s</string>
     <string name="an_error_occured">An error occurred!</string>
@@ -90,7 +88,8 @@
     <string name="transfer_records_track_log_hr_format">Device %s %s %,d of %s. More device info(%s)</string>
     <string name="sent">Sent</string>
     <string name="received">Received</string>
-    <string name="receiving_progress_text">Receiving %,d %ss</string>
-    <string name="sending_progress_text">Sending %,d %ss</string>
+    <string name="receiving_progress_text">Transferring %,d records</string>
+    <string name="sending_progress_text">Transferring %,d records</string>
     <string name="transfer_failed">Transfer failed</string>
+    <string name="skip">SKIP</string>
 </resources>

@@ -23,7 +23,7 @@ import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 import java.util.ArrayList;
@@ -145,7 +145,7 @@ public class SenderConnectionAuthenticatorTest {
         senderConnectionAuthenticator.authenticate(discoveredDevice, authenticationCallback);
 
         Mockito.verify(view, Mockito.times(1))
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
     }
 
     @Test
@@ -170,7 +170,7 @@ public class SenderConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
+                QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
                 Barcode barcode = new Barcode();
                 barcode.displayValue = authenticationCode;
                 barcode.rawValue = authenticationCode;
@@ -183,7 +183,7 @@ public class SenderConnectionAuthenticatorTest {
             }
         })
                 .when(view)
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
 
         Mockito.doAnswer(new Answer() {
             @Override
@@ -232,7 +232,7 @@ public class SenderConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
+                QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
                 String scannedCode = "different-code";
                 Barcode barcode = new Barcode();
                 barcode.displayValue = scannedCode;
@@ -246,7 +246,7 @@ public class SenderConnectionAuthenticatorTest {
             }
         })
                 .when(view)
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
 
         Mockito.doAnswer(new Answer() {
             @Override
@@ -302,13 +302,13 @@ public class SenderConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
+                QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
                 qrCodeScanDialogCallback.onSkipClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
                 .when(view)
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
 
         senderConnectionAuthenticator.authenticate(new DiscoveredDevice("id", connectionInfo)
                 , Mockito.mock(BaseSyncConnectionAuthenticator.AuthenticationCallback.class));
@@ -341,13 +341,13 @@ public class SenderConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
+                QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
                 qrCodeScanDialogCallback.onSkipClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
                 .when(view)
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
 
         Mockito.doAnswer(new Answer() {
             @Override
@@ -395,13 +395,13 @@ public class SenderConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
+                QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback = invocation.getArgument(0);
                 qrCodeScanDialogCallback.onCancelClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
                 .when(view)
-                .showQRCodeScanningDialog(Mockito.any(QRCodeScanningDialog.QRCodeScanDialogCallback.class));
+                .showQRCodeScanningFragment(Mockito.any(QRCodeScanningFragment.QRCodeScanDialogCallback.class));
 
         Mockito.doAnswer(new Answer() {
             @Override

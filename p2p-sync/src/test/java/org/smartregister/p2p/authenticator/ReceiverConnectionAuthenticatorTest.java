@@ -16,7 +16,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 import java.util.ArrayList;
@@ -122,9 +122,9 @@ public class ReceiverConnectionAuthenticatorTest {
         receiverConnectionAuthenticator.authenticate(discoveredDevice, authenticationCallback);
 
         Mockito.verify(view, Mockito.times(1))
-                .showQRCodeGeneratorDialog(ArgumentMatchers.eq(authenticationCode)
+                .showQRCodeGeneratorFragment(ArgumentMatchers.eq(authenticationCode)
                         , ArgumentMatchers.eq(deviceName)
-                        , Mockito.any(QRCodeGeneratorDialog.QRCodeAuthenticationCallback.class));
+                        , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
     }
 
     @Test
@@ -149,15 +149,15 @@ public class ReceiverConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback = invocation.getArgument(2);
-                qrCodeAuthenticationCallback.onAccepted(Mockito.mock(DialogInterface.class));
+                QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback = invocation.getArgument(2);
+                qrCodeGeneratorCallback.onAccepted(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
                 .when(view)
-                .showQRCodeGeneratorDialog(Mockito.anyString()
+                .showQRCodeGeneratorFragment(Mockito.anyString()
                         , Mockito.anyString()
-                        , Mockito.any(QRCodeGeneratorDialog.QRCodeAuthenticationCallback.class));
+                        , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice("id", connectionInfo);
         BaseSyncConnectionAuthenticator.AuthenticationCallback authenticationCallback = Mockito.mock(BaseSyncConnectionAuthenticator.AuthenticationCallback.class);
@@ -190,15 +190,15 @@ public class ReceiverConnectionAuthenticatorTest {
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback = invocation.getArgument(2);
-                qrCodeAuthenticationCallback.onRejected(Mockito.mock(DialogInterface.class));
+                QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback = invocation.getArgument(2);
+                qrCodeGeneratorCallback.onRejected(Mockito.mock(DialogInterface.class));
                 return null;
             }
         })
                 .when(view)
-                .showQRCodeGeneratorDialog(Mockito.anyString()
+                .showQRCodeGeneratorFragment(Mockito.anyString()
                         , Mockito.anyString()
-                        , Mockito.any(QRCodeGeneratorDialog.QRCodeAuthenticationCallback.class));
+                        , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
 
         DiscoveredDevice discoveredDevice = new DiscoveredDevice("id", connectionInfo);
         BaseSyncConnectionAuthenticator.AuthenticationCallback authenticationCallback = Mockito.mock(BaseSyncConnectionAuthenticator.AuthenticationCallback.class);

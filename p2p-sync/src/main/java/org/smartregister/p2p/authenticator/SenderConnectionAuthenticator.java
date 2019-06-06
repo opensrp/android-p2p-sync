@@ -3,14 +3,12 @@ package org.smartregister.p2p.authenticator;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.util.SparseArray;
-import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.vision.barcode.Barcode;
 
-import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 /**
@@ -29,14 +27,12 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 && !discoveredDevice.getConnectionInfo().isIncomingConnection()) {
             final ConnectionInfo connectionInfo = discoveredDevice.getConnectionInfo();
 
-            getPresenter().getView().showQRCodeScanningDialog(new QRCodeScanningDialog.QRCodeScanDialogCallback() {
+            getPresenter().getView().showQRCodeScanningFragment(new QRCodeScanningFragment.QRCodeScanDialogCallback() {
                 @Override
-                public void qrCodeScanned(final @NonNull SparseArray<Barcode> qrCodeResult, final @NonNull DialogInterface dialogInterface) {
+                public void qrCodeScanned(final @NonNull SparseArray<Barcode> qrCodeResult) {
                     getPresenter().getView().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            dialogInterface.dismiss();
-
                             String authenticationCode = connectionInfo.getAuthenticationToken();
                             boolean authenticationCodeFound = false;
 
@@ -47,31 +43,24 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                                 }
                             }
 
-                            String message = getPresenter().getView()
-                                    .getString(R.string.device_authentication_failed);
-
                             if (authenticationCodeFound) {
-                                message = getPresenter().getView()
-                                        .getString(R.string.device_authenticated_successfully);
                                 authenticationCallback.onAuthenticationSuccessful();
                             } else {
                                 authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
                             }
 
-                            getPresenter().getView().showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
+                            //getPresenter().getView().showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
                         }
                     });
                 }
 
                 @Override
-                public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
-                    dialogInterface.dismiss();
-                    authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
+                public void onErrorOccurred(@NonNull Exception e) {
+
                 }
 
                 @Override
-                public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
-                    dialogInterface.dismiss();
+                public void onSkipClicked() {
                     getPresenter().getView().showConnectionAcceptDialog(discoveredDevice.getEndpointName(), connectionInfo.getAuthenticationToken(), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
