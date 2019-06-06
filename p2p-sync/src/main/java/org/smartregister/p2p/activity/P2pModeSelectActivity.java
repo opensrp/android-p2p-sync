@@ -33,11 +33,11 @@ import com.google.android.gms.tasks.Task;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
-import org.smartregister.p2p.dialog.QRCodeScanningDialog;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
+import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
-import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
@@ -68,7 +68,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     private ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers = new ArrayList<>();
 
     private P2PModeSelectFragment p2PModeSelectFragment;
-    private SyncProgressDialog syncProgressDialog;
+    private SyncProgressFragment syncProgressFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,19 +140,26 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showSyncProgressDialog(@NonNull String title, @NonNull SyncProgressDialog.SyncProgressDialogCallback syncProgressDialogCallback) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        syncProgressDialog = SyncProgressDialog.create(title);
-        syncProgressDialog.setSyncProgressDialogCallback(syncProgressDialogCallback);
+    public void showSyncProgressFragment(@NonNull String title, @NonNull SyncProgressFragment.SyncProgressDialogCallback syncProgressDialogCallback) {
+        syncProgressFragment = SyncProgressFragment.create(title);
+        syncProgressFragment.setSyncProgressDialogCallback(syncProgressDialogCallback);
 
-        syncProgressDialog.show(fragmentManager, Constants.Dialog.SYNC_PROGRESS_DIALOG);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncProgressFragment);
+
+        // Commit the transaction
+        transaction.commit();
+
     }
 
     @Override
     public void updateProgressDialog(@NonNull String progress, @NonNull String summary) {
-        if (syncProgressDialog != null) {
-            syncProgressDialog.setProgressText(progress);
-            syncProgressDialog.setSummaryText(summary);
+        if (syncProgressFragment != null) {
+            syncProgressFragment.setProgressText(progress);
+            syncProgressFragment.setSummaryText(summary);
         } else {
             Timber.e("Could not update progress dialog with %s/%s because sync progress dialog is null", progress, summary);
         }
@@ -160,8 +167,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public void updateProgressDialog(int progress) {
-        if (syncProgressDialog != null) {
-            syncProgressDialog.setProgress(progress);
+        if (syncProgressFragment != null) {
+            syncProgressFragment.setProgress(progress);
         } else {
             Timber.e("Could not update progress dialog to %d because sync progress dialog is null", progress);
         }
@@ -169,7 +176,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     @Override
     public boolean removeSyncProgressDialog() {
-        syncProgressDialog = null;
+        syncProgressFragment = null;
         return removeDialog(Constants.Dialog.SYNC_PROGRESS_DIALOG);
     }
 
@@ -223,24 +230,36 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showQRCodeScanningDialog(@NonNull QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        QRCodeScanningDialog newFragment = new QRCodeScanningDialog();
+    public void showQRCodeScanningFragment(@NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
+        QRCodeScanningFragment newFragment = new QRCodeScanningFragment();
         newFragment.setOnQRRecognisedListener(qrCodeScanDialogCallback);
 
-        newFragment.show(fragmentManager, Constants.Dialog.QR_CODE_SCANNING);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment);
+
+        // Commit the transaction
+        transaction.commit();
     }
 
     @Override
-    public void showQRCodeGeneratorDialog(@NonNull String authenticationCode, @NonNull String deviceName
-            , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        QRCodeGeneratorDialog newFragment = new QRCodeGeneratorDialog();
+    public void showQRCodeGeneratorFragment(@NonNull String authenticationCode, @NonNull String deviceName
+            , @NonNull QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback) {
+        QRCodeGeneratorFragment newFragment = new QRCodeGeneratorFragment();
         newFragment.setAuthenticationCode(authenticationCode);
         newFragment.setDeviceName(deviceName);
-        newFragment.setQrCodeAuthenticationCallback(qrCodeAuthenticationCallback);
+        newFragment.setQrCodeGeneratorCallback(qrCodeGeneratorCallback);
 
-        newFragment.show(fragmentManager, Constants.Dialog.AUTHENTICATION_QR_CODE_GENERATOR);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment);
+
+        // Commit the transaction
+        transaction.commit();
     }
 
     @Override
@@ -435,6 +454,16 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                     }
                 })
                 .show();
+    }
+
+    @Override
+    public void showConnectingDialog() {
+
+    }
+
+    @Override
+    public void removeConnectingDialog() {
+
     }
 
     @Override

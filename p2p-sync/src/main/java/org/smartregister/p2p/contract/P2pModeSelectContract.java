@@ -11,9 +11,9 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
-import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
-import org.smartregister.p2p.dialog.QRCodeScanningDialog;
-import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
+import org.smartregister.p2p.fragment.QRCodeScanningFragment;
+import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -37,7 +37,7 @@ public interface P2pModeSelectContract {
 
         void showAdvertisingProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
-        void showSyncProgressDialog(@NonNull String title, @NonNull SyncProgressDialog.SyncProgressDialogCallback syncProgressDialogCallback);
+        void showSyncProgressFragment(@NonNull String title, @NonNull SyncProgressFragment.SyncProgressDialogCallback syncProgressDialogCallback);
 
         void updateProgressDialog(@NonNull String progress, @NonNull String summary);
 
@@ -53,13 +53,17 @@ public interface P2pModeSelectContract {
 
         boolean removeDiscoveringProgressDialog();
 
-        void showQRCodeScanningDialog(@NonNull QRCodeScanningDialog.QRCodeScanDialogCallback qrCodeScanDialogCallback);
+        void showQRCodeScanningFragment(@NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback);
 
-        void showQRCodeGeneratorDialog(@NonNull String authenticationCode, @NonNull String deviceName
-                , @NonNull QRCodeGeneratorDialog.QRCodeAuthenticationCallback qrCodeAuthenticationCallback);
+        void showQRCodeGeneratorFragment(@NonNull String authenticationCode, @NonNull String deviceName
+                , @NonNull QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback);
 
         void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
                 , @NonNull DialogInterface.OnClickListener onClickListener);
+
+        void showConnectingDialog();
+
+        void removeConnectingDialog();
 
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
@@ -120,6 +124,8 @@ public interface P2pModeSelectContract {
         void rejectDeviceOnAuthentication(@NonNull String endpointId);
 
         void disconnectAndReset(@NonNull String endpointId);
+
+        void startTransfer();
     }
 
     interface ReceiverPresenter extends BasePresenter {

@@ -30,8 +30,8 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
-import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
+import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
@@ -392,9 +392,9 @@ public class P2PReceiverPresenterTest {
                 .removeAdvertisingProgressDialog();
 
         Mockito.verify(view, Mockito.times(1))
-                .showQRCodeGeneratorDialog(ArgumentMatchers.eq(authenticationCode)
+                .showQRCodeGeneratorFragment(ArgumentMatchers.eq(authenticationCode)
                         , ArgumentMatchers.eq(deviceName)
-                        , Mockito.any(QRCodeGeneratorDialog.QRCodeAuthenticationCallback.class));
+                        , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
     }
 
     @Test
@@ -592,7 +592,7 @@ public class P2PReceiverPresenterTest {
         p2PReceiverPresenter.onConnectionAuthorized();
 
         Mockito.verify(view, Mockito.times(1))
-                .showSyncProgressDialog(Mockito.eq(view.getString(R.string.receiving_data)), Mockito.any(SyncProgressDialog.SyncProgressDialogCallback.class));
+                .showSyncProgressFragment(Mockito.eq(view.getString(R.string.receiving_data)), Mockito.any(SyncProgressFragment.SyncProgressDialogCallback.class));
     }
 
     @Test

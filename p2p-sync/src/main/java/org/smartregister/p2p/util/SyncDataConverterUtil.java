@@ -36,15 +36,18 @@ public class SyncDataConverterUtil {
     @NonNull
     public static String generateSummaryReport(@NonNull Context context, @Nullable HashMap<String, Integer> transferItems) {
         String transferSummary = context.getString(R.string.transfer_summary_content);
+
         if (transferItems != null) {
             StringBuilder stringBuilder = new StringBuilder();
+            int total = 0;
             for (String key: transferItems.keySet()) {
-                stringBuilder.append(String.format(Locale.US, "\n%s: %,d records", key, transferItems.get(key)));
+                total += transferItems.get(key);
+
             }
 
-            return String.format(transferSummary, stringBuilder.toString());
+            return String.format(transferSummary, String.format(Locale.US, "\n%,d records", total));
         }
 
-        return String.format(transferSummary, "\n0 Items");
+        return String.format(transferSummary, "\n0 records transferred");
     }
 }

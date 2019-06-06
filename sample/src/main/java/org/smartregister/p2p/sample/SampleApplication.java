@@ -21,10 +21,13 @@ public class SampleApplication extends Application implements P2PAuthorizationSe
     @Override
     public void onCreate() {
         super.onCreate();
-        P2PLibrary.init(new P2PLibrary.Options(this
+        P2PLibrary.Options options = new P2PLibrary.Options(this
                 , "p92ksdicsdj$*Dj"
                 , String.format("%s %s", Build.MANUFACTURER, Build.MODEL)
-                , this, new SampleReceiverDao(), new SampleSenderDao()));
+                , this, new SampleReceiverDao(), new SampleSenderDao());
+
+        options.setBatchSize(100);
+        P2PLibrary.init(options);
     }
 
     @Override

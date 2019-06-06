@@ -1,0 +1,100 @@
+package org.smartregister.p2p.dialog;
+
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import org.smartregister.p2p.R;
+
+/**
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
+ */
+
+public class SyncProgressFragment extends Fragment {
+
+    private SyncProgressDialogCallback syncProgressDialogCallback;
+
+    private ProgressBar progressBar;
+    private TextView progressTextView;
+    private TextView summaryTextView;
+    private TextView startingTextView;
+    private String title;
+
+    public static SyncProgressFragment create(@NonNull String title) {
+        SyncProgressFragment syncProgressFragment = new SyncProgressFragment();
+        syncProgressFragment.title = title;
+
+        return syncProgressFragment;
+    }
+
+    public SyncProgressFragment() {
+    }
+
+    public void setSummaryText(@NonNull String summaryText) {
+        if (summaryTextView != null) {
+            startingTextView.setVisibility(View.GONE);
+            summaryTextView.setText(summaryText);
+        }
+    }
+
+    public void setProgressText(@NonNull String progressText) {
+        if (progressTextView != null) {
+            startingTextView.setVisibility(View.GONE);
+            progressTextView.setText(progressText);
+        }
+    }
+
+    public void setProgress(int progress) {
+        if (progressBar != null) {
+            if (progress > -1) {
+                progressBar.setIndeterminate(false);
+                progressBar.setProgress(progress);
+            } else {
+                progressBar.setIndeterminate(true);
+            }
+        }
+    }
+
+    public void setSyncProgressDialogCallback(@NonNull SyncProgressDialogCallback syncProgressDialogCallback) {
+        this.syncProgressDialogCallback = syncProgressDialogCallback;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.dialog_sync_progress, container, false);
+
+        progressBar = view.findViewById(R.id.pb_syncProgressDialog_progressBar);
+        progressTextView = view.findViewById(R.id.tv_syncProgressDialog_progressText);
+        summaryTextView = view.findViewById(R.id.tv_syncProgressDialog_summaryText);
+        startingTextView = view.findViewById(R.id.tv_syncProgressDialog_startingText);
+
+        return view;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (syncProgressDialogCallback != null) {
+            syncProgressDialogCallback.onCancelClicked();
+        }
+
+        super.onDestroy();
+    }
+
+    public void closeFragment() {
+        if (getActivity() != null) {
+            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        }
+    }
+
+    public interface SyncProgressDialogCallback {
+
+        void onCancelClicked();
+    }
+}

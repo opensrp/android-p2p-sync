@@ -21,7 +21,7 @@ import org.smartregister.p2p.authenticator.ReceiverConnectionAuthenticator;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.SyncProgressDialog;
+import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.AppDatabase;
@@ -369,6 +369,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         disconnectAndReset(endpointId, true);
     }
 
+    @Override
+    public void startTransfer() {
+
+    }
+
     private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails, final @NonNull String endpointId) {
         Tasker.run(new Callable<SendingDevice>() {
             @Override
@@ -564,9 +569,9 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
 
-        view.showSyncProgressDialog(view.getString(R.string.receiving_data), new SyncProgressDialog.SyncProgressDialogCallback() {
+        view.showSyncProgressFragment(view.getString(R.string.receiving_data), new SyncProgressFragment.SyncProgressDialogCallback() {
             @Override
-            public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+            public void onCancelClicked() {
                 if (interactor.getCurrentEndpoint() != null) {
                     onSyncFailed(new Exception("User cancelled sync process"));
                 } else {

@@ -1,10 +1,9 @@
 package org.smartregister.p2p.authenticator;
 
-import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.QRCodeGeneratorDialog;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
 /**
@@ -22,18 +21,20 @@ public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthentic
         if (discoveredDevice.getConnectionInfo() != null
                 && discoveredDevice.getConnectionInfo().isIncomingConnection()) {
 
-            getPresenter().getView().showQRCodeGeneratorDialog(discoveredDevice.getConnectionInfo().getAuthenticationToken()
+            getPresenter().getView().showQRCodeGeneratorFragment(discoveredDevice.getConnectionInfo().getAuthenticationToken()
                     , discoveredDevice.getEndpointName()
-                    , new QRCodeGeneratorDialog.QRCodeAuthenticationCallback() {
-                @Override
-                public void onAccepted(@NonNull DialogInterface dialogInterface) {
-                    authenticationCallback.onAuthenticationSuccessful();
-                }
+                    , new QRCodeGeneratorFragment.QRCodeGeneratorCallback() {
 
-                @Override
-                public void onRejected(@NonNull DialogInterface dialogInterface) {
-                    authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
-                }
+                        @Override
+                        public void onSkipped() {
+                            //authenticationCallback.onAuthenticationCancelled("Skip was clicked");
+                            authenticationCallback.onAuthenticationSuccessful();
+                        }
+
+                        @Override
+                        public void onErrorOccurred(@NonNull Exception e) {
+                            authenticationCallback.onAuthenticationFailed(e);
+                        }
             });
 
         } else {
