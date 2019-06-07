@@ -152,7 +152,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         // Commit the transaction
         transaction.commit();
-
     }
 
     @Override

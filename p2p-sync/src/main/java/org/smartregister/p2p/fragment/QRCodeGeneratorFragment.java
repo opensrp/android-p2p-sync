@@ -51,19 +51,7 @@ public class QRCodeGeneratorFragment extends Fragment {
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
         Bitmap bitmap = null;
         try {
-            int screenHeight = getResources().getDisplayMetrics().heightPixels;
-            int screenWidth = getResources().getDisplayMetrics().widthPixels;
-
             int barcodeSize = 1200;
-
-            /*if (screenHeight/2 < barcodeSize) {
-                barcodeSize = screenHeight/2;
-            }
-
-            if (screenWidth/2 < barcodeSize) {
-                barcodeSize = screenWidth/2;
-            }*/
-
             bitmap = barcodeEncoder.encodeBitmap(authenticationCode, BarcodeFormat.QR_CODE, barcodeSize, barcodeSize);
 
             ImageView imageViewQrCode = view.findViewById(R.id.iv_qrCodeGenDialog_qrCode);
