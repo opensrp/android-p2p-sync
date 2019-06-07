@@ -82,7 +82,7 @@
     <string name="log_onconnectionaccepted_without_peer_device">onConnectionAccepted to endpoint %s without a peer device</string>
     <string name="onconnectionunknownerror_without_peer_device">onConnectionUnknownError to endpoint %s without a peer device</string>
     <string name="log_onauthenticationsuccessful_without_peer_device">onAuthenticationSuccessful without a peer device</string>
-    <string name="transfer_summary_content">Transfer Summary: %s\n\n</string>
+    <string name="transfer_summary_content">%,d records %s</string>
     <string name="unknown">Unknown</string>
     <string name="transfer_records_track_log_format">%s|%s|%s|%d|%s</string>
     <string name="transfer_records_track_log_hr_format">Device %s %s %,d of %s. More device info(%s)</string>
@@ -90,6 +90,7 @@
     <string name="received">Received</string>
     <string name="receiving_progress_text">Transferring %,d records</string>
     <string name="sending_progress_text">Transferring %,d records</string>
-    <string name="transfer_failed">Transfer failed</string>
+    <string name="connection_lost">Connection lost</string>
     <string name="skip">SKIP</string>
+    <string name="connection_lost_transfer_summary">Please make sure \"%s\'s device\" is turned on and in range. %s records were transferred. Reconnect to transfer the remaining data.</string>
 </resources>

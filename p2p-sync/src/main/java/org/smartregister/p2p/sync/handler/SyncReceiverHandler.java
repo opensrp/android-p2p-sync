@@ -342,12 +342,13 @@ public class SyncReceiverHandler extends BaseSyncHandler {
     }
 
     protected void showSyncCompleteFragment(boolean isSuccess) {
-        receiverPresenter.getView().showSyncCompleteFragment(isSuccess, new SyncCompleteTransferFragment.OnCloseClickListener() {
+        String peerDeviceName = receiverPresenter.getCurrentPeerDevice() != null ? receiverPresenter.getCurrentPeerDevice().getEndpointName() : null;
+        receiverPresenter.getView().showSyncCompleteFragment(isSuccess, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
             @Override
             public void onCloseClicked() {
                 receiverPresenter.getView().showP2PModeSelectFragment();
             }
-        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), getTransferProgress()));
+        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), false, getTransferProgress()));
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {

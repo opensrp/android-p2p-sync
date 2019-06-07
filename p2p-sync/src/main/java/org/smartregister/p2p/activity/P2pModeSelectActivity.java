@@ -185,10 +185,11 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showSyncCompleteFragment(boolean isSuccess, @NonNull SyncCompleteTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
+    public void showSyncCompleteFragment(boolean isSuccess, @Nullable String deviceName, @NonNull SyncCompleteTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport) {
         SyncCompleteTransferFragment syncCompleteTransferFragment = new SyncCompleteTransferFragment();
         syncCompleteTransferFragment.setSuccess(isSuccess);
         syncCompleteTransferFragment.setOnCloseClickListener(onCloseClickListener);
+        syncCompleteTransferFragment.setDeviceName(deviceName);
         syncCompleteTransferFragment.setTransferSummaryReport(summaryReport);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 

@@ -607,12 +607,13 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         }
 
         if (syncReceiverHandler != null) {
-            getView().showSyncCompleteFragment(false, new SyncCompleteTransferFragment.OnCloseClickListener() {
+            String peerDeviceName = getCurrentPeerDevice() != null ? getCurrentPeerDevice().getEndpointName() : null;
+            getView().showSyncCompleteFragment(false, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
                 @Override
                 public void onCloseClicked() {
                     getView().showP2PModeSelectFragment();
                 }
-            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), syncReceiverHandler.getTransferProgress()));
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), false, syncReceiverHandler.getTransferProgress()));
         }
 
         disconnectAndReset(interactor.getCurrentEndpoint(), false);

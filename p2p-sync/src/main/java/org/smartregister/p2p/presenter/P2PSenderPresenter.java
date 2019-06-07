@@ -176,12 +176,13 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         }
 
         if (syncSenderHandler != null) {
-            getView().showSyncCompleteFragment(false, new SyncCompleteTransferFragment.OnCloseClickListener() {
+            String peerDeviceName = getCurrentPeerDevice() != null ? getCurrentPeerDevice().getEndpointName() : null;
+            getView().showSyncCompleteFragment(false, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
                 @Override
                 public void onCloseClicked() {
                     getView().showP2PModeSelectFragment();
                 }
-            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), syncSenderHandler.getTransferProgress()));
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), true, syncSenderHandler.getTransferProgress()));
 
             syncSenderHandler = null;
         }
@@ -444,12 +445,12 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
                 disconnectAndReset(currentReceiver.getEndpointId(), false);
-                view.showSyncCompleteFragment(true, new SyncCompleteTransferFragment.OnCloseClickListener() {
+                view.showSyncCompleteFragment(true, currentReceiver.getEndpointName(), new SyncCompleteTransferFragment.OnCloseClickListener() {
                     @Override
                     public void onCloseClicked() {
                         view.showP2PModeSelectFragment();
                     }
-                }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), transferItems));
+                }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), true, transferItems));
                 transferItems = null;
             }
         } else {

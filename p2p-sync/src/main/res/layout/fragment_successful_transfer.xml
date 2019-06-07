@@ -9,7 +9,7 @@
         android:layout_width="1dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.3"/>
+        app:layout_constraintGuide_percent="0.2"/>
 
     <ImageView
         android:id="@+id/iv_successfulTransferFragment_successMark"
@@ -28,8 +28,8 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:textColor="@android:color/black"
-        android:textSize="21sp"
-        android:layout_marginTop="20dp"
+        android:textSize="26sp"
+        android:layout_marginTop="40dp"
         android:text="@string/transfer_successful"/>
 
     <TextView
@@ -40,25 +40,24 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:textColor="@android:color/black"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="15dp"
         android:textSize="21sp"
-
+        android:paddingLeft="40dp"
+        android:paddingRight="40dp"
+        android:gravity="center"
         android:text="Transfer report"/>
 
     <Button
         android:id="@+id/btn_successfulTransferFragment_closeBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/close"
+        android:text="@android:string/ok"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         android:layout_marginBottom="20dp"
-        android:textColor="@android:color/white"
         android:textSize="19sp"
-        android:background="@color/btn_blue"/>
+        style="@style/P2pModeSelect.Buttons.Cornered"
+        app:layout_constraintRight_toRightOf="@id/tv_successfulTransferFragment_transferSuccessText"
+        app:layout_constraintLeft_toLeftOf="@id/tv_successfulTransferFragment_transferSuccessText"/>
 
 
 </android.support.constraint.ConstraintLayout>

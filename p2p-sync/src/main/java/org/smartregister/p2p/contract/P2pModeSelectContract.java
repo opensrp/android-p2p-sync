@@ -47,7 +47,7 @@ public interface P2pModeSelectContract {
 
         boolean removeAdvertisingProgressDialog();
 
-        void showSyncCompleteFragment(boolean isSuccess, @NonNull SyncCompleteTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport);
+        void showSyncCompleteFragment(boolean isSuccess, @Nullable String deviceName, @NonNull SyncCompleteTransferFragment.OnCloseClickListener onCloseClickListener, @NonNull String summaryReport);
 
         void showDiscoveringProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
