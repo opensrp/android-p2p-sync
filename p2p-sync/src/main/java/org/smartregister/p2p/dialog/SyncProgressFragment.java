@@ -23,7 +23,6 @@ public class SyncProgressFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView progressTextView;
     private TextView summaryTextView;
-    private TextView startingTextView;
     private String title;
 
     public static SyncProgressFragment create(@NonNull String title) {
@@ -38,14 +37,12 @@ public class SyncProgressFragment extends Fragment {
 
     public void setSummaryText(@NonNull String summaryText) {
         if (summaryTextView != null) {
-            startingTextView.setVisibility(View.GONE);
             summaryTextView.setText(summaryText);
         }
     }
 
     public void setProgressText(@NonNull String progressText) {
         if (progressTextView != null) {
-            startingTextView.setVisibility(View.GONE);
             progressTextView.setText(progressText);
         }
     }
@@ -73,7 +70,11 @@ public class SyncProgressFragment extends Fragment {
         progressBar = view.findViewById(R.id.pb_syncProgressDialog_progressBar);
         progressTextView = view.findViewById(R.id.tv_syncProgressDialog_progressText);
         summaryTextView = view.findViewById(R.id.tv_syncProgressDialog_summaryText);
-        startingTextView = view.findViewById(R.id.tv_syncProgressDialog_startingText);
+        TextView progressTitleTextView = view.findViewById(R.id.tv_syncProgressDialog_startingText);
+
+        if (progressTitleTextView != null) {
+            progressTitleTextView.setText(title);
+        }
 
         return view;
     }
