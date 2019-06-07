@@ -23,6 +23,9 @@ public class SyncCompleteTransferFragment extends Fragment {
     private String transferSummary;
     private boolean isSuccess;
 
+    @Nullable
+    private String deviceName;
+
     public void setSuccess(boolean success) {
         isSuccess = success;
     }
@@ -35,19 +38,35 @@ public class SyncCompleteTransferFragment extends Fragment {
         this.onCloseClickListener = onCloseClickListener;
     }
 
+    public void setDeviceName(@Nullable String deviceName) {
+        this.deviceName = deviceName;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
-        ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary))
-                .setText(transferSummary);
+        TextView transferSummary = (TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary);
+
+        if (isSuccess) {
+            transferSummary.setText(this.transferSummary);
+        } else {
+            String[] summarySplit = this.transferSummary.split(" ");
+            String recordsSent = "0";
+
+            if (summarySplit.length > 0) {
+                recordsSent = summarySplit[0];
+            }
+
+            transferSummary.setText(String.format(getString(R.string.connection_lost_transfer_summary), deviceName, recordsSent));
+        }
 
         if (!isSuccess) {
             ImageView imageView = view.findViewById(R.id.iv_successfulTransferFragment_successMark);
             imageView.setImageResource(R.drawable.ic_fail);
 
             ((TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSuccessText))
-                    .setText(R.string.transfer_failed);
+                    .setText(R.string.connection_lost);
         }
 
         Button closeBtn = view.findViewById(R.id.btn_successfulTransferFragment_closeBtn);

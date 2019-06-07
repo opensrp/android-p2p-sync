@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Locale;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 02/04/2019
@@ -34,20 +33,20 @@ public class SyncDataConverterUtil {
     }
 
     @NonNull
-    public static String generateSummaryReport(@NonNull Context context, @Nullable HashMap<String, Integer> transferItems) {
+    public static String generateSummaryReport(@NonNull Context context, boolean sent, @Nullable HashMap<String, Integer> transferItems) {
         String transferSummary = context.getString(R.string.transfer_summary_content);
 
+        int total = 0;
         if (transferItems != null) {
-            StringBuilder stringBuilder = new StringBuilder();
-            int total = 0;
             for (String key: transferItems.keySet()) {
-                total += transferItems.get(key);
+                Integer count = transferItems.get(key);
+                if (count != null) {
+                    total += count;
+                }
 
             }
-
-            return String.format(transferSummary, String.format(Locale.US, "\n%,d records", total));
         }
 
-        return String.format(transferSummary, "\n0 records transferred");
+        return String.format(transferSummary, total, sent ? "sent" : "received");
     }
 }
