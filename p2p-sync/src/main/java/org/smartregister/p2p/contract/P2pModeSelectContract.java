@@ -53,7 +53,7 @@ public interface P2pModeSelectContract {
 
         boolean removeDiscoveringProgressDialog();
 
-        void showQRCodeScanningFragment(@NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback);
+        void showQRCodeScanningFragment(@NonNull String deviceName, @NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback);
 
         void showQRCodeGeneratorFragment(@NonNull String authenticationCode, @NonNull String deviceName
                 , @NonNull QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback);

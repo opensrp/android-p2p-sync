@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.google.android.gms.vision.barcode.Barcode;
 
@@ -23,6 +24,13 @@ public class QRCodeScanningFragment extends Fragment {
 
     private QRCodeScanDialogCallback qrCodeScanDialogCallback;
     private QRCodeScannerView qrCodeScannerView;
+    private String deviceName;
+
+    public static QRCodeScanningFragment create(@NonNull String deviceName) {
+        QRCodeScanningFragment qrCodeScanningFragment = new QRCodeScanningFragment();
+        qrCodeScanningFragment.deviceName = deviceName;
+        return qrCodeScanningFragment;
+    }
 
     public QRCodeScanningFragment() {
     }
@@ -58,12 +66,25 @@ public class QRCodeScanningFragment extends Fragment {
             }
         });
 
+        TextView scanningInstructions = view.findViewById(R.id.tv_qrCodeScanningDialog_tv);
+        scanningInstructions.setText(String.format(getString(R.string.qr_code_scanning_dialog_message), deviceName));
+
         return view;
     }
 
     private void closeFragment() {
         if (getActivity() != null) {
             getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+
+        if (qrCodeScannerView != null) {
+            qrCodeScannerView.onResume();
         }
     }
 

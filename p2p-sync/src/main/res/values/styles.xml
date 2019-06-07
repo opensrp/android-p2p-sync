@@ -18,4 +18,12 @@
         <item name="layout_constraintStart_toStartOf">parent</item>
         <item name="layout_constraintEnd_toEndOf">parent</item>
     </style>
+
+    <style name="P2pModeSelect.Buttons.MyBorderlessButton" parent="@style/Widget.AppCompat.Button.Borderless.Colored">
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:paddingRight">20dp</item>
+        <item name="android:paddingLeft">20dp</item>
+        <item name="android:minWidth">0dp</item>
+    </style>
 </resources>
