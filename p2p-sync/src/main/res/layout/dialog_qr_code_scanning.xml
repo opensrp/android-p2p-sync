@@ -4,24 +4,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <org.smartregister.p2p.view.QRCodeScannerView
+        android:id="@+id/bsv_qrCodeScanningDialog_barcodeScanner"
+        android:layout_above="@id/tv_qrCodeScanningDialog_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"/>
+
+    <TextView
+        android:id="@+id/tv_qrCodeScanningDialog_tv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_centerInParent="true">
-
-        <org.smartregister.p2p.view.QRCodeScannerView
-            android:id="@+id/bsv_qrCodeScanningDialog_barcodeScanner"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="20dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text= "@string/qr_code_scanning_dialog_message"/>
-
-    </LinearLayout>
+        android:text= "@string/qr_code_scanning_dialog_message"
+        android:layout_centerInParent="true"
+        android:layout_margin="20dp"
+        android:layout_marginBottom="40dp"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:layout_above="@id/btn_qrCodeScanningDialog_skipBtn"/>
 
     <Button
         android:id="@+id/btn_qrCodeScanningDialog_skipBtn"
@@ -30,7 +32,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="20dp"
-        android:layout_marginRight="20dp"
+        style="@style/P2pModeSelect.Buttons.MyBorderlessButton"
         android:text="@string/skip"/>
 
 </RelativeLayout>

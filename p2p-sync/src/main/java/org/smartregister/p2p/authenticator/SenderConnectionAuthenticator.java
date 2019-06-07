@@ -27,7 +27,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 && !discoveredDevice.getConnectionInfo().isIncomingConnection()) {
             final ConnectionInfo connectionInfo = discoveredDevice.getConnectionInfo();
 
-            getPresenter().getView().showQRCodeScanningFragment(new QRCodeScanningFragment.QRCodeScanDialogCallback() {
+            getPresenter().getView().showQRCodeScanningFragment(discoveredDevice.getEndpointName(), new QRCodeScanningFragment.QRCodeScanDialogCallback() {
                 @Override
                 public void qrCodeScanned(final @NonNull SparseArray<Barcode> qrCodeResult) {
                     getPresenter().getView().runOnUiThread(new Runnable() {

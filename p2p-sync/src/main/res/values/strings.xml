@@ -6,7 +6,7 @@
     <string name="location_service_disabled">Location service disabled</string>
     <string name="file_data_sharing_will_not_work_without_location"><![CDATA[The file and data sharing feature will not work without location. To change this, go to Settings > Location]]></string>
     <string name="searching_for_device_to_connect_to">Searching for a device(recipient) to send data to&#8230;</string>
-    <string name="qr_code_scanning_dialog_message">Please scan the QR Code shown on the receiving device \"%s\'s\", to start the transfer</string>
+    <string name="qr_code_scanning_dialog_message">Scan the QR Code on the receiving device, \"%s\'s device\", to confirm the correct device</string>
     <string name="you_are_connected_to_receiver">You are now connected to the receiver %s</string>
     <string name="you_are_connected_to_sender">You are now connected to the sender %s</string>
     <string name="receiver_rejected_the_connection">The receiver rejected the connection</string>

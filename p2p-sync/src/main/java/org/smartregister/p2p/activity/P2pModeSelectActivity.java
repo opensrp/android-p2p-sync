@@ -33,12 +33,12 @@ import com.google.android.gms.tasks.Task;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
-import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.dialog.SyncProgressFragment;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
+import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
+import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.handler.OnActivityResultHandler;
@@ -219,7 +219,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(tag);
 
-        if (fragment != null && fragment instanceof DialogFragment) {
+        if (fragment instanceof DialogFragment) {
             ((DialogFragment) fragment)
                     .dismiss();
 
@@ -230,8 +230,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showQRCodeScanningFragment(@NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
-        QRCodeScanningFragment newFragment = new QRCodeScanningFragment();
+    public void showQRCodeScanningFragment(@NonNull String deviceName, @NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
+        QRCodeScanningFragment newFragment = QRCodeScanningFragment.create(deviceName);
         newFragment.setOnQRRecognisedListener(qrCodeScanDialogCallback);
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
