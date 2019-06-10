@@ -82,7 +82,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             long payloadId = update.getPayloadId();
             SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
             if (syncPackageManifest != null) {
-                receiverPresenter.getView().updateProgressDialog(
+                receiverPresenter.getView().updateProgressFragment(
                         ((int) update.getBytesTransferred())/syncPackageManifest.getRecordsSize());
             }
         }
@@ -95,7 +95,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 awaitingPayloadManifests.put(syncPackageManifest.getPayloadId(), syncPackageManifest);
 
                 awaitingManifestReceipt = false;
-                receiverPresenter.getView().updateProgressDialog(String.format(receiverPresenter.getView().getString(R.string.receiving_progress_text)
+                receiverPresenter.getView().updateProgressFragment(String.format(receiverPresenter.getView().getString(R.string.receiving_progress_text)
                         , syncPackageManifest.getRecordsSize()), "");
             } catch (JsonParseException e) {
                 Timber.e(e, receiverPresenter.getView().getString(R.string.log_received_invalid_manifest_from_endpoint), endpointId);
@@ -346,7 +346,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         receiverPresenter.getView().showSyncCompleteFragment(isSuccess, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
             @Override
             public void onCloseClicked() {
-                receiverPresenter.getView().showP2PModeSelectFragment();
+                receiverPresenter.getView().showP2PModeSelectFragment(true);
             }
         }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), false, getTransferProgress()));
     }

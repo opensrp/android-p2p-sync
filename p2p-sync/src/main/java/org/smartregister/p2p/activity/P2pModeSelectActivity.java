@@ -37,6 +37,7 @@ import org.smartregister.p2p.dialog.ConnectingDialog;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
+import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
 import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
@@ -84,7 +85,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         }
 
         prepareTrackingDetails();
-        showP2PModeSelectFragment();
+        showP2PModeSelectFragment(true);
     }
 
     private void prepareTrackingDetails() {
@@ -114,11 +115,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         initializePresenters();
     }
 
-    public void showP2PModeSelectFragment() {
+    public void showP2PModeSelectFragment(boolean enableButtons) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         p2PModeSelectFragment = new P2PModeSelectFragment();
+        p2PModeSelectFragment.setEnableButtons(enableButtons);
         fragmentTransaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, p2PModeSelectFragment);
         fragmentTransaction.commit();
     }
@@ -150,14 +152,14 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncProgressFragment);
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncProgressFragment, Constants.Fragment.SYNC_PROGRESS);
 
         // Commit the transaction
         transaction.commit();
     }
 
     @Override
-    public void updateProgressDialog(@NonNull String progress, @NonNull String summary) {
+    public void updateProgressFragment(@NonNull String progress, @NonNull String summary) {
         if (syncProgressFragment != null) {
             syncProgressFragment.setProgressText(progress);
             syncProgressFragment.setSummaryText(summary);
@@ -167,18 +169,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void updateProgressDialog(int progress) {
+    public void updateProgressFragment(int progress) {
         if (syncProgressFragment != null) {
             syncProgressFragment.setProgress(progress);
         } else {
             Timber.e("Could not update progress dialog to %d because sync progress dialog is null", progress);
         }
-    }
-
-    @Override
-    public boolean removeSyncProgressDialog() {
-        syncProgressFragment = null;
-        return removeDialog(Constants.Dialog.SYNC_PROGRESS_DIALOG);
     }
 
     @Override
@@ -197,7 +193,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncCompleteTransferFragment);
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncCompleteTransferFragment, Constants.Fragment.SYNC_COMPLETE);
 
         // Commit the transaction
         transaction.commit();
@@ -231,6 +227,21 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         return false;
     }
 
+    private boolean removeFragment(@NonNull String tag) {
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(tag);
+
+        if (fragment != null) {
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.remove(fragment);
+            fragmentTransaction.commit();
+
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public void showQRCodeScanningFragment(@NonNull String deviceName, @NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback) {
         QRCodeScanningFragment newFragment = QRCodeScanningFragment.create(deviceName);
@@ -240,7 +251,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment);
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment, Constants.Fragment.QR_CODE_SCANNING);
 
         // Commit the transaction
         transaction.commit();
@@ -258,7 +269,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment);
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, newFragment, Constants.Fragment.AUTHENTICATION_QR_CODE_GENERATOR);
 
         // Commit the transaction
         transaction.commit();
@@ -283,6 +294,31 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                 })
                 .setCancelable(false)
                 .show();
+    }
+
+    @Override
+    public void showErrorFragment(@NonNull String title, @NonNull String message, @Nullable ErrorFragment.OnOkClickCallback onOkClickCallback) {
+        ErrorFragment errorFragment = ErrorFragment.create(title, message);
+        errorFragment.setOnOkClickCallback(onOkClickCallback);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, errorFragment, Constants.Fragment.ERROR);
+
+        // Commit the transaction
+        transaction.commit();
+    }
+
+    @Override
+    public void removeQRCodeScanningFragment() {
+        removeFragment(Constants.Fragment.QR_CODE_SCANNING);
+    }
+
+    @Override
+    public void removeQRCodeGeneratorFragment() {
+        removeFragment(Constants.Fragment.AUTHENTICATION_QR_CODE_GENERATOR);
     }
 
     @Override

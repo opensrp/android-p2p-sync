@@ -27,7 +27,7 @@ public abstract class BaseSyncConnectionAuthenticator {
 
         void onAuthenticationSuccessful();
 
-        void onAuthenticationFailed(@NonNull Exception exception);
+        void onAuthenticationFailed(@NonNull String reason, @NonNull Exception exception);
 
         void onAuthenticationCancelled(@NonNull String reason);
     }

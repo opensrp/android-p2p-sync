@@ -26,6 +26,7 @@ import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
+import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
@@ -129,9 +130,38 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     interactor.stopDiscovering();
                     dialogInterface.dismiss();
                     view.enableSendReceiveButtons(true);
+
+                    stopConnectionTimeout();
                 }
             });
+
             interactor.startDiscovering(this);
+
+            // Start timeout
+            startConnectionTimeout(new OnConnectionTimeout() {
+                @Override
+                public void connectionTimeout(long duration, @Nullable Exception e) {
+                    if (e == null) {
+                        if (interactor.isDiscovering()) {
+                            interactor.stopDiscovering();
+                            view.removeDiscoveringProgressDialog();
+                            view.enableSendReceiveButtons(true);
+                            keepScreenOn(false);
+
+                            view.showErrorFragment(view.getString(R.string.no_nearby_devices_found)
+                                    , view.getString(R.string.make_sure_peer_device_turned_on_in_range)
+                                    , new ErrorFragment.OnOkClickCallback() {
+                                        @Override
+                                        public void onOkClicked() {
+                                            view.showP2PModeSelectFragment(true);
+                                        }
+                                    });
+                        } else {
+                            Timber.e(view.getString(R.string.log_discovering_timed_out_while_not_in_discovering_mode));
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -181,7 +211,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             getView().showSyncCompleteFragment(false, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
                 @Override
                 public void onCloseClicked() {
-                    getView().showP2PModeSelectFragment();
+                    getView().showP2PModeSelectFragment(true);
                 }
             }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), true, syncSenderHandler.getTransferProgress()));
 
@@ -202,6 +232,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onDiscoveringFailed(@NonNull Exception exception) {
+        stopConnectionTimeout();
+
         view.showToast(view.getString(R.string.error_occurred_cannot_start_sending), Toast.LENGTH_LONG);
         view.removeDiscoveringProgressDialog();
         view.enableSendReceiveButtons(true);
@@ -209,6 +241,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onDeviceFound(@NonNull final String endpointId, @NonNull final DiscoveredEndpointInfo discoveredEndpointInfo) {
+        stopConnectionTimeout();
+
         Timber.i(view.getString(R.string.log_endpoint_found)
                 , endpointId, discoveredEndpointInfo.getEndpointName(), discoveredEndpointInfo.getServiceId());
 
@@ -341,7 +375,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
-    public void onAuthenticationFailed(@NonNull Exception exception) {
+    public void onAuthenticationFailed(@NonNull String reason, @NonNull Exception exception) {
         // Reject the connection
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
@@ -349,8 +383,13 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         }
 
         view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
+        view.showErrorFragment(view.getString(R.string.connection_lost), reason, new ErrorFragment.OnOkClickCallback() {
+            @Override
+            public void onOkClicked() {
+                view.showP2PModeSelectFragment(true);
+            }
+        });
 
-        //Todo: Go back to discovering mode
         Timber.e(exception, view.getString(R.string.authentication_failed));
         // The rest will be handled in the rejectConnection callback
         // Todo: test is this is causing an error where the discovering mode can no longer be restarted
@@ -363,7 +402,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Reject the connection
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
-            interactor.rejectConnection(endpointId);
+            rejectDeviceOnAuthentication(endpointId);
+            disconnectAndReset(endpointId);
         } else {
             Timber.e("onAuthenticationCancelled was called and no peer device is connected");
         }
@@ -419,9 +459,16 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         //Todo: Go back to discovering mode
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
+            String errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
             view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
             resetState();
-            prepareForDiscovering(false);
+
+            view.showErrorFragment(view.getString(R.string.connection_lost), errorMsg, new ErrorFragment.OnOkClickCallback() {
+                @Override
+                public void onOkClicked() {
+                    view.showP2PModeSelectFragment(true);
+                }
+            });
         } else {
             Timber.e(view.getString(R.string.log_onconnectionunknownerror_without_peer_device), endpointId);
         }
@@ -429,11 +476,26 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onConnectionBroken(@NonNull String endpointId) {
-        //Todo: Show the user an error
-        //Todo: Go back to discovering mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             String errorMsg = String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId);
-            errorOccurredSync(new Exception(errorMsg));
+
+            if (connectionLevel == ConnectionLevel.SENT_RECEIVED_HISTORY) {
+                errorOccurredSync(new Exception(errorMsg));
+            } else {
+                errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
+                view.showErrorFragment(view.getString(R.string.connection_lost), errorMsg, new ErrorFragment.OnOkClickCallback() {
+                    @Override
+                    public void onOkClicked() {
+                        view.showP2PModeSelectFragment(true);
+                    }
+                });
+
+                if (getCurrentPeerDevice() != null) {
+                    interactor.disconnectFromEndpoint(getCurrentPeerDevice().getEndpointId());
+                    resetState();
+                }
+            }
+
             view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
@@ -455,11 +517,10 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     && currentReceiver != null
                     && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
-                view.removeSyncProgressDialog();
                 view.showSyncCompleteFragment(true, currentReceiver.getEndpointName(), new SyncCompleteTransferFragment.OnCloseClickListener() {
                     @Override
                     public void onCloseClicked() {
-                        view.showP2PModeSelectFragment();
+                        view.showP2PModeSelectFragment(true);
                     }
                 }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), true, transferItems));
                 transferItems = null;
@@ -534,7 +595,11 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     String command = new String(payload.asBytes());
 
                     if (command.equals(Constants.Connection.SKIP_QR_CODE_SCAN)) {
-                        getView().showSkipQRScanDialog(Constants.PeerStatus.SENDER, getCurrentPeerDevice().getEndpointName(), new SkipQRScanDialog.SkipDialogCallback() {
+                        getView().removeQRCodeScanningFragment();
+                        getView().showSkipQRScanDialog(Constants.PeerStatus.SENDER
+                                , getCurrentPeerDevice().getEndpointName()
+                                , new SkipQRScanDialog.SkipDialogCallback() {
+
                             @Override
                             public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
                                 sendConnectionAccept();
@@ -543,7 +608,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
                             @Override
                             public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
-                                onAuthenticationFailed(new Exception("User rejected the connection after receiver skipped QR Scanning"));
+                                onAuthenticationCancelled("User rejected the connection after receiver skipped QR Scanning");
                             }
                         });
                     } else if (command.equals(Constants.Connection.CONNECTION_ACCEPT)) {
@@ -615,7 +680,14 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     , currentReceiver.getEndpointName())
                     , Toast.LENGTH_LONG);
 
-            disconnectAndReset(endpointId);
+            disconnectAndReset(endpointId, false);
+
+            view.showErrorFragment(view.getString(R.string.authorization_failed), reason, new ErrorFragment.OnOkClickCallback() {
+                @Override
+                public void onOkClicked() {
+                    view.showP2PModeSelectFragment(true);
+                }
+            });
         } else {
             resetState();
             prepareForDiscovering(false);
@@ -636,7 +708,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void disconnectAndReset(@NonNull String endpointId, boolean startDiscovering) {
-        view.removeSyncProgressDialog();
 
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);

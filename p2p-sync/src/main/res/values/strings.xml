@@ -90,7 +90,7 @@
     <string name="received">Received</string>
     <string name="receiving_progress_text">Transferring %,d records</string>
     <string name="sending_progress_text">Transferring %,d records</string>
-    <string name="connection_lost">Connection lost</string>
+    <string name="connection_lost">Connection Lost</string>
     <string name="skip">SKIP</string>
     <string name="connection_lost_transfer_summary">Please make sure \"%s\'s device\" is turned on and in range. %s records were transferred. Reconnect to transfer the remaining data.</string>
     <string name="skip_qr_scan">Skip QR Scan?</string>
@@ -98,4 +98,13 @@
     <string name="skip_qr_scan_instructions_receiver">The sending device, \"%s\'s device\", chose to skip the QR scan step. Choosing skip will let the data be transferred to your device without a QR scan confirmation.</string>
     <string name="connecting">Connecting</string>
     <string name="please_wait">Please wait...</string>
+    <string name="authorization_failed">Authorization Failed</string>
+    <string name="device_information_passed_is_invalid">Device information passed is invalid</string>
+    <string name="unknown_error_occurred">An unknown error occurred</string>
+    <string name="authentication_tokens_dont_match">Authentication tokens do not match. You are connecting to the wrong device</string>
+    <string name="please_make_sure_device_is_turned_on_and_in_range">Please make sure \"%s\'s device\" is turned on and in range</string>
+    <string name="log_discovering_timed_out_while_not_in_discovering_mode">Discovering timed out and interactor was not in discovering mode</string>
+    <string name="log_advertising_timed_while_not_in_advertising_mode">Advertising timed out and interactor was not in advertising mode</string>
+    <string name="no_nearby_devices_found">No Nearby Devices Found</string>
+    <string name="make_sure_peer_device_turned_on_in_range">Please make sure the device you want to send data to is turned on and in range</string>
 </resources>

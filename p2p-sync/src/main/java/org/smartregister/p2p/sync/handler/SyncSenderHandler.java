@@ -259,8 +259,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
                             uiHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    presenter.getView().updateProgressDialog(-1);
-                                    presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
+                                    presenter.getView().updateProgressFragment(-1);
+                                    presenter.getView().updateProgressFragment(String.format(presenter.getView().getString(R.string.sending_progress_text), awaitingDataTypeRecordsBatchSize, awaitingDataTypeName), "");
                                 }
                             });
 
@@ -294,8 +294,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
                         uiHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                presenter.getView().updateProgressDialog(-1);
-                                presenter.getView().updateProgressDialog(String.format(presenter.getView().getString(R.string.sending_progress_text)
+                                presenter.getView().updateProgressFragment(-1);
+                                presenter.getView().updateProgressFragment(String.format(presenter.getView().getString(R.string.sending_progress_text)
                                         , awaitingDataTypeRecordsBatchSize), "");
                             }
                         });
@@ -385,7 +385,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     int maxSize = awaitingBytes.length;
                     int transferredSize = (int) update.getBytesTransferred();
 
-                    presenter.getView().updateProgressDialog(transferredSize/maxSize);
+                    presenter.getView().updateProgressFragment(transferredSize/maxSize);
                 }
             }
         }

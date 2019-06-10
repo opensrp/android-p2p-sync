@@ -15,14 +15,24 @@ public interface Constants {
     String RECORDS_TRACK_TAG = "ToTrack";
     String RECORDS_TRACK_TAG_HR = "ToTrackHR";
 
+    /**
+     * This timeout is for both advertising and discovering
+     */
+    long CONNECTION_TIMEOUT_SECONDS = 2 * 60;
+
     interface Dialog {
         String START_SEND_MODE_PROGRESS = "dialog_start_send_mode_progress";
         String START_RECEIVE_MODE_PROGRESS = "dialog_start_receive_mode_progress";
-        String QR_CODE_SCANNING = "qr_code_scanner";
-        String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
-        String SYNC_PROGRESS_DIALOG = "sync_progress_dialog";
         String SKIP_QR_SCAN = "skip_qr_scan";
         String CONNECTING = "connecting";
+    }
+
+    interface Fragment {
+        String QR_CODE_SCANNING = "qr_code_scanner";
+        String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
+        String SYNC_PROGRESS = "sync_progress";
+        String ERROR = "error_fragment";
+        String SYNC_COMPLETE = "sync_complete";
     }
 
     interface Connection {

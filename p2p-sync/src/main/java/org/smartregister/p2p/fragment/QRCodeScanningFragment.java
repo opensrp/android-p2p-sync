@@ -42,7 +42,7 @@ public class QRCodeScanningFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.dialog_qr_code_scanning, container, false);
+        View view = inflater.inflate(R.layout.fragment_qr_code_scanning, container, false);
 
         Button skipBtn = view.findViewById(R.id.btn_qrCodeScanningDialog_skipBtn);
         skipBtn.setOnClickListener(new View.OnClickListener() {
@@ -52,6 +52,8 @@ public class QRCodeScanningFragment extends Fragment {
                 if (qrCodeScanDialogCallback != null) {
                     qrCodeScanDialogCallback.onSkipClicked();
                 }
+
+                closeFragment();
             }
         });
 
@@ -59,10 +61,11 @@ public class QRCodeScanningFragment extends Fragment {
         qrCodeScannerView.addOnBarcodeRecognisedListener(new QRCodeScannerView.OnQRRecognisedListener() {
             @Override
             public void onBarcodeRecognised(SparseArray<Barcode> recognisedItems) {
-                closeFragment();
                 if (qrCodeScanDialogCallback != null) {
                     qrCodeScanDialogCallback.qrCodeScanned(recognisedItems);
                 }
+
+                closeFragment();
             }
         });
 
@@ -81,7 +84,6 @@ public class QRCodeScanningFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
 
         if (qrCodeScannerView != null) {
             qrCodeScannerView.onResume();
