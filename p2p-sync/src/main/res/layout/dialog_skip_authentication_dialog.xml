@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tv_skipAuthenticationDialog_instructionsTv"
+        android:text="@string/skip_qr_scan_instructions_sender"
+        android:layout_width="wrap_content"
+        android:textColor="@android:color/black"
+        android:textSize="21sp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"/>
+
+</LinearLayout>

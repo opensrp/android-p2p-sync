@@ -25,7 +25,8 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.SyncProgressFragment;
+import org.smartregister.p2p.dialog.SkipQRScanDialog;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
@@ -295,28 +296,10 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onConnectionInitiated(@NonNull final String endpointId, @NonNull final ConnectionInfo connectionInfo) {
         // Easier working with the device which we requested connection to, otherwise the callback for error should be called
         // so that we can work with other devices
-        if (currentReceiver != null && currentReceiver.getEndpointId().equals(endpointId)) {
-            currentReceiver.setConnectionInfo(connectionInfo);
+        if (getCurrentPeerDevice() != null && getCurrentPeerDevice().getEndpointId().equals(endpointId)) {
+            getCurrentPeerDevice().setConnectionInfo(connectionInfo);
 
-            // This can be moved to the library for easy customisation by host applications
-            BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(this);
-            syncConnectionAuthenticator.authenticate(currentReceiver, this);
-        } else {
-            //("Connection was initiated by other device");
-            Timber.e(view.getString(R.string.log_rejecting_connection_initiated_by_other_device)
-                    , endpointId
-                    , connectionInfo.getEndpointName()
-                    , connectionInfo.getAuthenticationToken());
-        }
-
-        // We can add connection support for multiple devices here later
-    }
-
-    @Override
-    public void onAuthenticationSuccessful() {
-        if (currentReceiver != null){
-            view.showToast(view.getString(R.string.authentication_successful_receiver_can_accept_connection), Toast.LENGTH_LONG);
-
+            interactor.stopDiscovering();
             interactor.acceptConnection(currentReceiver.getEndpointId(), new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
@@ -330,6 +313,29 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 }
             });
         } else {
+            //("Connection was initiated by other device");
+            Timber.e(view.getString(R.string.log_rejecting_connection_initiated_by_other_device)
+                    , endpointId
+                    , connectionInfo.getEndpointName()
+                    , connectionInfo.getAuthenticationToken());
+        }
+
+        // We can add connection support for multiple devices here later
+    }
+
+    public void performDeviceAuthentication() {
+        // This can be moved to the library for easy customisation by host applications
+        BaseSyncConnectionAuthenticator syncConnectionAuthenticator = new SenderConnectionAuthenticator(this);
+        syncConnectionAuthenticator.authenticate(getCurrentPeerDevice(), this);
+    }
+
+    @Override
+    public void onAuthenticationSuccessful() {
+        if (getCurrentPeerDevice() != null){
+            connectionLevel = ConnectionLevel.AUTHENTICATED;
+            view.showToast(view.getString(R.string.authentication_successful_receiver_can_accept_connection), Toast.LENGTH_LONG);
+            startDeviceAuthorization(getCurrentPeerDevice().getEndpointId());
+        } else {
             Timber.e(view.getString(R.string.log_onauthenticationsuccessful_without_peer_device));
         }
     }
@@ -339,7 +345,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         // Reject the connection
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
-            interactor.rejectConnection(endpointId);
+            disconnectAndReset(endpointId);
         }
 
         view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
@@ -369,22 +375,27 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
 
     @Override
     public void onConnectionAccepted(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
-        if (currentReceiver != null) {
-            connectionLevel = ConnectionLevel.AUTHENTICATED;
+        if (getCurrentPeerDevice() != null) {
             interactor.connectedTo(endpointId);
-            P2PAuthorizationService authorizationService = P2PLibrary.getInstance()
-                    .getP2PAuthorizationService();
-            authorizationService.getAuthorizationDetails(new P2PAuthorizationService.OnAuthorizationDetailsProvidedCallback() {
-                @Override
-                public void onAuthorizationDetailsProvided(@NonNull Map<String, Object> authorizationDetails) {
-                    // Send the authorization details
-                    authorizationDetails.put(Constants.AuthorizationKeys.PEER_STATUS, Constants.PeerStatus.SENDER);
-                    sendAuthorizationDetails(authorizationDetails);
-                }
-            });
+            connectionLevel = ConnectionLevel.CONNECT_BEFORE_AUTHENTICATE;
+            performDeviceAuthentication();
         } else {
             Timber.e(view.getString(R.string.log_onconnectionaccepted_without_peer_device), endpointId);
         }
+    }
+
+    public void startDeviceAuthorization(@NonNull String endpointId) {
+        connectionLevel = ConnectionLevel.AUTHENTICATED;
+        P2PAuthorizationService authorizationService = P2PLibrary.getInstance()
+                .getP2PAuthorizationService();
+        authorizationService.getAuthorizationDetails(new P2PAuthorizationService.OnAuthorizationDetailsProvidedCallback() {
+            @Override
+            public void onAuthorizationDetailsProvided(@NonNull Map<String, Object> authorizationDetails) {
+                // Send the authorization details
+                authorizationDetails.put(Constants.AuthorizationKeys.PEER_STATUS, Constants.PeerStatus.SENDER);
+                sendAuthorizationDetails(authorizationDetails);
+            }
+        });
     }
 
     @Override
@@ -430,7 +441,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     @Override
-    public void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
+    public synchronized void onPayloadTransferUpdate(@NonNull String endpointId, @NonNull PayloadTransferUpdate update) {
         if (hashKeyPayloadId != 0 && hashKeyPayloadId == update.getPayloadId()) {
             if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
                 connectionLevel = ConnectionLevel.SENT_HASH_KEY;
@@ -444,7 +455,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     && currentReceiver != null
                     && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
 
-                disconnectAndReset(currentReceiver.getEndpointId(), false);
+                view.removeSyncProgressDialog();
                 view.showSyncCompleteFragment(true, currentReceiver.getEndpointName(), new SyncCompleteTransferFragment.OnCloseClickListener() {
                     @Override
                     public void onCloseClicked() {
@@ -452,6 +463,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     }
                 }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), true, transferItems));
                 transferItems = null;
+                disconnectAndReset(currentReceiver.getEndpointId(), false);
             }
         } else {
             if (syncSenderHandler != null) {
@@ -516,7 +528,33 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         if (connectionLevel != null) {
             // We ignore the authorized state since we should not process anything at this point but more
             // at #onConnectionAuthorized
-            if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
+            if (connectionLevel.equals(ConnectionLevel.CONNECT_BEFORE_AUTHENTICATE)) {
+                // Process the command
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null) {
+                    String command = new String(payload.asBytes());
+
+                    if (command.equals(Constants.Connection.SKIP_QR_CODE_SCAN)) {
+                        getView().showSkipQRScanDialog(Constants.PeerStatus.SENDER, getCurrentPeerDevice().getEndpointName(), new SkipQRScanDialog.SkipDialogCallback() {
+                            @Override
+                            public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
+                                sendConnectionAccept();
+                                onAuthenticationSuccessful();
+                            }
+
+                            @Override
+                            public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+                                onAuthenticationFailed(new Exception("User rejected the connection after receiver skipped QR Scanning"));
+                            }
+                        });
+                    } else if (command.equals(Constants.Connection.CONNECTION_ACCEPT)) {
+                        getView().removeConnectingDialog();
+                        onAuthenticationSuccessful();
+                    }
+                } else {
+                    Timber.e("Could not be able to process payload sent while in ConnectionLevel CONNECT_BEFORE_AUTHENTICATE");
+                }
+
+            } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
@@ -529,6 +567,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     }
 
     private void resetState() {
+        hasAcceptedConnection = false;
         connectionLevel = null;
         view.dismissAllDialogs();
         setCurrentDevice(null);

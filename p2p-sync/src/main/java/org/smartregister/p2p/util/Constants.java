@@ -21,11 +21,15 @@ public interface Constants {
         String QR_CODE_SCANNING = "qr_code_scanner";
         String AUTHENTICATION_QR_CODE_GENERATOR = "authentication_qr_code_generator";
         String SYNC_PROGRESS_DIALOG = "sync_progress_dialog";
+        String SKIP_QR_SCAN = "skip_qr_scan";
+        String CONNECTING = "connecting";
     }
 
     interface Connection {
         String SYNC_COMPLETE = "SYNC-COMPLETE";
         String PAYLOAD_RECEIVED = "PAYLOAD-RECEIVED";
+        String SKIP_QR_CODE_SCAN = "SKIP-AUTHENTICATION";
+        String CONNECTION_ACCEPT = "CONNECTION-ACCEPT";
     }
 
     interface RqCode {

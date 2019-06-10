@@ -31,7 +31,7 @@ import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
-import org.smartregister.p2p.dialog.SyncProgressFragment;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;

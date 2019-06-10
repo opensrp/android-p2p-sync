@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
+import org.smartregister.p2p.util.Constants;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,8 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
     protected HashSet<String> blacklistedDevices = new HashSet<>();
 
     private int keepScreenOnCounter;
+
+    protected boolean hasAcceptedConnection = false;
 
     public BaseP2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view) {
         this(view, new P2pModeSelectInteractor(view.getContext()));
@@ -130,5 +133,15 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
         } else {
             Timber.e("Could not %s KEEP_SCREEN_ON because the view-context is not an activity", (enable ? "enable" : "disable"));
         }
+    }
+
+    @Override
+    public void sendSkipClicked() {
+        interactor.sendMessage(Constants.Connection.SKIP_QR_CODE_SCAN);
+    }
+
+    @Override
+    public void sendConnectionAccept() {
+        interactor.sendMessage(Constants.Connection.CONNECTION_ACCEPT);
     }
 }
