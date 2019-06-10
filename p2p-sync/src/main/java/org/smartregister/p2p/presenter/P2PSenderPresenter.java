@@ -129,9 +129,8 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     keepScreenOn(false);
                     interactor.stopDiscovering();
                     dialogInterface.dismiss();
-                    view.enableSendReceiveButtons(true);
-
                     stopConnectionTimeout();
+                    view.showP2PModeSelectFragment(true);
                 }
             });
 
