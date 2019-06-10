@@ -8,6 +8,7 @@ import android.view.WindowManager;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.interactor.P2pModeSelectInteractor;
+import org.smartregister.p2p.tasks.ConnectionTimeout;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
     private int keepScreenOnCounter;
 
     protected boolean hasAcceptedConnection = false;
+    protected ConnectionTimeout connectionTimeout;
 
     public BaseP2pModeSelectPresenter(@NonNull P2pModeSelectContract.View view) {
         this(view, new P2pModeSelectInteractor(view.getContext()));
@@ -143,5 +145,17 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
     @Override
     public void sendConnectionAccept() {
         interactor.sendMessage(Constants.Connection.CONNECTION_ACCEPT);
+    }
+
+    @Override
+    public void startConnectionTimeout(@NonNull final OnConnectionTimeout onConnectionTimeout) {
+        connectionTimeout = new ConnectionTimeout(Constants.CONNECTION_TIMEOUT_SECONDS, onConnectionTimeout);
+        connectionTimeout.start();
+    }
+
+    public void stopConnectionTimeout() {
+        if (connectionTimeout != null) {
+            connectionTimeout.stop();
+        }
     }
 }

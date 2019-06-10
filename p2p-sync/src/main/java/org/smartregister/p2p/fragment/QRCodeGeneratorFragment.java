@@ -45,7 +45,7 @@ public class QRCodeGeneratorFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.dialog_qr_code_generation, container, false);
+        View view = inflater.inflate(R.layout.fragment_qr_code_generation, container, false);
 
         // Generate the QR Code
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
@@ -75,6 +75,7 @@ public class QRCodeGeneratorFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (qrCodeGeneratorCallback != null) {
+                    closeFragment();
                     qrCodeGeneratorCallback.onSkipped();
                 }
             }

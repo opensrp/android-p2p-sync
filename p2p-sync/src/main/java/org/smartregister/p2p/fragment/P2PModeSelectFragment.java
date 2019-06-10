@@ -21,11 +21,10 @@ public class P2PModeSelectFragment extends Fragment implements P2pModeSelectCont
 
     private Button sendButton;
     private Button receiveButton;
+    private boolean enableButtons = true;
 
-    @Nullable
-    @Override
-    public View getView() {
-        return super.getView();
+    public void setEnableButtons(boolean enableButtons) {
+        this.enableButtons = enableButtons;
     }
 
     @Nullable
@@ -60,6 +59,11 @@ public class P2PModeSelectFragment extends Fragment implements P2pModeSelectCont
                 }
             }
         });
+
+        if (!enableButtons) {
+            sendButton.setEnabled(enableButtons);
+            receiveButton.setEnabled(enableButtons);
+        }
     }
 
     @Override

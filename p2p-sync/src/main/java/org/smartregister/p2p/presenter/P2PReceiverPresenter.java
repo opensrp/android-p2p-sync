@@ -22,6 +22,7 @@ import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
+import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
@@ -119,9 +120,36 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     interactor.stopAdvertising();
                     dialogInterface.dismiss();
                     view.enableSendReceiveButtons(true);
+                    stopConnectionTimeout();
                 }
             });
+
             interactor.startAdvertising(this);
+
+            startConnectionTimeout(new OnConnectionTimeout() {
+                @Override
+                public void connectionTimeout(long duration, @Nullable Exception e) {
+                    if (e == null) {
+                        if (interactor.isAdvertising()) {
+                            interactor.stopAdvertising();
+                            view.removeAdvertisingProgressDialog();
+                            view.enableSendReceiveButtons(true);
+                            keepScreenOn(false);
+
+                            view.showErrorFragment(view.getString(R.string.no_nearby_devices_found)
+                                    , view.getString(R.string.make_sure_peer_device_turned_on_in_range)
+                                    , new ErrorFragment.OnOkClickCallback() {
+                                        @Override
+                                        public void onOkClicked() {
+                                            view.showP2PModeSelectFragment(true);
+                                        }
+                                    });
+                        } else {
+                            Timber.e(view.getString(R.string.log_advertising_timed_while_not_in_advertising_mode));
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -139,6 +167,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onAdvertisingFailed(@NonNull Exception e) {
+        stopConnectionTimeout();
+
         view.showToast(view.getString(R.string.an_error_occurred_start_receiving), Toast.LENGTH_LONG);
         view.removeAdvertisingProgressDialog();
         view.enableSendReceiveButtons(true);
@@ -148,6 +178,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
         Timber.i(view.getString(R.string.log_connection_initiated_endpoint_auth_code), endpointId, connectionInfo.getEndpointName()
                 , connectionInfo.getAuthenticationToken());
+        stopConnectionTimeout();
 
         // Reject when already connected or the connecting device is blacklisted
         if (getCurrentPeerDevice() == null && !blacklistedDevices.contains(endpointId)) {
@@ -218,9 +249,17 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: Go back to advertising mode
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
-
+            String errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
             view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
+
             disconnectAndReset(endpointId);
+
+            view.showErrorFragment(view.getString(R.string.connection_lost), errorMsg, new ErrorFragment.OnOkClickCallback() {
+                @Override
+                public void onOkClicked() {
+                    view.showP2PModeSelectFragment(true);
+                }
+            });
         } else {
             Timber.e(view.getString(R.string.onconnectionunknownerror_without_peer_device), endpointId);
         }
@@ -228,12 +267,21 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void onConnectionBroken(@NonNull String endpointId) {
-        //Todo: Show the user an error
-        //Todo: Go back to advertising mode
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             String errorMsg = String.format(view.getString(R.string.connection_to_endpoint_broken), endpointId);
 
-            onSyncFailed(new Exception(errorMsg));
+            if (connectionLevel == ConnectionLevel.SENT_RECEIVED_HISTORY) {
+                onSyncFailed(new Exception(errorMsg));
+            } else {
+                errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
+                view.showErrorFragment(view.getString(R.string.connection_lost), errorMsg, new ErrorFragment.OnOkClickCallback() {
+                    @Override
+                    public void onOkClicked() {
+                        view.showP2PModeSelectFragment(true);
+                    }
+                });
+                disconnectAndReset(interactor.getCurrentEndpoint(), false);
+            }
             view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
@@ -251,6 +299,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                     if (command.equals(Constants.Connection.SKIP_QR_CODE_SCAN)) {
                         String endpointName = getCurrentPeerDevice() != null ? getCurrentPeerDevice().getEndpointName() : "Unknown";
+                        getView().removeQRCodeGeneratorFragment();
                         getView().showSkipQRScanDialog(Constants.PeerStatus.RECEIVER, endpointName, new SkipQRScanDialog.SkipDialogCallback() {
                             @Override
                             public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
@@ -260,10 +309,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
                             @Override
                             public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
-                                onAuthenticationFailed(new Exception("User rejected the connection after receiver skipped QR Scanning"));
+                                onAuthenticationCancelled("User rejected the connection after receiver skipped QR Scanning");
                             }
                         });
                     } else if (command.equals(Constants.Connection.CONNECTION_ACCEPT)) {
+                        getView().removeConnectingDialog();
                         onAuthenticationSuccessful();
                     }
                 } else {
@@ -390,7 +440,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising) {
-        view.removeSyncProgressDialog();
 
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
@@ -546,16 +595,21 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     }
 
     @Override
-    public void onAuthenticationFailed(@NonNull Exception exception) {
+    public void onAuthenticationFailed(@NonNull String reason, @NonNull Exception exception) {
         // Reject the connection
         if (getCurrentPeerDevice() != null) {
             String endpointId = getCurrentPeerDevice().getEndpointId();
             rejectDeviceOnAuthentication(endpointId);
             disconnectAndReset(endpointId);
-
         }
 
         view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
+        view.showErrorFragment(view.getString(R.string.connection_lost), reason, new ErrorFragment.OnOkClickCallback() {
+            @Override
+            public void onOkClicked() {
+                view.showP2PModeSelectFragment(true);
+            }
+        });
 
         //Todo: Go back to advertising mode
         Timber.e(exception, view.getString(R.string.authentication_failed));
@@ -570,10 +624,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         // Reject the connection
         if (getCurrentPeerDevice() != null) {
             String endpointId = getCurrentPeerDevice().getEndpointId();
-            interactor.rejectConnection(endpointId);
+            rejectDeviceOnAuthentication(endpointId);
+            disconnectAndReset(endpointId);
         }
 
-        resetState();
         prepareForAdvertising(false);
 
         // Go back to discovering mode
@@ -619,8 +673,15 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
                     , currentSender.getEndpointName())
                     , Toast.LENGTH_LONG);
+            
+            disconnectAndReset(endpointId, false);
 
-            disconnectAndReset(endpointId);
+            view.showErrorFragment(view.getString(R.string.authorization_failed), reason, new ErrorFragment.OnOkClickCallback() {
+                @Override
+                public void onOkClicked() {
+                    view.showP2PModeSelectFragment(true);
+                }
+            });
         } else {
             resetState();
             prepareForAdvertising(false);
@@ -638,7 +699,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             getView().showSyncCompleteFragment(false, peerDeviceName, new SyncCompleteTransferFragment.OnCloseClickListener() {
                 @Override
                 public void onCloseClicked() {
-                    getView().showP2PModeSelectFragment();
+                    getView().showP2PModeSelectFragment(true);
                 }
             }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), false, syncReceiverHandler.getTransferProgress()));
         }

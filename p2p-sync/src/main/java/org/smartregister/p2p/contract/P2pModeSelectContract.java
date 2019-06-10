@@ -12,6 +12,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
+import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.fragment.SyncProgressFragment;
@@ -34,17 +35,15 @@ public interface P2pModeSelectContract {
 
         void enableSendReceiveButtons(boolean enable);
 
-        void showP2PModeSelectFragment();
+        void showP2PModeSelectFragment(boolean enableButtons);
 
         void showAdvertisingProgressDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
         void showSyncProgressFragment(@NonNull String title, @NonNull SyncProgressFragment.SyncProgressDialogCallback syncProgressDialogCallback);
 
-        void updateProgressDialog(@NonNull String progress, @NonNull String summary);
+        void updateProgressFragment(@NonNull String progress, @NonNull String summary);
 
-        void updateProgressDialog(int progress);
-
-        boolean removeSyncProgressDialog();
+        void updateProgressFragment(int progress);
 
         boolean removeAdvertisingProgressDialog();
 
@@ -56,8 +55,12 @@ public interface P2pModeSelectContract {
 
         void showQRCodeScanningFragment(@NonNull String deviceName, @NonNull QRCodeScanningFragment.QRCodeScanDialogCallback qrCodeScanDialogCallback);
 
+        void removeQRCodeScanningFragment();
+
         void showQRCodeGeneratorFragment(@NonNull String authenticationCode, @NonNull String deviceName
                 , @NonNull QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback);
+
+        void removeQRCodeGeneratorFragment();
 
         void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
                 , @NonNull DialogInterface.OnClickListener onClickListener);
@@ -69,6 +72,8 @@ public interface P2pModeSelectContract {
         void showSkipQRScanDialog(@NonNull String peerDeviceStatus, @NonNull String deviceName, @NonNull SkipQRScanDialog.SkipDialogCallback skipDialogCallback);
 
         boolean removeSkipQRScanDialog();
+
+        void showErrorFragment(@NonNull String title, @NonNull String message, @Nullable ErrorFragment.OnOkClickCallback onOkClickCallback);
 
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
@@ -93,6 +98,7 @@ public interface P2pModeSelectContract {
         interface OnLocationEnabled {
             void locationEnabled();
         }
+
     }
 
     interface P2PModeSelectView {
@@ -135,6 +141,13 @@ public interface P2pModeSelectContract {
         void sendSkipClicked();
 
         void sendConnectionAccept();
+
+        void startConnectionTimeout(@NonNull OnConnectionTimeout onConnectionTimeout);
+
+        interface OnConnectionTimeout {
+
+            void connectionTimeout(long duration, @Nullable Exception e);
+        }
     }
 
     interface ReceiverPresenter extends BasePresenter {

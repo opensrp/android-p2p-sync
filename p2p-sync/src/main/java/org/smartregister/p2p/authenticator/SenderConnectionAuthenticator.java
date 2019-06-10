@@ -7,6 +7,7 @@ import android.util.SparseArray;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -49,7 +50,8 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                                 getPresenter().sendConnectionAccept();
                                 authenticationCallback.onAuthenticationSuccessful();
                             } else {
-                                authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
+                                authenticationCallback.onAuthenticationFailed(getPresenter().getView().getString(R.string.authentication_tokens_dont_match)
+                                        , new Exception("Authentication tokens do not match"));
                             }
 
                             //getPresenter().getView().showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
@@ -85,7 +87,8 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                 }
             });
         } else {
-            authenticationCallback.onAuthenticationFailed(new Exception("DiscoveredDevice information passed is invalid"));
+            authenticationCallback.onAuthenticationFailed(getPresenter().getView().getString(R.string.device_information_passed_is_invalid)
+                    , new Exception("DiscoveredDevice information passed is invalid"));
         }
     }
 }

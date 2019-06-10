@@ -65,7 +65,7 @@ public class SyncProgressFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.dialog_sync_progress, container, false);
+        View view = inflater.inflate(R.layout.fragment_sync_progress, container, false);
 
         progressBar = view.findViewById(R.id.pb_syncProgressDialog_progressBar);
         progressTextView = view.findViewById(R.id.tv_syncProgressDialog_progressText);
