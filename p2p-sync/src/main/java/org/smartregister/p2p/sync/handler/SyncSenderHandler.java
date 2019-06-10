@@ -384,8 +384,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
                 if (awaitingBytes != null) {
                     int maxSize = awaitingBytes.length;
                     int transferredSize = (int) update.getBytesTransferred();
-
-                    presenter.getView().updateProgressFragment(transferredSize/maxSize);
+                    
+                    presenter.getView().updateProgressFragment((transferredSize * 100)/maxSize);
                 }
             }
         }
