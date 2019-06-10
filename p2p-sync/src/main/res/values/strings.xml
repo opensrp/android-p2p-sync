@@ -93,4 +93,9 @@
     <string name="connection_lost">Connection lost</string>
     <string name="skip">SKIP</string>
     <string name="connection_lost_transfer_summary">Please make sure \"%s\'s device\" is turned on and in range. %s records were transferred. Reconnect to transfer the remaining data.</string>
+    <string name="skip_qr_scan">Skip QR Scan?</string>
+    <string name="skip_qr_scan_instructions_sender">The receiving device, \"%s\'s device\", chose to skip the QR scan step. Choosing skip will let you send data to the other device without a QR scan confirmation.</string>
+    <string name="skip_qr_scan_instructions_receiver">The sending device, \"%s\'s device\", chose to skip the QR scan step. Choosing skip will let the data be transferred to your device without a QR scan confirmation.</string>
+    <string name="connecting">Connecting</string>
+    <string name="please_wait">Please wait...</string>
 </resources>

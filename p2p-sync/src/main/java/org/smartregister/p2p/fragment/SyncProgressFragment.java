@@ -1,4 +1,4 @@
-package org.smartregister.p2p.dialog;
+package org.smartregister.p2p.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;

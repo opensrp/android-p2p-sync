@@ -11,9 +11,10 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 
 import org.smartregister.p2p.callback.OnResultCallback;
+import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
-import org.smartregister.p2p.dialog.SyncProgressFragment;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.model.SendingDevice;
 import org.smartregister.p2p.sync.DiscoveredDevice;
@@ -61,9 +62,13 @@ public interface P2pModeSelectContract {
         void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
                 , @NonNull DialogInterface.OnClickListener onClickListener);
 
-        void showConnectingDialog();
+        void showConnectingDialog(@NonNull DialogCancelCallback dialogCancelCallback);
 
         void removeConnectingDialog();
+
+        void showSkipQRScanDialog(@NonNull String peerDeviceStatus, @NonNull String deviceName, @NonNull SkipQRScanDialog.SkipDialogCallback skipDialogCallback);
+
+        boolean removeSkipQRScanDialog();
 
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
@@ -126,6 +131,10 @@ public interface P2pModeSelectContract {
         void disconnectAndReset(@NonNull String endpointId);
 
         void startTransfer();
+
+        void sendSkipClicked();
+
+        void sendConnectionAccept();
     }
 
     interface ReceiverPresenter extends BasePresenter {

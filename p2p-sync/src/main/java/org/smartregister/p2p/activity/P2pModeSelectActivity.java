@@ -33,9 +33,11 @@ import com.google.android.gms.tasks.Task;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.ConnectingDialog;
+import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
-import org.smartregister.p2p.dialog.SyncProgressFragment;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
 import org.smartregister.p2p.fragment.QRCodeGeneratorFragment;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
@@ -457,13 +459,33 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
-    public void showConnectingDialog() {
+    public void showConnectingDialog(@NonNull DialogCancelCallback dialogCancelCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        ConnectingDialog newFragment = new ConnectingDialog();
+        newFragment.setDialogCancelCallback(dialogCancelCallback);
 
+        newFragment.show(fragmentManager, Constants.Dialog.CONNECTING);
     }
 
     @Override
     public void removeConnectingDialog() {
+        removeDialog(Constants.Dialog.CONNECTING);
+    }
 
+    @Override
+    public void showSkipQRScanDialog(@NonNull String peerDeviceStatus, @NonNull String deviceName, @NonNull SkipQRScanDialog.SkipDialogCallback skipDialogCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SkipQRScanDialog newFragment = new SkipQRScanDialog();
+        newFragment.setPeerDeviceStatus(peerDeviceStatus);
+        newFragment.setDeviceName(deviceName);
+        newFragment.setSkipDialogCallback(skipDialogCallback);
+
+        newFragment.show(fragmentManager, Constants.Dialog.SKIP_QR_SCAN);
+    }
+
+    @Override
+    public boolean removeSkipQRScanDialog() {
+        return removeDialog(Constants.Dialog.SKIP_QR_SCAN);
     }
 
     @Override

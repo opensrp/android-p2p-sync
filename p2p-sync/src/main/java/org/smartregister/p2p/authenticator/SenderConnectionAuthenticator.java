@@ -11,6 +11,8 @@ import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.sync.DiscoveredDevice;
 
+import timber.log.Timber;
+
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 14/03/2019
  */
@@ -44,6 +46,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                             }
 
                             if (authenticationCodeFound) {
+                                getPresenter().sendConnectionAccept();
                                 authenticationCallback.onAuthenticationSuccessful();
                             } else {
                                 authenticationCallback.onAuthenticationFailed(new Exception("Authentication tokens do not match"));
@@ -56,24 +59,29 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
 
                 @Override
                 public void onErrorOccurred(@NonNull Exception e) {
-
+                    Timber.e(e);
                 }
 
                 @Override
                 public void onSkipClicked() {
-                    getPresenter().getView().showConnectionAcceptDialog(discoveredDevice.getEndpointName(), connectionInfo.getAuthenticationToken(), new DialogInterface.OnClickListener() {
+                    getPresenter().sendSkipClicked();
+                    getPresenter().getView().showConnectingDialog(new P2pModeSelectContract.View.DialogCancelCallback() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Todo: Test if the dialogs are dismissed automatically
-                            //dialog.dismiss();
-
-                            if (which == DialogInterface.BUTTON_POSITIVE) {
-                                authenticationCallback.onAuthenticationSuccessful();
-                            } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                                authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
-                            }
+                        public void onCancelClicked(DialogInterface dialogInterface) {
+                            authenticationCallback.onAuthenticationCancelled("User rejected the connection");
                         }
                     });
+                    /*getPresenter().getView().showSkipQRScanDialog(Constants.PeerStatus.SENDER, discoveredDevice.getEndpointName(), new SkipQRScanDialog.SkipDialogCallback() {
+                        @Override
+                        public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
+                            authenticationCallback.onAuthenticationSuccessful();
+                        }
+
+                        @Override
+                        public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
+                            authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
+                        }
+                    });*/
                 }
             });
         } else {

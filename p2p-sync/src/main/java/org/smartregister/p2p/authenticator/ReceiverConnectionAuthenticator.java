@@ -1,5 +1,6 @@
 package org.smartregister.p2p.authenticator;
 
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 
 import org.smartregister.p2p.contract.P2pModeSelectContract;
@@ -27,8 +28,14 @@ public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthentic
 
                         @Override
                         public void onSkipped() {
-                            //authenticationCallback.onAuthenticationCancelled("Skip was clicked");
-                            authenticationCallback.onAuthenticationSuccessful();
+                            getPresenter().sendSkipClicked();
+                            getPresenter().getView().showConnectingDialog(new P2pModeSelectContract.View.DialogCancelCallback() {
+                                @Override
+                                public void onCancelClicked(DialogInterface dialogInterface) {
+                                    getPresenter().getView().removeConnectingDialog();
+                                    authenticationCallback.onAuthenticationCancelled("User rejected the connection");
+                                }
+                            });
                         }
 
                         @Override
