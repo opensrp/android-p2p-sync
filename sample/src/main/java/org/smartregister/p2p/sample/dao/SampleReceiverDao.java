@@ -48,7 +48,6 @@ public class SampleReceiverDao implements ReceiverTransferDao {
     @Override
     public long receiveJson(@NonNull DataType type, @NonNull JSONArray jsonArray) {
         Timber.e("Received records %s of type %s", String.valueOf(jsonArray.length()), type.getName());
-        Timber.e("Records received %s", jsonArray.toString());
 
         Long lastId = lastReceived.get(type.getName());
 

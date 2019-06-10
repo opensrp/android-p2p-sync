@@ -216,6 +216,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                                 , "json"
                                 , dataType
                                 , awaitingDataTypeRecordsBatchSize);
+                        syncPackageManifest.setPayloadSize(awaitingBytes.length);
 
                         awaitingManifestTransfer = true;
                         awaitingManifestId = presenter.sendManifest(syncPackageManifest);
@@ -384,7 +385,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
                 if (awaitingBytes != null) {
                     int maxSize = awaitingBytes.length;
                     int transferredSize = (int) update.getBytesTransferred();
-                    
+
                     presenter.getView().updateProgressFragment((transferredSize * 100)/maxSize);
                 }
             }
