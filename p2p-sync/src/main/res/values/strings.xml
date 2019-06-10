@@ -107,4 +107,7 @@
     <string name="log_advertising_timed_while_not_in_advertising_mode">Advertising timed out and interactor was not in advertising mode</string>
     <string name="no_nearby_devices_found">No Nearby Devices Found</string>
     <string name="make_sure_peer_device_turned_on_in_range">Please make sure the device you want to send data to is turned on and in range</string>
+    <string name="start_transfer">Start Transfer</string>
+    <string name="devices_connected">Devices Connected</string>
+    <string name="please_make_sure_the_devices_remain_within_range_during_data_transfer">Please make sure the devices remain within range during data transfer</string>
 </resources>

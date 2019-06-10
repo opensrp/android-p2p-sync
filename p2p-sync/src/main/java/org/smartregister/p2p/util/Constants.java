@@ -33,6 +33,7 @@ public interface Constants {
         String SYNC_PROGRESS = "sync_progress";
         String ERROR = "error_fragment";
         String SYNC_COMPLETE = "sync_complete";
+        String DEVICES_CONNECTED = "devices_connected";
     }
 
     interface Connection {
@@ -40,6 +41,7 @@ public interface Constants {
         String PAYLOAD_RECEIVED = "PAYLOAD-RECEIVED";
         String SKIP_QR_CODE_SCAN = "SKIP-AUTHENTICATION";
         String CONNECTION_ACCEPT = "CONNECTION-ACCEPT";
+        String START_TRANSFER = "START-TRANSFER";
     }
 
     interface RqCode {

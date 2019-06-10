@@ -75,6 +75,10 @@ public interface P2pModeSelectContract {
 
         void showErrorFragment(@NonNull String title, @NonNull String message, @Nullable ErrorFragment.OnOkClickCallback onOkClickCallback);
 
+        void showDevicesConnectedFragment(@NonNull OnStartTransferClicked onStartTransferClicked);
+
+        boolean isSyncProgressFragmentShowing();
+
         void requestPermissions(@NonNull List<String> unauthorisedPermissions);
 
         @NonNull
@@ -97,6 +101,10 @@ public interface P2pModeSelectContract {
 
         interface OnLocationEnabled {
             void locationEnabled();
+        }
+
+        interface OnStartTransferClicked {
+            void startTransferClicked();
         }
 
     }
@@ -162,6 +170,8 @@ public interface P2pModeSelectContract {
         SendingDevice getSendingDevice();
 
         void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising);
+
+        void sendStartTransfer();
 
     }
 

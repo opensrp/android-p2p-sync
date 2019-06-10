@@ -622,6 +622,9 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             } else if (connectionLevel.equals(ConnectionLevel.AUTHENTICATED)) {
                 // Should get the details to authorize
                 performAuthorization(payload);
+            } else if (connectionLevel.equals(ConnectionLevel.AUTHORIZED) && payload.getType() == Payload.Type.BYTES
+                    && payload.asBytes() != null && (new String(payload.asBytes()).equals(Constants.Connection.START_TRANSFER))) {
+                startTransfer();
             } else if (connectionLevel.equals(ConnectionLevel.SENT_HASH_KEY)) {
                 // Do nothing for now
                 processReceivedHistory(endpointId, payload);
@@ -642,7 +645,13 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void onConnectionAuthorized() {
         connectionLevel = ConnectionLevel.AUTHORIZED;
-        startTransfer();
+
+        view.showDevicesConnectedFragment(new P2pModeSelectContract.View.OnStartTransferClicked() {
+            @Override
+            public void startTransferClicked() {
+                startTransfer();
+            }
+        });
     }
 
     public void startTransfer() {
