@@ -82,8 +82,10 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             long payloadId = update.getPayloadId();
             SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
             if (syncPackageManifest != null) {
-                receiverPresenter.getView().updateProgressFragment(
-                        ((int) update.getBytesTransferred())/syncPackageManifest.getRecordsSize());
+                if (syncPackageManifest.getPayloadSize() != 0) {
+                    int percentSize = ((int) update.getBytesTransferred() * 100) / syncPackageManifest.getPayloadSize();
+                    receiverPresenter.getView().updateProgressFragment(percentSize);
+                }
             }
         }
     }

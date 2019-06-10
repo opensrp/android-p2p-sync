@@ -130,7 +130,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 @Override
                 public void connectionTimeout(long duration, @Nullable Exception e) {
                     if (e == null) {
-                        if (interactor.isAdvertising()) {
+                        if (interactor != null && interactor.isAdvertising()) {
                             interactor.stopAdvertising();
                             view.removeAdvertisingProgressDialog();
                             view.enableSendReceiveButtons(true);
