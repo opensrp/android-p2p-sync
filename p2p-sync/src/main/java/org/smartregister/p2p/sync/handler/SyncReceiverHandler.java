@@ -46,6 +46,9 @@ public class SyncReceiverHandler extends BaseSyncHandler {
     private HashMap<Long, SyncPackageManifest> awaitingPayloadManifests = new HashMap<>();
     private SimpleArrayMap<Long, ProcessedChunk> awaitingPayloads = new SimpleArrayMap<>();
 
+    private int waitingJobs = 0;
+    private boolean isSyncComplete = false;
+
     public SyncReceiverHandler(@NonNull P2pModeSelectContract.ReceiverPresenter receiverPresenter) {
         this.receiverPresenter = receiverPresenter;
     }
@@ -59,7 +62,11 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             // This will only happen after the last payload has been received on the other side
             // An abort is performed as just a disconnect
 
-            performSynCompleteOperations();
+            if (waitingJobs < 1) {
+                performSynCompleteOperations();
+            } else {
+                isSyncComplete = true;
+            }
         } else if (awaitingManifestReceipt) {
             processManifest(endpointId, payload);
         } else {
@@ -141,6 +148,8 @@ public class SyncReceiverHandler extends BaseSyncHandler {
     private void processNonMediaData(@NonNull final Payload payload) {
         final long payloadId = payload.getId();
         awaitingPayloads.put(payloadId, new ProcessedChunk(payload.getType(), ""));
+
+        waitingJobs++;
         Tasker.run(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
@@ -158,8 +167,10 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         }, new GenericAsyncTask.OnFinishedCallback<Long>() {
             @Override
             public void onSuccess(@Nullable Long result) {
+                waitingJobs--;
                 if (result != null) {
                     Timber.e("Finished processing chunk for payload %d", payloadId);
+                    asyncTaskFinished();
                 } else {
                     String errorMessage = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
                     Timber.e(errorMessage);
@@ -174,12 +185,14 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 Timber.e(e, errorMessage);
                 syncErrorOccurred(new Exception(errorMessage));
                 stopTransferAndReset(true);
+                waitingJobs--;
             }
         }, AsyncTask.SERIAL_EXECUTOR);
     }
 
     @VisibleForTesting
     protected void finishProcessingNonMediaData(final long payloadId) {
+        waitingJobs++;
         Tasker.run(new Callable<Long>() {
             @Override
             public Long call() throws Exception {
@@ -200,9 +213,11 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         }, new GenericAsyncTask.OnFinishedCallback<Long>() {
             @Override
             public void onSuccess(@Nullable Long result) {
+                waitingJobs--;
                 if (result != null) {
                     // We should save the last ID here and probably keep track of the next batch that we are to receive
                     awaitingPayloadManifests.remove(payloadId);
+                    asyncTaskFinished();
                 } else {
                     String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_non_media_data);
                     Timber.e(errorMsg);
@@ -217,6 +232,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                 Timber.e(e, errorMsg);
                 syncErrorOccurred(new Exception(errorMsg));
                 stopTransferAndReset(true);
+                waitingJobs--;
             }
         }, AsyncTask.SERIAL_EXECUTOR);
 
@@ -264,6 +280,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         if (processedChunk != null && processedChunk.getFileData() != null) {
             final Payload payload = processedChunk.getFileData();
 
+            waitingJobs++;
             Tasker.run(new Callable<Long>() {
 
                 @Override
@@ -289,9 +306,11 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             }, new GenericAsyncTask.OnFinishedCallback<Long>() {
                 @Override
                 public void onSuccess(@Nullable Long result) {
+                    waitingJobs--;
                     if (result != null) {
                         // We should save the last ID here and probably keep track of the next batch that we are to receive
                         awaitingPayloadManifests.remove(payload.getId());
+                        asyncTaskFinished();
                     } else {
                         String errorMsg = receiverPresenter.getView().getString(R.string.log_error_occurred_processing_media_data);
                         Exception e = new Exception(errorMsg);
@@ -309,6 +328,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
                     syncErrorOccurred(e);
                     // We should not continue
                     stopTransferAndReset(true);
+                    waitingJobs--;
                 }
             }, AsyncTask.SERIAL_EXECUTOR);
         } else {
@@ -317,6 +337,12 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             Timber.e(e);
             syncErrorOccurred(e);
             stopTransferAndReset(true);
+        }
+    }
+
+    private void asyncTaskFinished() {
+        if (waitingJobs < 1 && isSyncComplete) {
+            performSynCompleteOperations();
         }
     }
 

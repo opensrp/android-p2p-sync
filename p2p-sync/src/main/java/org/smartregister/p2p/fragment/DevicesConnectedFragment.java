@@ -27,9 +27,6 @@ public class DevicesConnectedFragment extends Fragment {
         return devicesConnectedFragment;
     }
 
-    public DevicesConnectedFragment() {
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
