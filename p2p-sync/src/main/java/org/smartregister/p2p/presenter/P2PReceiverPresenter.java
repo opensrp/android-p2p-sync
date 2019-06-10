@@ -119,7 +119,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                     keepScreenOn(false);
                     interactor.stopAdvertising();
                     dialogInterface.dismiss();
-                    view.enableSendReceiveButtons(true);
+                    view.showP2PModeSelectFragment(true);
                     stopConnectionTimeout();
                 }
             });
