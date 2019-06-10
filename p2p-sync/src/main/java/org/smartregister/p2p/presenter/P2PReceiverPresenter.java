@@ -326,6 +326,10 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 // Authorize the connection from the details received
                 performAuthorization(payload);
             } else if (connectionLevel.equals(ConnectionLevel.AUTHORIZED)) {
+                if (payload.getType() == Payload.Type.BYTES && payload.asBytes() != null && !getView().isSyncProgressFragmentShowing()) {
+                    showSyncProgressScreen();
+                }
+
                 // Waiting for the hash key
                 processHashKey(endpointId, payload);
             }
@@ -440,7 +444,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void disconnectAndReset(@NonNull String endpointId, boolean startAdvertising) {
-
         interactor.disconnectFromEndpoint(endpointId);
         interactor.connectedTo(null);
         resetState();
@@ -650,6 +653,16 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
                 , Toast.LENGTH_LONG);
 
+        view.showDevicesConnectedFragment(new P2pModeSelectContract.View.OnStartTransferClicked() {
+            @Override
+            public void startTransferClicked() {
+                sendStartTransfer();
+                showSyncProgressScreen();
+            }
+        });
+    }
+
+    public void showSyncProgressScreen() {
         view.showSyncProgressFragment(view.getString(R.string.receiving_data), new SyncProgressFragment.SyncProgressDialogCallback() {
             @Override
             public void onCancelClicked() {
@@ -660,6 +673,11 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 }
             }
         });
+    }
+
+    @Override
+    public void sendStartTransfer() {
+        interactor.sendMessage(Constants.Connection.START_TRANSFER);
     }
 
     @Override

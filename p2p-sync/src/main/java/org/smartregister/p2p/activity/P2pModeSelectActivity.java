@@ -37,6 +37,7 @@ import org.smartregister.p2p.dialog.ConnectingDialog;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
+import org.smartregister.p2p.fragment.DevicesConnectedFragment;
 import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.P2PModeSelectFragment;
@@ -319,6 +320,24 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     public void removeQRCodeGeneratorFragment() {
         removeFragment(Constants.Fragment.AUTHENTICATION_QR_CODE_GENERATOR);
+    }
+
+    @Override
+    public void showDevicesConnectedFragment(@NonNull OnStartTransferClicked onStartTransferClicked) {
+        DevicesConnectedFragment errorFragment = DevicesConnectedFragment.create(onStartTransferClicked);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        // Replace whatever is in the fragment_container view with this fragment,
+        // and add the transaction to the back stack
+        transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, errorFragment, Constants.Fragment.DEVICES_CONNECTED);
+
+        // Commit the transaction
+        transaction.commit();
+    }
+
+    @Override
+    public boolean isSyncProgressFragmentShowing() {
+        return getSupportFragmentManager().findFragmentByTag(Constants.Fragment.SYNC_PROGRESS) != null;
     }
 
     @Override

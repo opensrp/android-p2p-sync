@@ -13,7 +13,7 @@ import android.widget.TextView;
 import org.smartregister.p2p.R;
 
 /**
- * Created by Ephraim Kigamba - ekigamba@ona.io on 08/03/2019
+ * Created by Ephraim Kigamba - ekigamba@ona.io on 10/06/2019
  */
 
 public class ErrorFragment extends Fragment {
@@ -69,7 +69,7 @@ public class ErrorFragment extends Fragment {
         }
     }
 
-    public static interface OnOkClickCallback {
+    public interface OnOkClickCallback {
         void onOkClicked();
     }
 }

@@ -36,7 +36,7 @@ public class SampleApplication extends Application implements P2PAuthorizationSe
         Object appType = authorizationDetails.get("app-type");
 
         // Check if appVersion is an int
-        if (appVersion != null && appVersion instanceof Double && ((double) appVersion) >= 10d
+        if (appVersion != null && appVersion instanceof Double && ((double) appVersion) >= 9d
                 && appType != null && appType instanceof String && appType.equals("normal-user")) {
             authorizationCallback.onConnectionAuthorized();
         } else {
