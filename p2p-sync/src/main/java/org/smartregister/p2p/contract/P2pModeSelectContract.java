@@ -144,8 +144,6 @@ public interface P2pModeSelectContract {
 
         void disconnectAndReset(@NonNull String endpointId);
 
-        void startTransfer();
-
         void sendSkipClicked();
 
         void sendConnectionAccept();
@@ -192,6 +190,8 @@ public interface P2pModeSelectContract {
         void errorOccurredSync(@NonNull Exception e);
 
         void disconnectAndReset(@NonNull String endpointId, boolean startDiscovering);
+
+        void startTransfer();
 
     }
 

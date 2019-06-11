@@ -32,9 +32,6 @@ public class QRCodeScanningFragment extends Fragment {
         return qrCodeScanningFragment;
     }
 
-    public QRCodeScanningFragment() {
-    }
-
     public void setOnQRRecognisedListener(@NonNull QRCodeScanDialogCallback qrCodeScanDialogCallback) {
         this.qrCodeScanDialogCallback = qrCodeScanDialogCallback;
     }

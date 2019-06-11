@@ -20,8 +20,6 @@ public class ErrorFragment extends Fragment {
 
     private OnOkClickCallback onOkClickCallback;
 
-    private TextView titleTv;
-    private TextView messageTv;
     private String title;
     private String message;
 
@@ -33,9 +31,6 @@ public class ErrorFragment extends Fragment {
         return errorFragment;
     }
 
-    public ErrorFragment() {
-    }
-
     public void setOnOkClickCallback(@Nullable OnOkClickCallback onOkClickCallback) {
         this.onOkClickCallback = onOkClickCallback;
     }
@@ -45,8 +40,8 @@ public class ErrorFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_error, container, false);
 
-        titleTv = view.findViewById(R.id.tv_errorFragment_title);
-        messageTv = view.findViewById(R.id.tv_errorFragment_message);
+        TextView titleTv = view.findViewById(R.id.tv_errorFragment_title);
+        TextView messageTv = view.findViewById(R.id.tv_errorFragment_message);
         Button okBtn = view.findViewById(R.id.btn_errorFragment_okBtn);
 
         titleTv.setText(title);

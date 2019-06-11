@@ -140,8 +140,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             startConnectionTimeout(new OnConnectionTimeout() {
                 @Override
                 public void connectionTimeout(long duration, @Nullable Exception e) {
-                    if (e == null) {
-                        if (interactor.isDiscovering()) {
+                    if (e == null) { if (interactor.isDiscovering()) {
                             interactor.stopDiscovering();
                             view.removeDiscoveringProgressDialog();
                             view.enableSendReceiveButtons(true);

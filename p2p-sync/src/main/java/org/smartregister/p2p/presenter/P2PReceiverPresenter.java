@@ -458,11 +458,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         disconnectAndReset(endpointId, true);
     }
 
-    @Override
-    public void startTransfer() {
-
-    }
-
     private void checkIfDeviceKeyHasChanged(@NonNull final Map<String, Object> basicDeviceDetails, final @NonNull String endpointId) {
         Tasker.run(new Callable<SendingDevice>() {
             @Override
