@@ -17,6 +17,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.SparseArray;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -29,6 +30,8 @@ import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.vision.barcode.Barcode;
+import com.google.gson.Gson;
 
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
@@ -87,6 +90,23 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         prepareTrackingDetails();
         showP2PModeSelectFragment(true);
+
+        showQRCodeScanningFragment("moa", new QRCodeScanningFragment.QRCodeScanDialogCallback() {
+            @Override
+            public void onSkipClicked() {
+
+            }
+
+            @Override
+            public void qrCodeScanned(@NonNull SparseArray<Barcode> qrCodeResult) {
+                Timber.e(new Gson().toJson(qrCodeResult));
+            }
+
+            @Override
+            public void onErrorOccurred(@NonNull Exception e) {
+
+            }
+        });
     }
 
     private void prepareTrackingDetails() {

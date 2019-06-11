@@ -257,8 +257,12 @@ public class SyncReceiverHandlerTest {
     public void processPayloadShouldCallShowSyncCompleteFragmentWhenSyncCompleteConnectionSignalPayloadIsReceived() {
         long payloadId = 9293;
         String endpointId = "endpointid";
+        String deviceName = "SAMSUNG SMT78723";
 
         Payload syncCompletePayload = Mockito.mock(Payload.class);
+
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
 
         Mockito.doReturn(payloadId)
                 .when(syncCompletePayload)
@@ -272,10 +276,19 @@ public class SyncReceiverHandlerTest {
                 .when(syncCompletePayload)
                 .asBytes();
 
+        Mockito.doReturn(deviceName)
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        Mockito.doReturn(discoveredDevice)
+                .when(receiverPresenter)
+                .getCurrentPeerDevice();
+
         syncReceiverHandler.processPayload(endpointId, syncCompletePayload);
 
         Mockito.verify(view, Mockito.times(1))
                 .showSyncCompleteFragment(Mockito.eq(true)
+                        , Mockito.eq(deviceName)
                         , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
                         , Mockito.anyString());
     }
