@@ -387,6 +387,8 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     int transferredSize = (int) update.getBytesTransferred();
 
                     presenter.getView().updateProgressFragment((transferredSize * 100)/maxSize);
+                } else {
+                    Timber.e("We are waiting for a payload to finish transferring and the bytes for the payload being sent are null");
                 }
             }
         }

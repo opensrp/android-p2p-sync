@@ -88,11 +88,9 @@ public class SyncReceiverHandler extends BaseSyncHandler {
         } else if (update.getStatus() == PayloadTransferUpdate.Status.IN_PROGRESS) {
             long payloadId = update.getPayloadId();
             SyncPackageManifest syncPackageManifest = awaitingPayloadManifests.get(payloadId);
-            if (syncPackageManifest != null) {
-                if (syncPackageManifest.getPayloadSize() != 0) {
-                    int percentSize = ((int) update.getBytesTransferred() * 100) / syncPackageManifest.getPayloadSize();
-                    receiverPresenter.getView().updateProgressFragment(percentSize);
-                }
+            if (syncPackageManifest != null && syncPackageManifest.getPayloadSize() != 0) {
+                int percentSize = ((int) update.getBytesTransferred() * 100) / syncPackageManifest.getPayloadSize();
+                receiverPresenter.getView().updateProgressFragment(percentSize);
             }
         }
     }

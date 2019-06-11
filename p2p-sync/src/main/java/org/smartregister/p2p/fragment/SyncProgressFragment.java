@@ -32,9 +32,6 @@ public class SyncProgressFragment extends Fragment {
         return syncProgressFragment;
     }
 
-    public SyncProgressFragment() {
-    }
-
     public void setSummaryText(@NonNull String summaryText) {
         if (summaryTextView != null) {
             summaryTextView.setText(summaryText);
