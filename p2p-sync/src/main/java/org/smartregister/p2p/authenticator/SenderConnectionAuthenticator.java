@@ -53,8 +53,6 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                                 authenticationCallback.onAuthenticationFailed(getPresenter().getView().getString(R.string.authentication_tokens_dont_match)
                                         , new Exception("Authentication tokens do not match"));
                             }
-
-                            //getPresenter().getView().showToast(String.format(message, connectionInfo.getEndpointName()), Toast.LENGTH_LONG);
                         }
                     });
                 }
@@ -73,17 +71,6 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
                             authenticationCallback.onAuthenticationCancelled("User rejected the connection");
                         }
                     });
-                    /*getPresenter().getView().showSkipQRScanDialog(Constants.PeerStatus.SENDER, discoveredDevice.getEndpointName(), new SkipQRScanDialog.SkipDialogCallback() {
-                        @Override
-                        public void onSkipClicked(@NonNull DialogInterface dialogInterface) {
-                            authenticationCallback.onAuthenticationSuccessful();
-                        }
-
-                        @Override
-                        public void onCancelClicked(@NonNull DialogInterface dialogInterface) {
-                            authenticationCallback.onAuthenticationFailed(new Exception("User rejected the connection"));
-                        }
-                    });*/
                 }
             });
         } else {

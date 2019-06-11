@@ -20,6 +20,15 @@
             android:label="@string/peer_to_peer_activity_title"
             android:windowSoftInputMode="stateHidden|adjustResize"
             android:name=".activity.P2pModeSelectActivity"/>
+
+        <meta-data
+            android:name="com.google.android.gms.vision.Dependencies"
+            android:value="barcode" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
     </application>
 
 </manifest>
