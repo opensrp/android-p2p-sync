@@ -1,5 +1,7 @@
 package org.smartregister.p2p.authenticator;
 
+import android.content.DialogInterface;
+
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 
@@ -155,9 +157,9 @@ public class ReceiverConnectionAuthenticatorTest {
                         , ArgumentMatchers.eq(deviceName)
                         , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
     }
-/*
+
     @Test
-    public void authenticationShouldCallAuthenticationSuccessfulCallbackWhenQRCodeAuthenticationIsAccepted() {
+    public void authenticateShouldShowConnectingDialogWhenSkipButtonIsClicked() {
         String authenticationCode = "iowejncCJD";
         String deviceName = "SAMSUNG SM78";
 
@@ -179,7 +181,7 @@ public class ReceiverConnectionAuthenticatorTest {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback = invocation.getArgument(2);
-                qrCodeGeneratorCallback.(Mockito.mock(DialogInterface.class));
+                qrCodeGeneratorCallback.onSkipped();
                 return null;
             }
         })
@@ -193,12 +195,12 @@ public class ReceiverConnectionAuthenticatorTest {
 
         receiverConnectionAuthenticator.authenticate(discoveredDevice, authenticationCallback);
 
-        Mockito.verify(authenticationCallback, Mockito.times(1))
-                .onAuthenticationSuccessful();
+        Mockito.verify(view, Mockito.times(1))
+                .showConnectingDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
     }
 
     @Test
-    public void authenticationShouldCallAuthenticationFailedCallbackWhenQRCodeAuthenticationIsRejected() {
+    public void authenticateShouldCallAuthenticationCalledWhenCancelBtnOnConnectionDialogIsClicked() {
         String authenticationCode = "iowejncCJD";
         String deviceName = "SAMSUNG SM78";
 
@@ -220,7 +222,7 @@ public class ReceiverConnectionAuthenticatorTest {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback = invocation.getArgument(2);
-                qrCodeGeneratorCallback.onRejected(Mockito.mock(DialogInterface.class));
+                qrCodeGeneratorCallback.onSkipped();
                 return null;
             }
         })
@@ -229,29 +231,27 @@ public class ReceiverConnectionAuthenticatorTest {
                         , Mockito.anyString()
                         , Mockito.any(QRCodeGeneratorFragment.QRCodeGeneratorCallback.class));
 
-        DiscoveredDevice discoveredDevice = new DiscoveredDevice("id", connectionInfo);
-        BaseSyncConnectionAuthenticator.AuthenticationCallback authenticationCallback = Mockito.mock(BaseSyncConnectionAuthenticator.AuthenticationCallback.class);
-
-        final ArrayList<Object> innerClassResults = new ArrayList<>();
-
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
-                Exception e = invocation.getArgument(0);
-                innerClassResults.add(e);
-
+                P2pModeSelectContract.View.DialogCancelCallback dialogCancelCallback = invocation.getArgument(0);
+                dialogCancelCallback.onCancelClicked(Mockito.mock(DialogInterface.class));
                 return null;
             }
-        }).when(authenticationCallback)
-                .onAuthenticationFailed(Mockito.any(Exception.class));
+        })
+                .when(view)
+                .showConnectingDialog(Mockito.any(P2pModeSelectContract.View.DialogCancelCallback.class));
+
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice("id", connectionInfo);
+        BaseSyncConnectionAuthenticator.AuthenticationCallback authenticationCallback = Mockito.mock(BaseSyncConnectionAuthenticator.AuthenticationCallback.class);
 
         receiverConnectionAuthenticator.authenticate(discoveredDevice, authenticationCallback);
 
         Mockito.verify(authenticationCallback, Mockito.times(1))
-                .onAuthenticationFailed(Mockito.any(Exception.class));
-        Assert.assertEquals("User rejected the connection", ((Exception) innerClassResults.get(0)).getMessage());
+                .onAuthenticationCancelled(Mockito.anyString());
+        Mockito.verify(view, Mockito.times(1))
+                .removeConnectingDialog();
     }
-    */
 
 
 }

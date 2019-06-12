@@ -21,6 +21,7 @@ public class ShadowAppDatabase {
     public static AppDatabase getInstance(@NonNull Context context, @NonNull String passphrase) {
         if (instance == null) {
             instance = Room.inMemoryDatabaseBuilder(context.getApplicationContext(), AppDatabase.class)
+                    .allowMainThreadQueries()
                     .build();
         }
 
