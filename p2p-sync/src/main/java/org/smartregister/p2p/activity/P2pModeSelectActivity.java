@@ -90,23 +90,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         prepareTrackingDetails();
         showP2PModeSelectFragment(true);
-
-        showQRCodeScanningFragment("moa", new QRCodeScanningFragment.QRCodeScanDialogCallback() {
-            @Override
-            public void onSkipClicked() {
-
-            }
-
-            @Override
-            public void qrCodeScanned(@NonNull SparseArray<Barcode> qrCodeResult) {
-                Timber.e(new Gson().toJson(qrCodeResult));
-            }
-
-            @Override
-            public void onErrorOccurred(@NonNull Exception e) {
-
-            }
-        });
     }
 
     private void prepareTrackingDetails() {
