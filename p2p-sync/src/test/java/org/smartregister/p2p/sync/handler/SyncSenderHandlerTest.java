@@ -25,9 +25,9 @@ import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
+import org.smartregister.p2p.shadows.ShadowSyncSenderHandler;
 import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
-import org.smartregister.p2p.sync.handler.SyncSenderHandler;
 import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import static org.junit.Assert.assertTrue;
  */
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class})
+@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowSyncSenderHandler.class})
 public class SyncSenderHandlerTest {
 
     @Rule

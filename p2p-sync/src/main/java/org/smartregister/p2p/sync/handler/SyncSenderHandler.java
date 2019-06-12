@@ -248,7 +248,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
     @VisibleForTesting
     public void sendNextPayload() {
-        new Thread(new Runnable() {
+        startNewThread(new Runnable() {
             @Override
             public void run() {
                 if (awaitingPayload != null) {
@@ -303,7 +303,12 @@ public class SyncSenderHandler extends BaseSyncHandler {
                     }
                 }
             }
-        }).start();
+        });
+    }
+
+    @VisibleForTesting
+    public void startNewThread(@NonNull Runnable runnable) {
+        new Thread(runnable).start();
     }
 
     public void processString(@NonNull String message) {
