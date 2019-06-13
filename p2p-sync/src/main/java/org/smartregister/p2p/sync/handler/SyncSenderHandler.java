@@ -75,7 +75,7 @@ public class SyncSenderHandler extends BaseSyncHandler {
 
     private void generateRecordsToSend() {
         for (DataType dataType : dataSyncOrder) {
-            remainingLastRecordIds.put(dataType.getName(), 0l);
+            remainingLastRecordIds.put(dataType.getName(), 0L);
         }
 
         if (receivedHistory != null && receivedHistory.size() > 0) {

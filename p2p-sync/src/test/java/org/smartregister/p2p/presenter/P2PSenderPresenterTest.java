@@ -33,9 +33,11 @@ import org.smartregister.p2p.R;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.OnResultCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.fragment.ErrorFragment;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;
@@ -561,6 +563,41 @@ public class P2PSenderPresenterTest {
     }
 
     @Test
+    public void onConnectionBrokenShouldCallDisconnectFromEndpointAndShowErrorFragmentWhenConnectionLevelIsNotSentReceivedHistory() {
+        String endpointId = "id";
+        String deviceName = "samsung SMT734";
+        DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
+
+        Mockito.doReturn(deviceName)
+                .when(discoveredEndpointInfo)
+                .getEndpointName();
+
+        DiscoveredDevice discoveredDevice = new DiscoveredDevice(endpointId, discoveredEndpointInfo);
+
+        ReflectionHelpers.setField(p2PSenderPresenter, "currentReceiver", discoveredDevice);
+        assertNotNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+
+        // Add the syncSenderHandler
+        SyncSenderHandler syncSenderHandler = Mockito.mock(SyncSenderHandler.class);
+        Mockito.doReturn(new HashMap<String, Long>())
+                .when(syncSenderHandler)
+                .getTransferProgress();
+        ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHORIZED);
+
+        p2PSenderPresenter.onConnectionBroken(endpointId);
+
+        Mockito.verify(view, Mockito.times(1))
+                .showErrorFragment(Mockito.anyString()
+                        , Mockito.anyString()
+                        , Mockito.any(ErrorFragment.OnOkClickCallback.class));
+        Mockito.verify(interactor, Mockito.times(1))
+                .disconnectFromEndpoint(Mockito.eq(endpointId));
+
+        assertNull(ReflectionHelpers.getField(p2PSenderPresenter, "currentReceiver"));
+    }
+
+    @Test
     public void onDisconnectedShouldResetStateAndStartDiscoveringMode() {
         String endpointId = "id";
         DiscoveredEndpointInfo discoveredEndpointInfo = Mockito.mock(DiscoveredEndpointInfo.class);
@@ -927,8 +964,6 @@ public class P2PSenderPresenterTest {
                 .when(syncSenderHandler)
                 .getTransferProgress();
 
-
-
         ReflectionHelpers.setField(p2PSenderPresenter, "syncSenderHandler", syncSenderHandler);
 
         p2PSenderPresenter.errorOccurredSync(new Exception("some error"));
@@ -1041,5 +1076,113 @@ public class P2PSenderPresenterTest {
 
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .processPayload(ArgumentMatchers.eq(endpointId), ArgumentMatchers.eq(payload));
+    }
+
+    @Test
+    public void onPayloadReceivedShouldCallStartTransferWhenConnectionLevelIsAuthorizedAndConnectionCommandIsStartTransfer() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.AUTHORIZED);
+        String endpointId = "endpointid";
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+        Mockito.doReturn(Constants.Connection.START_TRANSFER.getBytes())
+                .when(payload)
+                .asBytes();
+
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .startTransfer();
+        Mockito.verify(view, Mockito.times(1))
+                .showSyncProgressFragment(Mockito.anyString(), Mockito.any(SyncProgressFragment.SyncProgressDialogCallback.class));
+    }
+
+    @Test
+    public void onPayloadReceivedShouldShowSkipQRScanDialogWhenConnectionLevelIsConnectBeforeAuthenticateAndConnectionCommandIsSkipQRCodeScan() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.CONNECT_BEFORE_AUTHENTICATE);
+        String endpointId = "endpointid";
+        String deviceName = "john travolter";
+        DiscoveredDevice discoveredDevice = Mockito.mock(DiscoveredDevice.class);
+        p2PSenderPresenter.setCurrentDevice(discoveredDevice);
+
+        Mockito.doReturn(endpointId)
+                .when(discoveredDevice)
+                .getEndpointId();
+
+        Mockito.doReturn(deviceName)
+                .when(discoveredDevice)
+                .getEndpointName();
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+        Mockito.doReturn(Constants.Connection.SKIP_QR_CODE_SCAN.getBytes())
+                .when(payload)
+                .asBytes();
+
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(view, Mockito.times(1))
+                .showSkipQRScanDialog(Mockito.eq(Constants.PeerStatus.SENDER)
+                        , Mockito.eq(deviceName)
+                        , Mockito.any(SkipQRScanDialog.SkipDialogCallback.class));
+        Mockito.verify(view, Mockito.times(1))
+                .removeQRCodeScanningFragment();
+    }
+
+    @Test
+    public void onPayloadReceivedShouldCallOnAuthenticationSuccessfulWhenConnectionLevelIsConnectBeforeAuthenticateAndConnectionCommandIsConnectionAccept() {
+        ReflectionHelpers.setField(p2PSenderPresenter, "connectionLevel", ConnectionLevel.CONNECT_BEFORE_AUTHENTICATE);
+        String endpointId = "endpointid";
+        Payload payload = Mockito.mock(Payload.class);
+
+        Mockito.doReturn(Payload.Type.BYTES)
+                .when(payload)
+                .getType();
+        Mockito.doReturn(Constants.Connection.CONNECTION_ACCEPT.getBytes())
+                .when(payload)
+                .asBytes();
+
+        p2PSenderPresenter.onPayloadReceived(endpointId, payload);
+
+        Mockito.verify(view, Mockito.times(1))
+                .removeConnectingDialog();
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .onAuthenticationSuccessful();
+    }
+
+
+    @Test
+    public void startDiscoveringShouldCallStopDiscoveringWhenConnectionTimeoutIsCalled() {
+
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                Mockito.doReturn(true)
+                        .when(interactor)
+                        .isDiscovering();
+
+                P2pModeSelectContract.BasePresenter.OnConnectionTimeout onConnectionTimeout = invocation.getArgument(0);
+                onConnectionTimeout.connectionTimeout(Constants.CONNECTION_TIMEOUT_SECONDS, null);
+
+                return null;
+            }
+        })
+                .when(p2PSenderPresenter)
+                .startConnectionTimeout(Mockito.any(P2pModeSelectContract.BasePresenter.OnConnectionTimeout.class));
+
+        p2PSenderPresenter.startDiscoveringMode();
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .stopDiscovering();
+        Mockito.verify(p2PSenderPresenter, Mockito.times(1))
+                .keepScreenOn(Mockito.eq(false));
+        Mockito.verify(view, Mockito.times(1))
+                .showErrorFragment(Mockito.eq(view.getString(R.string.no_nearby_devices_found))
+                        , Mockito.anyString()
+                        , Mockito.any(ErrorFragment.OnOkClickCallback.class));
     }
 }
