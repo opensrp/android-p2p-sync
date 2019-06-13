@@ -1,7 +1,6 @@
 package org.smartregister.p2p.tasks;
 
 import android.support.annotation.Nullable;
-import android.telecom.Call;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,8 +14,6 @@ import org.smartregister.p2p.TestApplication;
 import org.smartregister.p2p.exceptions.AsyncTaskCancelledException;
 
 import java.util.concurrent.Callable;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 2019-06-12
@@ -32,17 +29,8 @@ public class GenericAsyncTaskTest {
     public void doInBackgroundShouldCallRunnableMethod() throws Exception {
         Callable callable = Mockito.mock(Callable.class);
 
-        Tasker.run(callable, new GenericAsyncTask.OnFinishedCallback() {
-            @Override
-            public void onSuccess(@Nullable Object result) {
-                // Do nothing
-            }
-
-            @Override
-            public void onError(Exception e) {
-                // Do nothing
-            }
-        });
+        GenericAsyncTask genericAsyncTask = new GenericAsyncTask(callable);
+        genericAsyncTask.doInBackground();
 
         Mockito.verify(callable, Mockito.times(1))
                 .call();
