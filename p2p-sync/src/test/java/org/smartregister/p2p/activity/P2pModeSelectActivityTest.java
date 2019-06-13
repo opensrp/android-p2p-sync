@@ -2,7 +2,6 @@ package org.smartregister.p2p.activity;
 
 import android.Manifest;
 import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,16 +20,11 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.TestApplication;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
-import org.smartregister.p2p.dialog.ConnectingDialog;
-import org.smartregister.p2p.dialog.SkipQRScanDialog;
-import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
-import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
-import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -259,45 +253,4 @@ public class P2pModeSelectActivityTest {
                 .onStop();
     }
 
-  /*  @Test
-    public void showSkipQRScanDialog() {
-        activity.showSkipQRScanDialog("peer device status"
-                , "SAMSUNG"
-                , Mockito.mock(SkipQRScanDialog.SkipDialogCallback.class));
-
-        DialogFragment dialogFragment = (DialogFragment) activity.getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.SKIP_QR_SCAN);
-
-        assertTrue(dialogFragment instanceof SkipQRScanDialog);
-    }
-
-    @Test
-    public void showConnectingDialog() {
-        activity.showConnectingDialog(Mockito.mock(P2pModeSelectContract.View.DialogCancelCallback.class));
-
-        DialogFragment dialogFragment = (DialogFragment) activity.getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.CONNECTING);
-
-        assertTrue(dialogFragment instanceof ConnectingDialog);
-    }
-
-    @Test
-    public void showDiscoveringProgressDialog() {
-        activity.showDiscoveringProgressDialog(Mockito.mock(P2pModeSelectContract.View.DialogCancelCallback.class));
-
-        DialogFragment dialogFragment = (DialogFragment) activity.getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.START_SEND_MODE_PROGRESS);
-
-        assertTrue(dialogFragment instanceof StartDiscoveringModeProgressDialog);
-    }
-
-    @Test
-    public void showAdvertisingProgressDialog() {
-        activity.showAdvertisingProgressDialog(Mockito.mock(P2pModeSelectContract.View.DialogCancelCallback.class));
-
-        DialogFragment dialogFragment = (DialogFragment) activity.getSupportFragmentManager()
-                .findFragmentByTag(Constants.Dialog.START_RECEIVE_MODE_PROGRESS);
-
-        assertTrue(dialogFragment instanceof StartReceiveModeProgressDialog);
-    }*/
 }

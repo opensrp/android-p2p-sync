@@ -1,13 +1,12 @@
 package org.smartregister.p2p.util;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.HashMap;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 2019-06-12
@@ -24,6 +23,6 @@ public class SyncDataConverterUtilTest {
         transferItems.put("oranges", 1023);
 
         String actual = SyncDataConverterUtil.generateSummaryReport(RuntimeEnvironment.application, false, transferItems);
-        assertEquals("1,079 records received", actual);
+        Assert.assertEquals("1,079 records received", actual);
     }
 }
