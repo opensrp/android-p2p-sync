@@ -345,6 +345,36 @@ public class SyncReceiverHandlerTest {
     }
 
     @Test
+    public void onPayloadTransferUpdateShouldCallUpdateProgressFragmentWhenTransferStatusUpdateIsInProgress() {
+        String endpointId = "endpoint-id";
+        long payloadId = 923l;
+        int total = 20;
+        int sent = 5;
+        int expectedProgress = (5 *100)/20;
+        PayloadTransferUpdate update = Mockito.mock(PayloadTransferUpdate.class);
+
+        Mockito.doReturn(PayloadTransferUpdate.Status.IN_PROGRESS)
+                .when(update)
+                .getStatus();
+        Mockito.doReturn((long) sent)
+                .when(update)
+                .getBytesTransferred();
+        Mockito.doReturn(payloadId)
+                .when(update)
+                .getPayloadId();
+
+        SyncPackageManifest syncPackageManifest = new SyncPackageManifest(payloadId, ".json", event, 45);
+        syncPackageManifest.setPayloadSize(total);
+        HashMap<Long, SyncPackageManifest> awaitingPackageManifests = ReflectionHelpers.getField(syncReceiverHandler, "awaitingPayloadManifests");
+        awaitingPackageManifests.put(payloadId, syncPackageManifest);
+
+        syncReceiverHandler.onPayloadTransferUpdate(endpointId, update);
+
+        Mockito.verify(view, Mockito.times(1))
+                .updateProgressFragment(Mockito.eq(expectedProgress));
+    }
+
+    @Test
     public void finishProcessingDataShouldCallFinishProcessingNonMediaDataWhenDataTypeIsNonMedia() {
         String endpointId = "endpoint-id";
         long payloadId = 923l;

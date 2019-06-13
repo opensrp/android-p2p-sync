@@ -2,7 +2,9 @@ package org.smartregister.p2p.sync.handler;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.gson.JsonArray;
 
+import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,11 +27,15 @@ import org.smartregister.p2p.model.P2pReceivedHistory;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
+import org.smartregister.p2p.shadows.ShadowPayload;
 import org.smartregister.p2p.shadows.ShadowSyncSenderHandler;
 import org.smartregister.p2p.shadows.ShadowTasker;
+import org.smartregister.p2p.sync.data.JsonData;
+import org.smartregister.p2p.sync.data.MultiMediaData;
 import org.smartregister.p2p.sync.data.SyncPackageManifest;
 import org.smartregister.p2p.util.Constants;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -48,7 +54,7 @@ import static org.junit.Assert.assertTrue;
  */
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowSyncSenderHandler.class})
+@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowSyncSenderHandler.class, ShadowPayload.class})
 public class SyncSenderHandlerTest {
 
     @Rule
@@ -389,29 +395,62 @@ public class SyncSenderHandlerTest {
                 .errorOccurredSync(Mockito.any(Exception.class));
     }
 
-    //@Test
-    // This test has been ignored for now
-    /*public void sendNextPayloadShouldCallPresenterSendPayloadWhenThereIsAwaitingPayload() throws InterruptedException {
-        syncSenderHandler.sendNextPayload();
+    @Test
+    public void sendMultimediaDataManifestShouldCallPresenterSendManifest() {
+        DataType dataType = new DataType("pic", DataType.Type.MEDIA, 5);
 
-        Robolectric.flushBackgroundThreadScheduler();
+        File mockFile = Mockito.mock(File.class);
+        MultiMediaData multiMediaData = new MultiMediaData(mockFile, 8923);
+        HashMap<String, String> details = new HashMap<>();
+        details.put("fileRecordId", "928");
 
-        Mockito.verify(senderPresenter, Mockito.times(0))
-                .sendPayload(Mockito.any(Payload.class));
+        multiMediaData.setMediaDetails(details);
+
+        HashMap<String, Long> remainingLastRecords = ReflectionHelpers.getField(syncSenderHandler, "remainingLastRecordIds");
+        remainingLastRecords.put("pic", 0L);
 
         Payload payload = Mockito.mock(Payload.class);
-        ReflectionHelpers.setField(syncSenderHandler, "awaitingPayload", payload);
+        Mockito.doReturn(898L)
+                .when(payload)
+                .getId();
 
-        syncSenderHandler.sendNextPayload();
+        ShadowPayload.setPayloadToReturn(payload);
 
-        //Robolectric.flushBackgroundThreadScheduler();
-        ShadowApplication.runBackgroundTasks();
-        assertFalse(Robolectric.getBackgroundThreadScheduler().areAnyRunnable());
-        Thread.sleep(100);
+        Mockito.doReturn(multiMediaData)
+                .when(senderTransferDao)
+                .getMultiMediaData(Mockito.eq(dataType), Mockito.anyLong());
+        Mockito.doReturn(true)
+                .when(mockFile)
+                .exists();
+        Mockito.doReturn("sample.jpg")
+                .when(mockFile)
+                .getName();
 
+        syncSenderHandler.sendMultimediaDataManifest(dataType);
         Mockito.verify(senderPresenter, Mockito.times(1))
-                .sendPayload(ArgumentMatchers.eq(payload));
-    }*/
+                .sendManifest(Mockito.any(SyncPackageManifest.class));
+    }
+
+    @Test
+    public void sendJsonDataManifestShouldCallPresenterSendManifest() {
+        DataType dataType = new DataType("Person", DataType.Type.NON_MEDIA, 5);
+        JsonData multiMediaData = new JsonData(new JSONArray(), 8923);
+
+        Payload payload = Mockito.mock(Payload.class);
+        Mockito.doReturn(898L)
+                .when(payload)
+                .getId();
+
+        ShadowPayload.setPayloadToReturn(payload);
+
+        Mockito.doReturn(multiMediaData)
+                .when(senderTransferDao)
+                .getJsonData(Mockito.eq(dataType), Mockito.anyLong(), Mockito.anyInt());
+
+        syncSenderHandler.sendJsonDataManifest(dataType);
+        Mockito.verify(senderPresenter, Mockito.times(1))
+                .sendManifest(Mockito.any(SyncPackageManifest.class));
+    }
 
     private P2pReceivedHistory createReceivedHistory(String entityType, long lastRecordId, String sendingDeviceId) {
         P2pReceivedHistory history = new P2pReceivedHistory();
