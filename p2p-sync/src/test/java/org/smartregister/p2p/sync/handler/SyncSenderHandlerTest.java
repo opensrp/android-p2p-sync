@@ -2,7 +2,6 @@ package org.smartregister.p2p.sync.handler;
 
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
-import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.junit.Before;
