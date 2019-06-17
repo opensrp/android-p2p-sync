@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="start_transfer_title_size">21sp</dimen>
+    <dimen name="start_transfer_message_size">14sp</dimen>
+    <dimen name="start_transfer_title_margin">5dp</dimen>
+</resources>

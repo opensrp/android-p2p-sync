@@ -90,8 +90,6 @@ public interface P2pModeSelectContract {
 
         void requestEnableLocation(@NonNull OnLocationEnabled onLocationEnabled);
 
-        void showToast(@NonNull String text, int length);
-
         @NonNull
         String getString(@StringRes int resId);
 
