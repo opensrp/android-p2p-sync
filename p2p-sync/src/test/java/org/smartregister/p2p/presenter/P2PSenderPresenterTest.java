@@ -429,9 +429,6 @@ public class P2PSenderPresenterTest {
         assertEquals(ConnectionLevel.AUTHENTICATED, ReflectionHelpers.getField(p2PSenderPresenter, "connectionLevel"));
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .startDeviceAuthorization(Mockito.eq(endpointId));
-        Mockito.verify(view, Mockito.times(1))
-                .showToast(ArgumentMatchers.eq("Authentication successful! Receiver can accept connection")
-                        , ArgumentMatchers.eq(Toast.LENGTH_LONG));
     }
 
     @Test
@@ -448,9 +445,6 @@ public class P2PSenderPresenterTest {
 
         Mockito.verify(interactor, Mockito.times(1))
                 .disconnectFromEndpoint(ArgumentMatchers.eq(endpointId));
-        Mockito.verify(view, Mockito.times(1))
-                .showToast(ArgumentMatchers.eq("Authentication failed! The connection has been rejected")
-                        , ArgumentMatchers.eq(Toast.LENGTH_LONG));
     }
 
     @Test

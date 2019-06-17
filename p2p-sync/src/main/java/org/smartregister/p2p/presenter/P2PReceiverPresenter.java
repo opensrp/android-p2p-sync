@@ -169,7 +169,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     public void onAdvertisingFailed(@NonNull Exception e) {
         stopConnectionTimeout();
 
-        view.showToast(view.getString(R.string.an_error_occurred_start_receiving), Toast.LENGTH_LONG);
         view.removeAdvertisingProgressDialog();
         view.enableSendReceiveButtons(true);
     }
@@ -236,7 +235,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onConnectionRejected(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
         if (getCurrentPeerDevice() != null) {
-            view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
             resetState();
             prepareForAdvertising(false);
         } else {
@@ -250,7 +248,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             String errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
-            view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
 
             disconnectAndReset(endpointId);
 
@@ -282,7 +279,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 });
                 disconnectAndReset(interactor.getCurrentEndpoint(), false);
             }
-            view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
@@ -542,7 +538,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                         @Override
                         public void onError(Exception e) {
                             Timber.e(e);
-                            view.showToast(view.getString(R.string.an_error_occurred_trying_to_save_new_sender_details), Toast.LENGTH_LONG);
 
                             disconnectAndReset(endpointId);
                         }
@@ -601,7 +596,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
             disconnectAndReset(endpointId);
         }
 
-        view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
         view.showErrorFragment(view.getString(R.string.connection_lost), reason, new ErrorFragment.OnOkClickCallback() {
             @Override
             public void onOkClicked() {
@@ -645,8 +639,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
     @Override
     public void onConnectionAuthorized() {
         connectionLevel = ConnectionLevel.AUTHORIZED;
-        view.showToast(String.format(view.getContext().getString(R.string.you_are_connected_to_sender), currentSender.getEndpointName())
-                , Toast.LENGTH_LONG);
 
         view.showDevicesConnectedFragment(new P2pModeSelectContract.View.OnStartTransferClicked() {
             @Override
@@ -682,11 +674,6 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         if (currentSender != null) {
             String endpointId = currentSender.getEndpointId();
             addDeviceToBlacklist(endpointId);
-
-            view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
-                    , currentSender.getEndpointName())
-                    , Toast.LENGTH_LONG);
-            
             disconnectAndReset(endpointId, false);
 
             view.showErrorFragment(view.getString(R.string.authorization_failed), reason, new ErrorFragment.OnOkClickCallback() {

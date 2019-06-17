@@ -480,12 +480,6 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         });
     }
 
-    @Override
-    public void showToast(@NonNull String text, int length) {
-        Toast.makeText(this, text, length)
-                .show();
-    }
-
     private void showLocationEnableRejectionDialog() {
         new AlertDialog.Builder(P2pModeSelectActivity.this)
                 .setTitle(R.string.location_service_disabled)

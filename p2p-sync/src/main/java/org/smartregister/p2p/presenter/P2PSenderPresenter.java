@@ -233,7 +233,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onDiscoveringFailed(@NonNull Exception exception) {
         stopConnectionTimeout();
 
-        view.showToast(view.getString(R.string.error_occurred_cannot_start_sending), Toast.LENGTH_LONG);
         view.removeDiscoveringProgressDialog();
         view.enableSendReceiveButtons(true);
     }
@@ -272,14 +271,12 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     @Override
     public void onRequestConnectionSuccessful(@Nullable Object result) {
         // Just show a success
-        view.showToast(view.getString(R.string.connection_request_successful), Toast.LENGTH_LONG);
         view.removeDiscoveringProgressDialog();
     }
 
     @Override
     public void onRequestConnectionFailed(@NonNull Exception exception) {
         // Show the user an error trying to connect device XYZ
-        view.showToast(view.getString(R.string.could_not_initiate_connection_request_to_device), Toast.LENGTH_LONG);
         resetState();
         prepareForDiscovering(false);
     }
@@ -366,7 +363,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
     public void onAuthenticationSuccessful() {
         if (getCurrentPeerDevice() != null){
             connectionLevel = ConnectionLevel.AUTHENTICATED;
-            view.showToast(view.getString(R.string.authentication_successful_receiver_can_accept_connection), Toast.LENGTH_LONG);
             startDeviceAuthorization(getCurrentPeerDevice().getEndpointId());
         } else {
             Timber.e(view.getString(R.string.log_onauthenticationsuccessful_without_peer_device));
@@ -381,7 +377,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
             disconnectAndReset(endpointId);
         }
 
-        view.showToast(view.getString(R.string.authentication_failed_connection_rejected), Toast.LENGTH_LONG);
         view.showErrorFragment(view.getString(R.string.connection_lost), reason, new ErrorFragment.OnOkClickCallback() {
             @Override
             public void onOkClicked() {
@@ -445,7 +440,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         if (currentReceiver != null) {
             rejectDeviceOnAuthentication(endpointId);
 
-            view.showToast(view.getString(R.string.receiver_rejected_the_connection), Toast.LENGTH_LONG);
             resetState();
             startDiscoveringMode();
         } else {
@@ -459,7 +453,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         //Todo: And show the user an error
         if (getCurrentPeerDevice() != null && endpointId.equals(getCurrentPeerDevice().getEndpointId())) {
             String errorMsg = String.format(view.getString(R.string.please_make_sure_device_is_turned_on_and_in_range), getCurrentPeerDevice().getEndpointName());
-            view.showToast(view.getString(R.string.an_error_occurred_before_acceptance_or_rejection), Toast.LENGTH_LONG);
             resetState();
 
             view.showErrorFragment(view.getString(R.string.connection_lost), errorMsg, new ErrorFragment.OnOkClickCallback() {
@@ -494,8 +487,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     resetState();
                 }
             }
-
-            view.showToast(errorMsg, Toast.LENGTH_LONG);
         } else {
             Timber.e(view.getString(R.string.log_onconnectionbroken_without_peer_device), endpointId);
         }
@@ -683,10 +674,6 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         if (currentReceiver != null) {
             String endpointId = currentReceiver.getEndpointId();
             addDeviceToBlacklist(endpointId);
-
-            view.showToast(String.format(view.getString(R.string.connection_could_not_be_authorized)
-                    , currentReceiver.getEndpointName())
-                    , Toast.LENGTH_LONG);
 
             disconnectAndReset(endpointId, false);
 
