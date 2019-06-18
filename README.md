@@ -9,7 +9,7 @@ This library wraps on the Google Nearby Connections API to provide a simple UI a
      - [ReceiverDao](#receiverdao)
      - [SenderDao](#senderdao)
      - [AuthorizationService](#authorizationservice)
-     - [How to start the peer-to-peer screen/activity](#how-to-start-the-peer-to-peer-screen-activity)
+     - [How to start the peer-to-peer screen/activity](#how-to-start-the-peer-to-peer-screenactivity)
  2. [More Information](#2-more-information)
 
 ## 1. Getting started
