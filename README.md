@@ -5,7 +5,11 @@ This library wraps on the Google Nearby Connections API to provide a simple UI a
 
 ## Table of Contents
 
- 1. [Getting started](#1-getting-started)
+ 1. [Getting started](#1-getting-started) 
+     - [ReceiverDao](#receiverdao)
+     - [SenderDao](#senderdao)
+     - [AuthorizationService](#authorizationservice)
+     - [How to start the peer-to-peer screen/activity](#how-to-start-the-peer-to-peer-screen-activity)
  2. [More Information](#2-more-information)
 
 ## 1. Getting started
@@ -77,13 +81,18 @@ This class provides the logic for performing authorization of the peer device. I
 
 The interface from which this is implemented provides two methods:
 
- - `void getAuthorizationDetails(@NonNull OnAuthorizationDetailsProvidedCallback onAuthorizationDetailsProvidedCallback);`
+ - **`void getAuthorizationDetails(@NonNull OnAuthorizationDetailsProvidedCallback onAuthorizationDetailsProvidedCallback);`**
+ 
  This method implements providing the authorization details in the callback. This method is called on the UI Thread and therefore any long-running operations, DB operations or network operations should be performed on a separate thread and the callback should be called on the UI Thread.
  
- - `void authorizeConnection(@NonNull Map<String, Object> authorizationDetails, @NonNull AuthorizationCallback authorizationCallback);`
+ 
+ 
+ - **`void authorizeConnection(@NonNull Map<String, Object> authorizationDetails, @NonNull AuthorizationCallback authorizationCallback);`**
+ 
  This method is where you add your authorization logic for checking the conditions. A peer-device status is injected into the `authorizationDetails` as a constant `org.smartregister.p2p.util.Constants.AuthorizationKeys.PEER_STATUS` which can be any of two values `sender` or `receiver`. It's more advisable to use the provided constants `Constants.PeerStatus.SENDER` and `Constants.PeerStatus.SENDER` to know the state of the peer device that you are connecting to. The reason for this is that the `AuthorizationService` has no way to know it's current state or the other peer devices state(Is it a sender or a receiver?)
 
 
+### How to start the peer-to-peer screen/activity
 To start the sending and receiving activity:
 
 ```java
