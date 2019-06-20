@@ -27,7 +27,6 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.shadows.ShadowPayload;
-import org.smartregister.p2p.shadows.ShadowSyncSenderHandler;
 import org.smartregister.p2p.shadows.ShadowTasker;
 import org.smartregister.p2p.sync.data.JsonData;
 import org.smartregister.p2p.sync.data.MultiMediaData;
@@ -53,13 +52,13 @@ import static org.junit.Assert.assertTrue;
  */
 
 @RunWith(RobolectricTestRunner.class)
-@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowSyncSenderHandler.class, ShadowPayload.class})
+@Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowPayload.class})
 public class SyncSenderHandlerTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private SyncSenderHandler syncSenderHandler;
+    private TestSyncSenderHandler syncSenderHandler;
     @Mock
     private P2pModeSelectContract.SenderPresenter senderPresenter;
 
@@ -86,7 +85,7 @@ public class SyncSenderHandlerTest {
         dataSyncOrder.add(client);
         dataSyncOrder.add(event);
 
-        syncSenderHandler = Mockito.spy(new SyncSenderHandler(senderPresenter, dataSyncOrder, null));
+        syncSenderHandler = Mockito.spy(new TestSyncSenderHandler(senderPresenter, dataSyncOrder, null));
     }
 
     @Test
