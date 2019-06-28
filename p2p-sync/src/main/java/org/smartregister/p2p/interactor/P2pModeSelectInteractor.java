@@ -19,6 +19,7 @@ import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.smartregister.p2p.BuildConfig;
 import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.callback.OnResultCallback;
@@ -271,7 +272,9 @@ public class P2pModeSelectInteractor implements P2pModeSelectContract.Interactor
     }
 
     public void showToast(@NonNull String message) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG)
-                .show();
+        if (BuildConfig.DEBUG) {
+            Toast.makeText(context, message, Toast.LENGTH_LONG)
+                    .show();
+        }
     }
 }
