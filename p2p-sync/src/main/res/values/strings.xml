@@ -110,5 +110,5 @@
     <string name="start_transfer">Start Transfer</string>
     <string name="devices_connected">Devices Connected</string>
     <string name="please_make_sure_the_devices_remain_within_range_during_data_transfer">Please make sure the devices remain within range during data transfer</string>
-    <string name="processing_disclaimer">Records will be processed for up to 10 minutes before your records will be updated. Do not edit medical records until the process is complete.</string>
+    <string name="processing_disclaimer"></string>
 </resources>

@@ -385,8 +385,9 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         return sendingDevice;
     }
 
+    @VisibleForTesting
     @Nullable
-    private Integer clearDeviceHistoryAndUpdateDeviceKey(final SendingDevice sendingDevice, String appLifetimeKey) {
+    protected Integer clearDeviceHistoryAndUpdateDeviceKey(final SendingDevice sendingDevice, String appLifetimeKey) {
         final AppDatabase db = P2PLibrary.getInstance().getDb();
         sendingDevice.setAppLifetimeKey(appLifetimeKey);
 
