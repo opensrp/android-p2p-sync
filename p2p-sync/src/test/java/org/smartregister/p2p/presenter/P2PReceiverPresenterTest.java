@@ -475,7 +475,8 @@ public class P2PReceiverPresenterTest {
                 .showSyncCompleteFragment(Mockito.eq(false)
                         , Mockito.eq(deviceName)
                         , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
-                        , Mockito.anyString());
+                        , Mockito.anyString()
+                        , Mockito.eq(false));
         assertNull(ReflectionHelpers.getField(p2PReceiverPresenter, "currentSender"));
     }
 

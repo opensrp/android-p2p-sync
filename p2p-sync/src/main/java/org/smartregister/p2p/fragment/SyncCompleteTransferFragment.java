@@ -22,12 +22,17 @@ public class SyncCompleteTransferFragment extends Fragment {
     private OnCloseClickListener onCloseClickListener;
     private String transferSummary;
     private boolean isSuccess;
+    private boolean isSender;
 
     @Nullable
     private String deviceName;
 
     public void setSuccess(boolean success) {
         isSuccess = success;
+    }
+
+    public void setSender(boolean sender) {
+        isSender = sender;
     }
 
     public void setTransferSummaryReport(@NonNull String transferSummaryReport) {
@@ -46,19 +51,24 @@ public class SyncCompleteTransferFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
-        TextView transferSummary = (TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary);
+        TextView transferSummaryTv = (TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary);
+
+        String[] summarySplit = this.transferSummary.split(" ");
+        String recordsSent = "0";
+
+        if (summarySplit.length > 0) {
+            recordsSent = summarySplit[0].trim();
+        }
 
         if (isSuccess) {
-            transferSummary.setText(this.transferSummary);
-        } else {
-            String[] summarySplit = this.transferSummary.split(" ");
-            String recordsSent = "0";
+            transferSummaryTv.setText(this.transferSummary);
 
-            if (summarySplit.length > 0) {
-                recordsSent = summarySplit[0];
+            if (!isSender && (recordsSent.length() > 1 || !"0".equals(recordsSent))) {
+                view.findViewById(R.id.tv_successfulTransferFragment_processingDisclaimer)
+                        .setVisibility(View.VISIBLE);
             }
-
-            transferSummary.setText(String.format(getString(R.string.connection_lost_transfer_summary), deviceName, recordsSent));
+        } else {
+            transferSummaryTv.setText(String.format(getString(R.string.connection_lost_transfer_summary), deviceName, recordsSent));
         }
 
         if (!isSuccess) {

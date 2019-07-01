@@ -549,7 +549,9 @@ public class P2PSenderPresenterTest {
         Mockito.verify(view, Mockito.times(1))
                 .showSyncCompleteFragment(ArgumentMatchers.eq(false)
                         , Mockito.eq(deviceName)
-                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class), Mockito.anyString());
+                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
+                        , Mockito.anyString()
+                        , Mockito.eq(true));
         Mockito.verify(p2PSenderPresenter, Mockito.times(1))
                 .errorOccurredSync(Mockito.any(Exception.class));
 
@@ -871,7 +873,8 @@ public class P2PSenderPresenterTest {
                 .showSyncCompleteFragment(Mockito.eq(true)
                         , Mockito.eq(deviceName)
                         , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
-                        , Mockito.anyString());
+                        , Mockito.anyString()
+                        , Mockito.eq(true));
     }
 
     @Test
@@ -963,8 +966,11 @@ public class P2PSenderPresenterTest {
         p2PSenderPresenter.errorOccurredSync(new Exception("some error"));
 
         Mockito.verify(view, Mockito.times(1))
-                .showSyncCompleteFragment(Mockito.eq(false), Mockito.eq(deviceName)
-                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class), Mockito.anyString());
+                .showSyncCompleteFragment(Mockito.eq(false)
+                        , Mockito.eq(deviceName)
+                        , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
+                        , Mockito.anyString()
+                        , Mockito.eq(true));
         Mockito.verify(interactor, Mockito.times(1))
                 .disconnectFromEndpoint(Mockito.eq(endpointId));
         Mockito.verify(view, Mockito.times(1))

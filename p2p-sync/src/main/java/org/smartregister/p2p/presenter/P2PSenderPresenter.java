@@ -212,7 +212,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 public void onCloseClicked() {
                     getView().showP2PModeSelectFragment(true);
                 }
-            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), true, syncSenderHandler.getTransferProgress()));
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), true, syncSenderHandler.getTransferProgress()), true);
 
             syncSenderHandler = null;
         }
@@ -512,7 +512,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                     public void onCloseClicked() {
                         view.showP2PModeSelectFragment(true);
                     }
-                }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), true, transferItems));
+                }, SyncDataConverterUtil.generateSummaryReport(view.getContext(), true, transferItems), true);
                 transferItems = null;
                 disconnectAndReset(currentReceiver.getEndpointId(), false);
             }

@@ -290,7 +290,8 @@ public class SyncReceiverHandlerTest {
                 .showSyncCompleteFragment(Mockito.eq(true)
                         , Mockito.eq(deviceName)
                         , Mockito.any(SyncCompleteTransferFragment.OnCloseClickListener.class)
-                        , Mockito.anyString());
+                        , Mockito.anyString()
+                        , Mockito.eq(false));
     }
 
     @Test

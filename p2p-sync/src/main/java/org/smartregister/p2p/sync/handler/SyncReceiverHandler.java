@@ -374,7 +374,7 @@ public class SyncReceiverHandler extends BaseSyncHandler {
             public void onCloseClicked() {
                 receiverPresenter.getView().showP2PModeSelectFragment(true);
             }
-        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), false, getTransferProgress()));
+        }, SyncDataConverterUtil.generateSummaryReport(receiverPresenter.getView().getContext(), false, getTransferProgress()), false);
     }
 
     private void stopTransferAndReset(boolean startAdvertising) {
