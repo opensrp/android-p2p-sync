@@ -27,4 +27,8 @@ public class ShadowAppDatabase {
 
         return instance;
     }
+
+    public static void setInstance(@NonNull AppDatabase appDatabase) {
+        instance = appDatabase;
+    }
 }
