@@ -701,7 +701,8 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
                 public void onCloseClicked() {
                     getView().showP2PModeSelectFragment(true);
                 }
-            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), false, syncReceiverHandler.getTransferProgress()));
+            }, SyncDataConverterUtil.generateSummaryReport(getView().getContext(), false, syncReceiverHandler.getTransferProgress())
+            , false);
         }
 
         disconnectAndReset(interactor.getCurrentEndpoint(), false);

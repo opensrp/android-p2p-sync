@@ -60,6 +60,7 @@
         android:paddingLeft="40dp"
         android:paddingRight="40dp"
         android:gravity="center"
+        android:visibility="gone"
         android:text="@string/processing_disclaimer"/>
 
     <Button
