@@ -110,7 +110,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     @Override
     public void startAdvertisingMode() {
-        if (!interactor.isAdvertising()) {
+        if (interactor!=null && !interactor.isAdvertising()) {
             view.enableSendReceiveButtons(false);
             keepScreenOn(true);
             view.showAdvertisingProgressDialog(new P2pModeSelectContract.View.DialogCancelCallback() {
@@ -691,7 +691,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
 
     public void onSyncFailed(@NonNull Exception e) {
         SyncFinishedCallback syncFinishedCallback = P2PLibrary.getInstance().getSyncFinishedCallback();
-        if (syncFinishedCallback != null) {
+        if (syncFinishedCallback != null && syncReceiverHandler != null) {
             syncFinishedCallback.onFailure(e, syncReceiverHandler.getTransferProgress());
         }
 

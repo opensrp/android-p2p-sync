@@ -29,6 +29,7 @@ import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 import org.smartregister.p2p.sync.DiscoveredDevice;
+import org.smartregister.p2p.util.Constants;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 22/03/2019
@@ -191,6 +192,15 @@ public class BaseP2pModeSelectPresenterTest {
 
         Mockito.verify(p2PModeSelectPresenter, Mockito.times(1))
                 .addDeviceToBlacklist(ArgumentMatchers.eq(endpointId));
+    }
+
+    @Test
+    public void testSendSkipClicked() {
+        p2PModeSelectPresenter.setCurrentDevice(new DiscoveredDevice("endpointid", Mockito.mock(DiscoveredEndpointInfo.class)));
+        p2PModeSelectPresenter.sendSkipClicked();
+
+        Mockito.verify(interactor, Mockito.times(1))
+                .sendMessage(ArgumentMatchers.eq(Constants.Connection.SKIP_QR_CODE_SCAN));
     }
 
     private class P2pModeSelectPresenter extends BaseP2pModeSelectPresenter {

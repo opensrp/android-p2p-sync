@@ -139,7 +139,9 @@ public abstract class BaseP2pModeSelectPresenter implements P2pModeSelectContrac
 
     @Override
     public void sendSkipClicked() {
-        interactor.sendMessage(Constants.Connection.SKIP_QR_CODE_SCAN);
+        if (interactor != null) {
+            interactor.sendMessage(Constants.Connection.SKIP_QR_CODE_SCAN);
+        }
     }
 
     @Override

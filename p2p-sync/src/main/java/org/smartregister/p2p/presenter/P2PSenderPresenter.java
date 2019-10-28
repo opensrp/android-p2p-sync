@@ -141,7 +141,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
                 @Override
                 public void connectionTimeout(long duration, @Nullable Exception e) {
                     if (e == null) {
-                        if (interactor.isDiscovering()) {
+                        if (interactor != null && interactor.isDiscovering()) {
                             interactor.stopDiscovering();
                             view.removeDiscoveringProgressDialog();
                             view.enableSendReceiveButtons(true);
@@ -651,7 +651,7 @@ public class P2PSenderPresenter extends BaseP2pModeSelectPresenter implements IS
         view.showSyncProgressFragment(view.getString(R.string.sending_data), new SyncProgressFragment.SyncProgressDialogCallback() {
             @Override
             public void onCancelClicked() {
-                if (interactor.getCurrentEndpoint() != null) {
+                if (interactor !=null && interactor.getCurrentEndpoint() != null) {
                     errorOccurredSync(new Exception("User cancelled sync process"));
                 } else {
                     Timber.e("Could not stop sending data because no endpoint exists");
