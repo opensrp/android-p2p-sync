@@ -200,7 +200,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         transaction.replace(R.id.cl_p2pModeSelectActivity_parentLayout, syncCompleteTransferFragment, Constants.Fragment.SYNC_COMPLETE);
 
         // Commit the transaction
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     @Override
