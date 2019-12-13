@@ -654,7 +654,7 @@ public class P2PReceiverPresenter extends BaseP2pModeSelectPresenter implements 
         view.showSyncProgressFragment(view.getString(R.string.receiving_data), new SyncProgressFragment.SyncProgressDialogCallback() {
             @Override
             public void onCancelClicked() {
-                if (interactor.getCurrentEndpoint() != null) {
+                if (interactor != null && interactor.getCurrentEndpoint() != null) {
                     onSyncFailed(new Exception("User cancelled sync process"));
                 } else {
                     Timber.e(view.getString(R.string.could_not_disconnection_reset_without_endpoint));
