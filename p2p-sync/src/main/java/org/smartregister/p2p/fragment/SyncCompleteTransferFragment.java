@@ -53,7 +53,7 @@ public class SyncCompleteTransferFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_successful_transfer, container, false);
         TextView transferSummaryTv = (TextView) view.findViewById(R.id.tv_successfulTransferFragment_transferSummary);
 
-        String[] summarySplit = this.transferSummary.split(" ");
+        String[] summarySplit = this.transferSummary == null ? new String[]{""} : this.transferSummary.split(" "); // TODO: Returns to NPE
         String recordsSent = "0";
 
         if (summarySplit.length > 0) {
