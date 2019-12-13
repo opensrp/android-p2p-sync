@@ -17,7 +17,7 @@ public abstract class DialogUtils {
         List<Fragment> fragments = fragmentManager.getFragments();
 
         for (Fragment fragment: fragments) {
-            if (fragment instanceof DialogFragment) {
+            if (fragment instanceof DialogFragment && fragment.isAdded()) {
                 ((DialogFragment) fragment).dismissAllowingStateLoss();
             }
 
