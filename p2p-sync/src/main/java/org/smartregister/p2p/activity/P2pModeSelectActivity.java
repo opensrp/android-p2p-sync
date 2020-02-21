@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,8 +20,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
-import android.widget.Toast;
 
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationRequest;
@@ -28,6 +30,8 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import org.smartregister.p2p.P2PLibrary;
@@ -87,6 +91,50 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
         prepareTrackingDetails();
         showP2PModeSelectFragment(true);
+        checkForPlayServices();
+    }
+
+    private void checkForPlayServices() {
+        GoogleApiAvailability.getInstance()
+                .makeGooglePlayServicesAvailable(this)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void ignored) {
+                        Timber.v("Play services is available");
+
+                        // TODO Look for a better way to check minimum required version of Google Play Services (hard coded for Nearby v16)
+                        if (getPlayServicesVersion() < 12451000) {
+                            showFatalErrorDialog(R.string.error_play_services_title, R.string.error_play_services_out_of_date);
+                        }
+                    }
+                }).addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Timber.v("Play services is not available");
+                showFatalErrorDialog(R.string.error_play_services_title, R.string.error_play_services);
+            }
+        });
+    }
+
+    private int getPlayServicesVersion() {
+        try {
+            return getPackageManager().getPackageInfo(GoogleApiAvailability.GOOGLE_PLAY_SERVICES_PACKAGE, 0).versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            return -1;
+        }
+    }
+
+    private void onMacAddressResolutionFailure() {
+        // request user to turn on wifi
+        if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_WIFI)) {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (!wifiManager.isWifiEnabled()) {
+                showFatalErrorDialog(R.string.an_error_occured, R.string.error_try_turning_wifi_on);
+                return;
+            }
+        }
+
+        showFatalErrorDialog(R.string.an_error_occured, R.string.error_occurred_trying_to_get_mac_address);
     }
 
     private void prepareTrackingDetails() {
@@ -99,7 +147,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                                     .setDeviceUniqueIdentifier(result);
                         } else {
                             Timber.e(getString(R.string.log_getting_mac_address_not_successful));
-                            showFatalErrorDialog(R.string.an_error_occured, R.string.error_occurred_trying_to_get_mac_address);
+                            onMacAddressResolutionFailure();
                         }
                     }
 
@@ -354,7 +402,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         TreeSet<DataType> dataTypes = P2PLibrary.getInstance().getReceiverTransferDao().getDataTypes();
         boolean hasMediaDataTypes = false;
 
-        for (DataType dataType: dataTypes) {
+        for (DataType dataType : dataTypes) {
             if (dataType.getType() == DataType.Type.MEDIA) {
                 hasMediaDataTypes = true;
                 break;
@@ -544,7 +592,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     protected void onResume() {
         super.onResume();
 
-        for (OnResumeHandler onResumeHandler: onResumeHandlers) {
+        for (OnResumeHandler onResumeHandler : onResumeHandlers) {
             onResumeHandler.onResume();
         }
     }
@@ -553,7 +601,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler: onActivityRequestPermissionHandlers) {
+        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler : onActivityRequestPermissionHandlers) {
             if (requestCode == onActivityRequestPermissionHandler.getRequestCode()) {
                 onActivityRequestPermissionHandler.handlePermissionResult(permissions, grantResults);
             }
@@ -564,9 +612,10 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        for (OnActivityResultHandler onActivityResultHandler: onActivityResultHandlers) {
+        for (OnActivityResultHandler onActivityResultHandler : onActivityResultHandlers) {
             if (requestCode == onActivityResultHandler.getRequestCode()) {
-                onActivityResultHandler.handleActivityResult(resultCode, data); getString(R.string.connected);
+                onActivityResultHandler.handleActivityResult(resultCode, data);
+                getString(R.string.connected);
             }
         }
     }
