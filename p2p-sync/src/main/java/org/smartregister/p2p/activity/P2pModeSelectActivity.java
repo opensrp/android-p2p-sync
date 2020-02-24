@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -104,7 +105,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
                         // TODO Look for a better way to check minimum required version of Google Play Services (hard coded for Nearby v16)
                         if (getPlayServicesVersion() < 12451000) {
-                            showFatalErrorDialog(R.string.error_play_services_title, R.string.error_play_services_out_of_date);
+                            updatePlayStoreOrDie();
                         }
                     }
                 }).addOnFailureListener(this, new OnFailureListener() {
@@ -123,6 +124,34 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
             return -1;
         }
     }
+
+    private void updatePlayStoreOrDie() {
+        new AlertDialog.Builder(P2pModeSelectActivity.this)
+                .setTitle(R.string.error_play_services_title)
+                .setMessage(R.string.error_play_services_out_of_date)
+                .setNegativeButton(R.string.maybe_later, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        P2pModeSelectActivity.this.finish();
+                    }
+                })
+                .setPositiveButton(R.string.update_now, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String playServicesURI = "com.google.android.gms";
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + playServicesURI)));
+                        } catch (android.content.ActivityNotFoundException ex) {
+                            // if play store is not installed
+                            Timber.e(ex);
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + playServicesURI)));
+                        }
+                    }
+                })
+                .show();
+    }
+
 
     private void onMacAddressResolutionFailure() {
         // request user to turn on wifi
