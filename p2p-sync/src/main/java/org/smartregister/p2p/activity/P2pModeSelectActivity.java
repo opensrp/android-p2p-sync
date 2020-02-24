@@ -139,6 +139,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                 .setPositiveButton(R.string.update_now, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
                         String playServicesURI = "com.google.android.gms";
                         try {
                             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + playServicesURI)));
@@ -147,6 +149,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                             Timber.e(ex);
                             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + playServicesURI)));
                         }
+
+                        P2pModeSelectActivity.this.finish();
                     }
                 })
                 .show();
