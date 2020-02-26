@@ -107,7 +107,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                     Timber.v("Play services is available");
 
                     // TODO Look for a better way to check minimum required version of Google Play Services (hard coded for Nearby v16)
-                    if (getPlayServicesVersion() < 902451000) {
+                    if (getPlayServicesVersion() < 12451000) {
                         updatePlayStoreOrDie();
                     }
                 }
