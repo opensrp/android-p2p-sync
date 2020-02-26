@@ -8,7 +8,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -137,7 +136,7 @@ public class P2pModeSelectActivityTest {
         Context context = Mockito.mock(Context.class);
         Mockito.doReturn(context).when(activity).getApplicationContext();
 
-        WifiManager wifiManager =  Mockito.mock(WifiManager.class);
+        WifiManager wifiManager = Mockito.mock(WifiManager.class);
         Mockito.doReturn(wifiManager).when(context).getSystemService(Context.WIFI_SERVICE);
 
         //(WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -328,9 +327,9 @@ public class P2pModeSelectActivityTest {
     }
 
     @Test
-    public void testShowSyncCompleteFragmentDisplaysAFragment(){
+    public void testShowSyncCompleteFragmentDisplaysAFragment() {
         activity = Mockito.spy(activity);
-        activity.showSyncCompleteFragment(false , null, Mockito.mock(SyncCompleteTransferFragment.OnCloseClickListener.class), "summaryReport", false);
+        activity.showSyncCompleteFragment(false, null, Mockito.mock(SyncCompleteTransferFragment.OnCloseClickListener.class), "summaryReport", false);
         Fragment fragmentByTag = activity.getSupportFragmentManager().findFragmentByTag(Constants.Fragment.SYNC_COMPLETE);
         Assert.assertNotNull(fragmentByTag);
         Assert.assertTrue(fragmentByTag instanceof SyncCompleteTransferFragment);
