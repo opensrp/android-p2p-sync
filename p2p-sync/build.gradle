@@ -82,6 +82,7 @@ dependencies {
 
     // Encrypted SQLite help
     implementation "com.commonsware.cwac:saferoom:1.0.2"
+
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
