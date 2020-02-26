@@ -1,12 +1,19 @@
 package org.smartregister.p2p.activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 
 import com.google.android.gms.common.GoogleApiAvailability;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,15 +29,18 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.util.ReflectionHelpers;
 import org.smartregister.p2p.P2PLibrary;
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.TestApplication;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
+import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
 import org.smartregister.p2p.shadows.GoogleApiAvailabilityShadow;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
+import org.smartregister.p2p.util.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +108,43 @@ public class P2pModeSelectActivityTest {
 
         Whitebox.invokeMethod(activity, "getPlayServicesVersion");
         Mockito.verify(packageManager).getPackageInfo(GoogleApiAvailability.GOOGLE_PLAY_SERVICES_PACKAGE, 0);
+    }
+
+    @Test
+    public void testUpdatePlayStoreOrDieDisplaysAFatalDialogPositiveButton() throws Exception {
+        activity = Mockito.spy(activity);
+        AlertDialog alertDialog = Whitebox.invokeMethod(activity, "updatePlayStoreOrDie");
+        alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).callOnClick();
+        Mockito.verify(activity).finish();
+    }
+
+    @Test
+    public void testUpdatePlayStoreOrDieDisplaysAFatalDialogNegativeButton() throws Exception {
+        activity = Mockito.spy(activity);
+        AlertDialog alertDialog = Whitebox.invokeMethod(activity, "updatePlayStoreOrDie");
+        alertDialog.getButton(DialogInterface.BUTTON_NEGATIVE).callOnClick();
+        Mockito.verify(activity).finish();
+    }
+
+    @Test
+    public void testOnMacAddressResolutionFailureWithWifiHW() throws Exception {
+        PackageManager packageManager = Mockito.mock(PackageManager.class);
+
+        activity = Mockito.spy(activity);
+        Mockito.doReturn(packageManager).when(activity).getPackageManager();
+        Mockito.doReturn(true).when(packageManager).hasSystemFeature(PackageManager.FEATURE_WIFI);
+
+        Context context = Mockito.mock(Context.class);
+        Mockito.doReturn(context).when(activity).getApplicationContext();
+
+        WifiManager wifiManager =  Mockito.mock(WifiManager.class);
+        Mockito.doReturn(wifiManager).when(context).getSystemService(Context.WIFI_SERVICE);
+
+        //(WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+        Whitebox.invokeMethod(activity, "onMacAddressResolutionFailure");
+
+        Mockito.verify(activity).showFatalErrorDialog(R.string.an_error_occured, R.string.error_try_turning_wifi_on);
     }
 
     @Test
@@ -278,6 +325,15 @@ public class P2pModeSelectActivityTest {
                 .onStop();
         Mockito.verify(receiverPresenter, Mockito.times(1))
                 .onStop();
+    }
+
+    @Test
+    public void testShowSyncCompleteFragmentDisplaysAFragment(){
+        activity = Mockito.spy(activity);
+        activity.showSyncCompleteFragment(false , null, Mockito.mock(SyncCompleteTransferFragment.OnCloseClickListener.class), "summaryReport", false);
+        Fragment fragmentByTag = activity.getSupportFragmentManager().findFragmentByTag(Constants.Fragment.SYNC_COMPLETE);
+        Assert.assertNotNull(fragmentByTag);
+        Assert.assertTrue(fragmentByTag instanceof SyncCompleteTransferFragment);
     }
 
 }

@@ -69,4 +69,8 @@ public interface Constants {
         String SENDER = "sender";
         String RECEIVER = "receiver";
     }
+
+    interface PlayStore {
+        String PLAY_SERVICES = "com.google.android.gms";
+    }
 }

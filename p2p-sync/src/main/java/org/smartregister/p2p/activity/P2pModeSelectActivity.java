@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -130,8 +131,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         }
     }
 
-    private void updatePlayStoreOrDie() {
-        new AlertDialog.Builder(P2pModeSelectActivity.this)
+    private AlertDialog updatePlayStoreOrDie() {
+        return new AlertDialog.Builder(P2pModeSelectActivity.this)
                 .setTitle(R.string.error_play_services_title)
                 .setMessage(R.string.error_play_services_out_of_date)
                 .setNegativeButton(R.string.maybe_later, new DialogInterface.OnClickListener() {
@@ -146,13 +147,12 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
 
-                        String playServicesURI = "com.google.android.gms";
                         try {
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + playServicesURI)));
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + Constants.PlayStore.PLAY_SERVICES)));
                         } catch (android.content.ActivityNotFoundException ex) {
                             // if play store is not installed
                             Timber.e(ex);
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + playServicesURI)));
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + Constants.PlayStore.PLAY_SERVICES)));
                         }
 
                         P2pModeSelectActivity.this.finish();
@@ -582,7 +582,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
                 .show();
     }
 
-    private void showFatalErrorDialog(@StringRes int title, @StringRes int message) {
+    @VisibleForTesting
+    void showFatalErrorDialog(@StringRes int title, @StringRes int message) {
         new AlertDialog.Builder(P2pModeSelectActivity.this)
                 .setTitle(title)
                 .setMessage(message)
