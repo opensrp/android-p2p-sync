@@ -1,7 +1,11 @@
 package org.smartregister.p2p.activity;
 
 import android.Manifest;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -11,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.reflect.Whitebox;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
@@ -24,6 +29,7 @@ import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
+import org.smartregister.p2p.shadows.GoogleApiAvailabilityShadow;
 import org.smartregister.p2p.shadows.ShadowAppDatabase;
 
 import java.util.ArrayList;
@@ -38,14 +44,14 @@ import static org.junit.Assert.assertTrue;
  * Created by Ephraim Kigamba - ekigamba@ona.io on 13/03/2019
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(application = TestApplication.class, shadows = {ShadowAppDatabase.class})
+@Config(application = TestApplication.class, shadows = {ShadowAppDatabase.class, GoogleApiAvailabilityShadow.class})
 public class P2pModeSelectActivityTest {
 
     private P2pModeSelectActivity activity;
 
     private P2pModeSelectContract.SenderPresenter senderPresenter;
     private P2pModeSelectContract.ReceiverPresenter receiverPresenter;
-    
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -55,7 +61,7 @@ public class P2pModeSelectActivityTest {
     @Before
     public void setUp() throws Exception {
         P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application
-                ,"password","username", Mockito.mock(P2PAuthorizationService.class)
+                , "password", "username", Mockito.mock(P2PAuthorizationService.class)
                 , receiverTransferDao, Mockito.mock(SenderTransferDao.class)));
 
         activity = Robolectric.buildActivity(P2pModeSelectActivity.class)
@@ -71,6 +77,27 @@ public class P2pModeSelectActivityTest {
         receiverPresenter = Mockito.spy((P2pModeSelectContract.ReceiverPresenter)
                 ReflectionHelpers.getField(activity, "receiverBasePresenter"));
         ReflectionHelpers.setField(activity, "receiverBasePresenter", receiverPresenter);
+    }
+
+    @Test
+    public void testCheckForPlayServicesCreatesAPlayServiceRequest() throws Exception {
+        GoogleApiAvailability googleApiAvailability = Mockito.mock(GoogleApiAvailability.class);
+        GoogleApiAvailabilityShadow.setInstance(googleApiAvailability);
+        Whitebox.invokeMethod(activity, "checkForPlayServices");
+        Mockito.verify(googleApiAvailability).makeGooglePlayServicesAvailable(Mockito.eq(activity));
+    }
+
+    @Test
+    public void testGetPlayServicesVersionRequestPlayServiceVersion() throws Exception {
+        PackageManager packageManager = Mockito.mock(PackageManager.class);
+        PackageInfo packageInfo = Mockito.mock(PackageInfo.class);
+
+        activity = Mockito.spy(activity);
+        Mockito.doReturn(packageManager).when(activity).getPackageManager();
+        Mockito.doReturn(packageInfo).when(packageManager).getPackageInfo(GoogleApiAvailability.GOOGLE_PLAY_SERVICES_PACKAGE, 0);
+
+        Whitebox.invokeMethod(activity, "getPlayServicesVersion");
+        Mockito.verify(packageManager).getPackageInfo(GoogleApiAvailability.GOOGLE_PLAY_SERVICES_PACKAGE, 0);
     }
 
     @Test
@@ -209,7 +236,7 @@ public class P2pModeSelectActivityTest {
         List<String> permissions = activity.getUnauthorisedPermissions();
         boolean hasStoragePermissions = false;
 
-        for (String permission: permissions) {
+        for (String permission : permissions) {
             if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
                 hasStoragePermissions = true;
             }
@@ -232,7 +259,7 @@ public class P2pModeSelectActivityTest {
         List<String> permissions = activity.getUnauthorisedPermissions();
         boolean hasStoragePermissions = false;
 
-        for (String permission: permissions) {
+        for (String permission : permissions) {
             if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     || permissions.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                 hasStoragePermissions = true;
