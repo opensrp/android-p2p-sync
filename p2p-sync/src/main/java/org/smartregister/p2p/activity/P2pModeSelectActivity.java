@@ -97,30 +97,27 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     private void checkForPlayServices() {
-        Task<Void> task = GoogleApiAvailability.getInstance()
-                .makeGooglePlayServicesAvailable(this);
+        GoogleApiAvailability.getInstance()
+                .makeGooglePlayServicesAvailable(this)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void ignored) {
+                        Timber.v("Play services is available");
 
-        if (task != null) {
-            task.addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void ignored) {
-                    Timber.v("Play services is available");
-
-                    // TODO Look for a better way to check minimum required version of Google Play Services (hard coded for Nearby v16)
-                    if (getPlayServicesVersion() < 12451000) {
-                        updatePlayStoreOrDie();
-                    }
-                }
-            });
-            task.addOnFailureListener(this,
-                    new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Timber.v("Play services is not available");
-                            showFatalErrorDialog(R.string.error_play_services_title, R.string.error_play_services);
+                        // TODO Look for a better way to check minimum required version of Google Play Services (hard coded for Nearby v16)
+                        if (getPlayServicesVersion() < 12451000) {
+                            updatePlayStoreOrDie();
                         }
-                    });
-        }
+                    }
+                }).addOnFailureListener(this,
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Timber.v("Play services is not available");
+                        showFatalErrorDialog(R.string.error_play_services_title, R.string.error_play_services);
+                    }
+                });
+
     }
 
     private int getPlayServicesVersion() {
