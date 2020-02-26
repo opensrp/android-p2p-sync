@@ -45,10 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 13/03/2019
  */
@@ -166,8 +162,8 @@ public class P2pModeSelectActivityTest {
         ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers =
                 ReflectionHelpers.getField(activity, "onActivityRequestPermissionHandlers");
 
-        assertEquals(1, onActivityRequestPermissionHandlers.size());
-        assertEquals(onActivityRequestPermissionHandler, onActivityRequestPermissionHandlers.get(0));
+        Assert.assertEquals(1, onActivityRequestPermissionHandlers.size());
+        Assert.assertEquals(onActivityRequestPermissionHandler, onActivityRequestPermissionHandlers.get(0));
     }
 
 
@@ -204,8 +200,8 @@ public class P2pModeSelectActivityTest {
         ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers =
                 ReflectionHelpers.getField(activity, "onActivityRequestPermissionHandlers");
 
-        assertEquals(2, onActivityRequestPermissionHandlers.size());
-        assertEquals(onActivityRequestPermissionHandler2, onActivityRequestPermissionHandlers.get(1));
+        Assert.assertEquals(2, onActivityRequestPermissionHandlers.size());
+        Assert.assertEquals(onActivityRequestPermissionHandler2, onActivityRequestPermissionHandlers.get(1));
     }
 
     @Test
@@ -241,7 +237,7 @@ public class P2pModeSelectActivityTest {
         activity.addOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler2);
 
         activity.onRequestPermissionsResult(346, new String[]{}, new int[]{0});
-        assertEquals(346, results.get(0));
+        Assert.assertEquals(346, results.get(0));
     }
 
     @Test
@@ -261,12 +257,12 @@ public class P2pModeSelectActivityTest {
         };
 
         activity.addOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler);
-        assertTrue(activity.removeOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler));
+        Assert.assertTrue(activity.removeOnActivityRequestPermissionHandler(onActivityRequestPermissionHandler));
 
         ArrayList<OnActivityRequestPermissionHandler> onActivityRequestPermissionHandlers =
                 ReflectionHelpers.getField(activity, "onActivityRequestPermissionHandlers");
 
-        assertEquals(0, onActivityRequestPermissionHandlers.size());
+        Assert.assertEquals(0, onActivityRequestPermissionHandlers.size());
     }
 
     @Test
@@ -289,7 +285,7 @@ public class P2pModeSelectActivityTest {
         }
 
 
-        assertTrue(hasStoragePermissions);
+        Assert.assertTrue(hasStoragePermissions);
     }
 
     @Test
@@ -313,7 +309,7 @@ public class P2pModeSelectActivityTest {
         }
 
 
-        assertFalse(hasStoragePermissions);
+        Assert.assertFalse(hasStoragePermissions);
     }
 
     @Test
