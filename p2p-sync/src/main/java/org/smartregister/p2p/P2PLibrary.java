@@ -98,8 +98,9 @@ public final class P2PLibrary {
         GenericAsyncTask<String> genericAsyncTask = new GenericAsyncTask<>(new Callable<String>() {
             @Override
             public String call() {
-                if (options != null && options.recalledIdentifier != null)
+                if (options != null && options.recalledIdentifier != null) {
                     return options.recalledIdentifier.getUniqueID(context);
+                }
 
                 return Device.generateUniqueDeviceId(context);
             }
