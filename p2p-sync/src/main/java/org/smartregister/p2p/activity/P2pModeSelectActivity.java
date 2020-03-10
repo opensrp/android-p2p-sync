@@ -174,7 +174,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
 
     private void prepareTrackingDetails() {
         P2PLibrary.getInstance()
-                .getDeviceMacAddress(this, new GenericAsyncTask.OnFinishedCallback<String>() {
+                .getDeviceAddress(this, new GenericAsyncTask.OnFinishedCallback<String>() {
                     @Override
                     public void onSuccess(@Nullable String result) {
                         if (result != null) {
