@@ -8,6 +8,7 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.sample.dao.SampleReceiverDao;
 import org.smartregister.p2p.sample.dao.SampleSenderDao;
+import org.smartregister.p2p.sample.util.FailSafeRecalledID;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class SampleApplication extends Application implements P2PAuthorizationSe
                 , this, new SampleReceiverDao(), new SampleSenderDao());
 
         options.setBatchSize(100);
+        options.setRecalledIdentifier(new FailSafeRecalledID());
         P2PLibrary.init(options);
     }
 

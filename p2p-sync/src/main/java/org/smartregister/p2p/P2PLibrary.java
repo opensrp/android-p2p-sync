@@ -3,11 +3,11 @@ package org.smartregister.p2p;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
-import org.smartregister.p2p.authorizer.P2PAuthorizationService;
-import java.util.UUID;
 import android.support.annotation.Nullable;
 
+import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
+import org.smartregister.p2p.contract.RecalledIdentifier;
 import org.smartregister.p2p.model.AppDatabase;
 import org.smartregister.p2p.model.dao.ReceiverTransferDao;
 import org.smartregister.p2p.model.dao.SenderTransferDao;
@@ -15,7 +15,10 @@ import org.smartregister.p2p.tasks.GenericAsyncTask;
 import org.smartregister.p2p.util.Constants;
 import org.smartregister.p2p.util.Device;
 import org.smartregister.p2p.util.Settings;
+
+import java.util.UUID;
 import java.util.concurrent.Callable;
+
 import timber.log.Timber;
 
 /**
@@ -83,16 +86,22 @@ public final class P2PLibrary {
     }
 
     /**
+     * Returns a unique device address by using a provided device implementation or by default returns MAC Address
+     * <p>
      * This retrieves the device Wifi MAC Address. This might take up-to 5 seconds because it has to turn on wifi
      * if it is not on so that is can access the WLAN interface
      *
      * @param context
      * @param onFinishedCallback
      */
-    public void getDeviceMacAddress(@NonNull final Context context, @NonNull GenericAsyncTask.OnFinishedCallback<String> onFinishedCallback) {
+    public void getDeviceAddress(@NonNull final Context context, @NonNull GenericAsyncTask.OnFinishedCallback<String> onFinishedCallback) {
         GenericAsyncTask<String> genericAsyncTask = new GenericAsyncTask<>(new Callable<String>() {
             @Override
             public String call() {
+                if (options != null && options.recalledIdentifier != null) {
+                    return options.recalledIdentifier.getUniqueID(context);
+                }
+
                 return Device.generateUniqueDeviceId(context);
             }
         });
@@ -158,6 +167,8 @@ public final class P2PLibrary {
         private ReceiverTransferDao receiverTransferDao;
         private SenderTransferDao senderTransferDao;
         private SyncFinishedCallback syncFinishedCallback;
+        @Nullable
+        private RecalledIdentifier recalledIdentifier;
         private int batchSize = Constants.DEFAULT_SHARE_BATCH_SIZE;
 
         private long deviceMaxRetryConnectionDuration = Constants.DEFAULT_MIN_DEVICE_CONNECTION_RETRY_DURATION;
@@ -226,6 +237,15 @@ public final class P2PLibrary {
 
         public void setSyncFinishedCallback(SyncFinishedCallback syncFinishedCallback) {
             this.syncFinishedCallback = syncFinishedCallback;
+        }
+
+        @Nullable
+        public RecalledIdentifier getRecalledIdentifier() {
+            return recalledIdentifier;
+        }
+
+        public void setRecalledIdentifier(@Nullable RecalledIdentifier recalledIdentifier) {
+            this.recalledIdentifier = recalledIdentifier;
         }
     }
 }
