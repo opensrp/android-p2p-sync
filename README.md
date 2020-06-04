@@ -36,7 +36,7 @@ dependencies {
 
     ...
 
-    implementation ('org.smartregister:android-p2p-sync:0.2.1-SNAPSHOT'
+    implementation 'org.smartregister:android-p2p-sync:0.3.6-SNAPSHOT'
 }
 ```
 
