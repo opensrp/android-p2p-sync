@@ -41,7 +41,6 @@ dependencies {
 }
 ```
 
-
 3. Initialise the library in the `onCreate` method of your `Application` class
 
 ```java
