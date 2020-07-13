@@ -29,7 +29,7 @@ allprojects {
 }
 ```
 
-2. Add the library dependency in your module's `build.gradle` file eg. `app\build.gradle`
+ 2. Add the library dependency in your module's `build.gradle` file eg. `app\build.gradle`
 
 ```groovy
 
@@ -41,7 +41,7 @@ dependencies {
 }
 ```
 
-3. Initialise the library in the `onCreate` method of your `Application` class
+ 3. Initialise the library in the `onCreate` method of your `Application` class
 
 ```java
 
