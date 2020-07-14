@@ -29,6 +29,7 @@ allprojects {
 }
 ```
 
+ 2. Add the library dependency in your module's `build.gradle` file eg. `app\build.gradle`
 
 ```groovy
 
@@ -36,12 +37,11 @@ dependencies {
 
     ...
 
-    implementation ('org.smartregister:android-p2p-sync:0.2.1-SNAPSHOT'
+     implementation 'org.smartregister:android-p2p-sync:0.3.6-SNAPSHOT'
 }
 ```
 
-
-Initialise the library in the `onCreate` method of your `Application` class
+ 3. Initialise the library in the `onCreate` method of your `Application` class
 
 ```java
 
