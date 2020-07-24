@@ -44,10 +44,11 @@ public class SparseArray<E> {
     }
 
     public void removeAt(int index) {
-
+        // Do nothing for now
     }
 
     public void removeAtRange(int index, int size) {
+        // Do nothing for now
     }
 
     public int size() {

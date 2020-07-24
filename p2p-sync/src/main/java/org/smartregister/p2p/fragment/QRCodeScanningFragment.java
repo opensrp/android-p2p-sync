@@ -64,7 +64,9 @@ public class QRCodeScanningFragment extends Fragment {
         qrCodeScannerView.addOnBarcodeRecognisedListener(new QRCodeScannerView.OnQRRecognisedListener() {
             @Override
             public void onBarcodeRecognised(SparseArray<Barcode> recognisedItems) {
-                if (areCodesDuplicate(recognisedItems)) return;
+                if (areCodesDuplicate(recognisedItems)) {
+                    return;
+                }
 
                 if (qrCodeScanDialogCallback != null) {
                     qrCodeScanDialogCallback.qrCodeScanned(recognisedItems);
