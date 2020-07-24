@@ -3,6 +3,7 @@ package org.smartregister.p2p.fragment;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.Fragment;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -63,23 +64,7 @@ public class QRCodeScanningFragment extends Fragment {
         qrCodeScannerView.addOnBarcodeRecognisedListener(new QRCodeScannerView.OnQRRecognisedListener() {
             @Override
             public void onBarcodeRecognised(SparseArray<Barcode> recognisedItems) {
-                long currentTime = System.currentTimeMillis();
-
-                for (int i = 0; i < recognisedItems.size(); i++) {
-                    String scannedCode = recognisedItems.valueAt(i).rawValue;
-                    Long lastTimeRecorded = alreadyReadCodes.get(scannedCode);
-
-                    // Ignore duplicate codes recorded within
-                    if (lastTimeRecorded != null) {
-                        if ((currentTime - lastTimeRecorded) <= CODES_EXPIRE_TIME) {
-                            return;
-                        } else {
-                            alreadyReadCodes.put(scannedCode, currentTime);
-                        }
-                    } else {
-                        alreadyReadCodes.put(scannedCode, currentTime);
-                    }
-                }
+                if (areCodesDuplicate(recognisedItems)) return;
 
                 if (qrCodeScanDialogCallback != null) {
                     qrCodeScanDialogCallback.qrCodeScanned(recognisedItems);
@@ -93,6 +78,29 @@ public class QRCodeScanningFragment extends Fragment {
         scanningInstructions.setText(String.format(getString(R.string.qr_code_scanning_dialog_message), deviceName));
 
         return view;
+    }
+
+    @VisibleForTesting
+    protected boolean areCodesDuplicate(@NonNull SparseArray<Barcode> recognisedItems) {
+        long currentTime = System.currentTimeMillis();
+
+        for (int i = 0; i < recognisedItems.size(); i++) {
+            String scannedCode = recognisedItems.valueAt(i).rawValue;
+            Long lastTimeRecorded = alreadyReadCodes.get(scannedCode);
+
+            // Ignore duplicate codes recorded within
+            if (lastTimeRecorded != null) {
+                if ((currentTime - lastTimeRecorded) <= CODES_EXPIRE_TIME) {
+                    return true;
+                } else {
+                    alreadyReadCodes.put(scannedCode, currentTime);
+                }
+            } else {
+                alreadyReadCodes.put(scannedCode, currentTime);
+            }
+        }
+
+        return false;
     }
 
     private void closeFragment() {
