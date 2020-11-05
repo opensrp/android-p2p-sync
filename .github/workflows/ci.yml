@@ -25,7 +25,7 @@ jobs:
     - name: Check Sample Project builds
       run: ./gradlew :build --stacktrace
     - name: Run unit tests with Gradle
-      run: ./gradlew :p2p-sync:jacocoTestReport  --stacktrace
+      run: ./gradlew :p2p-sync:clean :p2p-sync:jacocoTestReport  --stacktrace
     - name: Upload coverage to Coveralls with Gradle
       run: ./gradlew :p2p-sync:coveralls --stacktrace
       env:
