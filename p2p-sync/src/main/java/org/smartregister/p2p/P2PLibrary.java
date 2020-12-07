@@ -171,7 +171,7 @@ public final class P2PLibrary {
         private ReceiverTransferDao receiverTransferDao;
         private SenderTransferDao senderTransferDao;
         private SyncFinishedCallback syncFinishedCallback;
-        private Boolean skipQrCodeScan;
+        private Boolean skipQrCodeScan = true;
 
         @Nullable
         private RecalledIdentifier recalledIdentifier;

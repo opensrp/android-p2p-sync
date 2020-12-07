@@ -7,7 +7,6 @@ import android.util.SparseArray;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.vision.barcode.Barcode;
 
-import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.fragment.QRCodeScanningFragment;
@@ -31,7 +30,7 @@ public class SenderConnectionAuthenticator extends BaseSyncConnectionAuthenticat
         if (discoveredDevice.getConnectionInfo() != null
                 && !discoveredDevice.getConnectionInfo().isIncomingConnection()) {
 
-            if (P2PLibrary.getInstance().getOptions().allowSkipQrCodeScan()) {
+            if (allowSkipQrCodeScan()) {
                 displaySenderApprovalDialog(discoveredDevice, authenticationCallback);
             } else {
                 displayQRCodeScanFragment(discoveredDevice, authenticationCallback);

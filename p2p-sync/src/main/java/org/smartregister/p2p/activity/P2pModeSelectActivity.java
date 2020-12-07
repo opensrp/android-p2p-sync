@@ -665,7 +665,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler : onActivityRequestPermissionHandlers) {
+        // prevent concurrent modification error
+        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler : new ArrayList<>(onActivityRequestPermissionHandlers)) {
             if (requestCode == onActivityRequestPermissionHandler.getRequestCode()) {
                 onActivityRequestPermissionHandler.handlePermissionResult(permissions, grantResults);
             }

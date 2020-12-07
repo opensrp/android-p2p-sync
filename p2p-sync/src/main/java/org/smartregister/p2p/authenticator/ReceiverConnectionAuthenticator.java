@@ -25,7 +25,7 @@ public class ReceiverConnectionAuthenticator extends BaseSyncConnectionAuthentic
         if (discoveredDevice.getConnectionInfo() != null
                 && discoveredDevice.getConnectionInfo().isIncomingConnection()) {
 
-            if (P2PLibrary.getInstance().getOptions().allowSkipQrCodeScan()) {
+            if (allowSkipQrCodeScan()) {
                 displaySenderInfoDialog(discoveredDevice, authenticationCallback);
             } else {
                 displayQRCodeGeneratorFragment(discoveredDevice, authenticationCallback);
