@@ -40,7 +40,7 @@
     <string name="could_not_initiate_connection_request_to_device">COULD NOT INITIATE CONNECTION REQUEST TO THE DEVICE</string>
     <string name="disconnected">DISCONNECTED</string>
     <string name="authentication_successful_receiver_can_accept_connection">Authentication successful! Receiver can accept connection</string>
-    <string name="chat_message_format">%s: %s</string>
+    <string name="chat_message_format">%1$s: %2$s</string>
     <string name="log_detector_dependencies_are_not_yet_available">Detector dependencies are not yet available.</string>
     <string name="barcode_detector_dependencies_cannot_be_downloaded">Barcode detector dependencies cannot be downloaded due to low device storage</string>
     <string name="log_unable_to_start_camera_source">Unable to start camera source.</string>

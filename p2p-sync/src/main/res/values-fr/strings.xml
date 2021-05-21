@@ -40,7 +40,7 @@
     <string name="could_not_initiate_connection_request_to_device">IMPOSSIBLE D\'INITIER LA DEMANDE DE CONNEXION À L\'APPAREIL</string>
     <string name="disconnected">DÉCONNECTÉ</string>
     <string name="authentication_successful_receiver_can_accept_connection">Authentification réussie! Récepteur peut accepter la connexion</string>
-    <string name="chat_message_format">%s: %s</string>
+    <string name="chat_message_format">%1$s: %2$s</string>
     <string name="log_detector_dependencies_are_not_yet_available">Dépendences détecteur ne sont pas encore disponibles</string>
     <string name="barcode_detector_dependencies_cannot_be_downloaded">Dépendences de codes de barre ne peuvent être téléchargés en raison du niveau bas de stockage de l\'appareil</string>
     <string name="log_unable_to_start_camera_source">Impossible de démarrer la source de la caméra</string>
