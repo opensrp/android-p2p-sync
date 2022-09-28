@@ -1,11 +1,13 @@
 package org.smartregister.p2p.model;
 
-import android.arch.persistence.room.Database;
-import android.arch.persistence.room.Room;
-import android.arch.persistence.room.RoomDatabase;
+
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.text.SpannableStringBuilder;
+
+import androidx.annotation.NonNull;
+import androidx.room.Database;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
 
 import com.commonsware.cwac.saferoom.SafeHelperFactory;
 
@@ -27,7 +29,7 @@ public abstract class AppDatabase extends RoomDatabase {
             SafeHelperFactory safeHelperFactory = SafeHelperFactory.fromUser(new SpannableStringBuilder(passphrase));
 
             instance = Room.databaseBuilder(context.getApplicationContext(),
-                    AppDatabase.class, DB_NAME)
+                            AppDatabase.class, DB_NAME)
                     .openHelperFactory(safeHelperFactory)
                     .build();
         }

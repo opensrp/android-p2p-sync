@@ -1,10 +1,10 @@
 package org.smartregister.p2p.presenter;
 
 import android.content.DialogInterface;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionResolution;
@@ -27,8 +27,8 @@ import org.smartregister.p2p.callback.SyncFinishedCallback;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.fragment.ErrorFragment;
-import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.fragment.SyncCompleteTransferFragment;
+import org.smartregister.p2p.fragment.SyncProgressFragment;
 import org.smartregister.p2p.handler.OnActivityRequestPermissionHandler;
 import org.smartregister.p2p.model.DataType;
 import org.smartregister.p2p.model.P2pReceivedHistory;

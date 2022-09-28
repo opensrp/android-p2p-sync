@@ -3,7 +3,7 @@ package org.smartregister.p2p.util;
 import android.Manifest;
 import android.content.Context;
 import android.os.Environment;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.io.File;
 
