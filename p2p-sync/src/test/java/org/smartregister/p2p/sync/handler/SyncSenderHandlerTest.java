@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import static org.junit.Assert.assertEquals;
@@ -224,7 +225,7 @@ public class SyncSenderHandlerTest {
                 .sendNextPayload();
 
         assertFalse((boolean) ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestTransfer"));
-        assertEquals(0l, ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestId"));
+        assertEquals(Optional.of(0l), ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestId"));
         assertNull(ReflectionHelpers.getField(syncSenderHandler, "payloadRetry"));
     }
 

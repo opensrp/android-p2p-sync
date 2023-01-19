@@ -110,7 +110,7 @@
     <string name="start_transfer">Start Transfer</string>
     <string name="devices_connected">Devices Connected</string>
     <string name="please_make_sure_the_devices_remain_within_range_during_data_transfer">Please make sure the devices remain within range during data transfer</string>
-    <string name="processing_disclaimer"></string>
+    <string name="processing_disclaimer" >Disclaimer</string>
     <string name="error_play_services_title">Google Play Services Required</string>
     <string name="error_play_services">Google play services in required for this service to work</string>
     <string name="error_play_services_out_of_date">You need to update your device\'s google play service</string>
