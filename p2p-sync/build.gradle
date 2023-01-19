@@ -45,6 +45,7 @@ android {
         lintConfig file("lint.xml")
         abortOnError false
     }
+    namespace 'org.smartregister.p2p'
 }
 
 dependencies {
