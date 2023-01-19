@@ -1,6 +1,12 @@
 package org.smartregister.p2p.sync.handler;
 
-import android.support.v4.util.SimpleArrayMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import androidx.collection.SimpleArrayMap;
 
 import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
 import com.google.android.gms.nearby.connection.Payload;
@@ -40,12 +46,6 @@ import org.smartregister.p2p.util.Constants;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 04/04/2019
