@@ -21,7 +21,7 @@
             android:label="@string/peer_to_peer_activity_title"
             android:windowSoftInputMode="stateHidden|adjustResize"
             android:exported="true"
-            android:name=".activity.P2pModeSelectActivity"/>
+            android:name="org.smartregister.p2p.activity.P2pModeSelectActivity"/>
 
         <meta-data
             android:name="com.google.android.gms.vision.Dependencies"

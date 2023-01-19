@@ -53,7 +53,7 @@ public final class P2PLibrary {
 
         // We should not override the host applications Timber trees
         if (Timber.treeCount() == 0) {
-            Timber.plant(new Timber.DebugTree());
+            Timber.d(String.valueOf(new Timber.DebugTree()));
         }
 
         hashKey = getHashKey();
