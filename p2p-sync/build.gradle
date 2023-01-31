@@ -8,6 +8,11 @@ jacoco {
 }
 
 android {
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
 
@@ -40,12 +45,15 @@ android {
         }
     }
 
-    testOptions.unitTests.includeAndroidResources = true
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
     lintOptions {
         lintConfig file("lint.xml")
         abortOnError false
     }
-    namespace 'org.smartregister.p2p'
 }
 
 dependencies {
@@ -68,14 +76,14 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     testImplementation 'org.mockito:mockito-inline:2.25.0'
-    testImplementation "org.robolectric:robolectric:4.9"
+    testImplementation "org.robolectric:robolectric:4.3.1"
 
     // ZXING DEPENDENCIES
-    implementation('com.journeyapps:zxing-android-embedded:3.6.0') {
+    implementation('com.journeyapps:zxing-android-embedded:4.3.0') {
         exclude group: 'com.android.support', module: 'support-v4'
     }
-    implementation 'com.google.zxing:core:3.3.2'
-    implementation 'com.google.code.gson:gson:2.10'
+    implementation 'com.google.zxing:core:3.5.1'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // Room
     implementation "android.arch.persistence.room:runtime:$room_version"
