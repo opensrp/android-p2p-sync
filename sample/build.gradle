@@ -60,6 +60,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-vision:17.0.2'
 
     implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation project(path: ':p2p-sync')
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

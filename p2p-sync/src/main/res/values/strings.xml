@@ -32,7 +32,7 @@
     <string name="log_endpoint_lost">Endpoint lost %s</string>
     <string name="connection_to_endpoint_broken">The connection to %s has broken</string>
     <string name="connected">CONNECTED</string>
-    <string name="log_connection_initiated_endpoint_auth_code">Connection initiated by : %1$s  Endpoint name(%2%s) auth code(%3$s)</string>
+    <string name="log_connection_initiated_endpoint_auth_code">Connection initiated by : %1$s  Endpoint name(%2$s) auth code(%3$s)</string>
     <string name="log_rejecting_connection_initiated_by_other_device">Rejecting connection initiated by the other device %1$s, %2$s, %3$s</string>
     <string name="log_endpoint_found">Endpoint found : %1$s   Endpoint info: (%2$s, %3$s)</string>
     <string name="log_received_payload_from_endpoint">Received a payload from %s</string>

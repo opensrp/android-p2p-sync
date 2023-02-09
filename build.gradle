@@ -8,7 +8,7 @@ buildscript {
         maven{  url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.2'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath 'gradle.plugin.org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.12.0'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
 
@@ -40,11 +40,12 @@ task clean(type: Delete) {
 ext {
     group = GROUP
     version = VERSION_NAME
-    ext.androidToolsBuildGradle = '30.0.3'
+
+    ext.androidToolsBuildGradle = '4.2.2'
     ext.androidBuildToolsVersion = '30.0.3'
-    androidMinSdkVersion = 19
-    androidCompileSdkVersion = 31
-    androidTargetSdkVersion = 29
+    ext.androidMinSdkVersion = 19
+    ext.androidCompileSdkVersion = 31
+    ext.androidTargetSdkVersion = 31
 }
 
 ext {

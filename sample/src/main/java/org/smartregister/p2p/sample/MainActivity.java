@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.smartregister.p2p.R;
 import org.smartregister.p2p.activity.P2pModeSelectActivity;
 
 public class MainActivity extends AppCompatActivity {
