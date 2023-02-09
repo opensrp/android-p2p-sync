@@ -2,8 +2,9 @@ package org.smartregister.p2p;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.smartregister.p2p.authorizer.P2PAuthorizationService;
 import org.smartregister.p2p.callback.SyncFinishedCallback;
@@ -52,7 +53,7 @@ public final class P2PLibrary {
 
         // We should not override the host applications Timber trees
         if (Timber.treeCount() == 0) {
-            Timber.plant(new Timber.DebugTree());
+            Timber.d(String.valueOf(new Timber.DebugTree()));
         }
 
         hashKey = getHashKey();
@@ -158,6 +159,10 @@ public final class P2PLibrary {
         return options.getSyncFinishedCallback();
     }
 
+    public Options getOptions() {
+        return options;
+    }
+
     public static class Options {
 
         private Context context;
@@ -167,6 +172,8 @@ public final class P2PLibrary {
         private ReceiverTransferDao receiverTransferDao;
         private SenderTransferDao senderTransferDao;
         private SyncFinishedCallback syncFinishedCallback;
+        private Boolean skipQrCodeScan = true;
+
         @Nullable
         private RecalledIdentifier recalledIdentifier;
         private int batchSize = Constants.DEFAULT_SHARE_BATCH_SIZE;
@@ -246,6 +253,14 @@ public final class P2PLibrary {
 
         public void setRecalledIdentifier(@Nullable RecalledIdentifier recalledIdentifier) {
             this.recalledIdentifier = recalledIdentifier;
+        }
+
+        public boolean allowSkipQrCodeScan() {
+            return skipQrCodeScan != null && skipQrCodeScan;
+        }
+
+        public void setSkipQrCodeScan(boolean skipQrCodeScan) {
+            this.skipQrCodeScan = skipQrCodeScan;
         }
     }
 }

@@ -1,35 +1,126 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
+apply plugin: 'jacoco'
+apply plugin: 'com.github.kt3k.coveralls'
+
+
+jacoco {
+    toolVersion = "0.8.2"
+}
 
 android {
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
 
+    defaultPublishConfig !isReleaseBuild() ? "debug" : "release"
+
     defaultConfig {
-        applicationId "org.smartregister.p2p.sample"
         minSdkVersion androidMinSdkVersion
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
         versionName version
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     buildTypes {
+
+        debug {
+            testCoverageEnabled true
+            minifyEnabled false
+        }
+
         release {
             minifyEnabled false
+            testCoverageEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    testOptions.unitTests.includeAndroidResources = true
+    lintOptions.abortOnError = false
 }
 
 dependencies {
-    implementation project(":p2p-sync")
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:support-v4:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.google.android.gms:play-services-nearby:16.0.0'
+    implementation ('com.google.android.gms:play-services-location:16.0.0') {
+        exclude group: 'com.android.support', module: 'support-v4'
+    }
+
+    implementation 'com.google.android.gms:play-services-vision:17.0.2'
+
+    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation project(path: ':p2p-sync')
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    testImplementation 'org.mockito:mockito-inline:2.25.0'
+    testImplementation "org.robolectric:robolectric:4.2"
 
+    // ZXING DEPENDENCIES
+    implementation('com.journeyapps:zxing-android-embedded:3.6.0') {
+        exclude group: 'com.android.support', module: 'support-v4'
+    }
+    implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    // Room
+    implementation "android.arch.persistence.room:runtime:$room_version"
+    annotationProcessor "android.arch.persistence.room:compiler:$room_version"
+    // Room Test helpers
+    testImplementation "android.arch.persistence.room:testing:$room_version"
+
+    // Encrypted SQLite help
+    implementation "com.commonsware.cwac:saferoom:1.0.2"
+
 }
+
+task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest', 'createDebugCoverageReport']) {
+
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+
+    getReports().getXml().setDestination(file("${buildDir}/reports/jacoco/jacocoRootReport/merged.xml"))
+    getReports().getHtml().setDestination(file("${buildDir}/reports/jacoco/jacocoRootReport/html"))
+
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/*$ViewBinder*.*']
+    def debugTree = fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
+    def mainSrc = "$project.projectDir/src/main/java"
+
+    getSourceDirectories().setFrom([mainSrc])
+    getClassDirectories().setFrom([debugTree])
+    getExecutionData().setFrom(dir: project.buildDir, includes: [
+            'jacoco/testDebugUnitTest.exec', 'outputs/code-coverage/connected/*coverage.ec'
+    ])
+
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+
+coveralls {
+    jacocoReportPath = "${buildDir}/reports/jacoco/jacocoRootReport/merged.xml"
+    // Re-add the line below if coveralls still cannot shows "No source file found on the project: "p2p-sync"
+    // after adding some code files
+    //sourceDirs += ["src/main/java"]
+}
+
+def isReleaseBuild() {
+    return version.contains("SNAPSHOT") == false
+}
+
+apply from: '../maven.gradle'

@@ -11,17 +11,18 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.annotation.VisibleForTesting;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.ApiException;
@@ -40,6 +41,8 @@ import org.smartregister.p2p.P2PLibrary;
 import org.smartregister.p2p.R;
 import org.smartregister.p2p.contract.P2pModeSelectContract;
 import org.smartregister.p2p.dialog.ConnectingDialog;
+import org.smartregister.p2p.dialog.ReceiverConnectionInfoDialog;
+import org.smartregister.p2p.dialog.SenderApprovalDialog;
 import org.smartregister.p2p.dialog.SkipQRScanDialog;
 import org.smartregister.p2p.dialog.StartDiscoveringModeProgressDialog;
 import org.smartregister.p2p.dialog.StartReceiveModeProgressDialog;
@@ -300,7 +303,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
         return removeDialog(Constants.Dialog.START_SEND_MODE_PROGRESS);
     }
 
-    private boolean removeDialog(@NonNull String tag) {
+    @Override
+    public boolean removeDialog(@NonNull String tag) {
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(tag);
 
@@ -347,6 +351,7 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     @Override
     public void showQRCodeGeneratorFragment(@NonNull String authenticationCode, @NonNull String deviceName
             , @NonNull QRCodeGeneratorFragment.QRCodeGeneratorCallback qrCodeGeneratorCallback) {
+        // here
         QRCodeGeneratorFragment newFragment = new QRCodeGeneratorFragment();
         newFragment.setAuthenticationCode(authenticationCode);
         newFragment.setDeviceName(deviceName);
@@ -363,9 +368,33 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     }
 
     @Override
+    public void showSenderApprovalDialog(@NonNull String authenticationCode, @NonNull String deviceName, @Nullable DialogCancelCallback dialogCancelCallback, @NonNull DialogApprovedCallback dialogApprovedCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SenderApprovalDialog newFragment = new SenderApprovalDialog();
+        newFragment.setConnectionDeviceName(deviceName);
+        newFragment.setConnectionKey(authenticationCode);
+        newFragment.setDialogCancelCallback(dialogCancelCallback);
+        newFragment.setDialogApprovedCallback(dialogApprovedCallback);
+
+        newFragment.show(fragmentManager, Constants.Dialog.DISPLAY_APPROVAL_KEY);
+    }
+
+    @Override
+    public void showReceiverApprovalDialog(@NonNull String authenticationCode, @NonNull String deviceName, @Nullable DialogCancelCallback dialogCancelCallback, @NonNull DialogApprovedCallback dialogApprovedCallback) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        ReceiverConnectionInfoDialog newFragment = new ReceiverConnectionInfoDialog();
+        newFragment.setConnectionDeviceName(deviceName);
+        newFragment.setConnectionKey(authenticationCode);
+        newFragment.setDialogCancelCallback(dialogCancelCallback);
+        newFragment.setDialogApprovedCallback(dialogApprovedCallback);
+
+        newFragment.show(fragmentManager, Constants.Dialog.DISPLAY_APPROVAL_KEY);
+    }
+
+    @Override
     public void showConnectionAcceptDialog(@NonNull String receiverDeviceName, @NonNull String authenticationCode
             , @NonNull final DialogInterface.OnClickListener onClickListener) {
-        new android.support.v7.app.AlertDialog.Builder(this)
+        new AlertDialog.Builder(this)
                 .setMessage(String.format(getString(R.string.accept_connection_dialog_content), authenticationCode))
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
@@ -637,7 +666,8 @@ public class P2pModeSelectActivity extends AppCompatActivity implements P2pModeS
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler : onActivityRequestPermissionHandlers) {
+        // prevent concurrent modification error
+        for (OnActivityRequestPermissionHandler onActivityRequestPermissionHandler : new ArrayList<>(onActivityRequestPermissionHandlers)) {
             if (requestCode == onActivityRequestPermissionHandler.getRequestCode()) {
                 onActivityRequestPermissionHandler.handlePermissionResult(permissions, grantResults);
             }

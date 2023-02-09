@@ -1,5 +1,6 @@
 package org.smartregister.p2p.shadows;
 
+
 import com.google.android.gms.nearby.connection.ConnectionsClient;
 
 import org.robolectric.annotation.Implements;

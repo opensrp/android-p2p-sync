@@ -1,8 +1,11 @@
 package org.smartregister.p2p.presenter;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import android.Manifest;
 import android.content.DialogInterface;
-import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.ConnectionInfo;
 import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
@@ -55,11 +58,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 19/03/2019
@@ -827,7 +827,7 @@ public class P2PSenderPresenterTest {
         ReflectionHelpers.setField(p2PSenderPresenter, "hashKeyPayloadId", payloadId);
         p2PSenderPresenter.onPayloadTransferUpdate(endpointId, update);
 
-        assertEquals(0l, ReflectionHelpers.getField(p2PSenderPresenter, "hashKeyPayloadId"));
+        assertEquals(Optional.of(0L), ReflectionHelpers.getField(p2PSenderPresenter, "hashKeyPayloadId"));
     }
 
     @Test

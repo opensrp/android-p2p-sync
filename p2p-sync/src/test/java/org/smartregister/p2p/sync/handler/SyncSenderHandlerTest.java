@@ -1,5 +1,13 @@
 package org.smartregister.p2p.sync.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+
 import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 
@@ -39,13 +47,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Ephraim Kigamba - ekigamba@ona.io on 29/03/2019
@@ -55,29 +58,25 @@ import static org.junit.Assert.assertTrue;
 @Config(shadows = {ShadowAppDatabase.class, ShadowTasker.class, ShadowPayload.class})
 public class SyncSenderHandlerTest {
 
+    private final DataType event = new DataType("event", DataType.Type.NON_MEDIA, 1);
+    private final DataType client = new DataType("client", DataType.Type.NON_MEDIA, 2);
+    private final DataType profilePic = new DataType("profile-pic", DataType.Type.MEDIA, 3);
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private TestSyncSenderHandler syncSenderHandler;
     @Mock
     private P2pModeSelectContract.SenderPresenter senderPresenter;
-
     @Mock
     private P2PAuthorizationService authorizationService;
     @Mock
     private SenderTransferDao senderTransferDao;
     @Mock
     private ReceiverTransferDao receiverTransferDao;
-
     private TreeSet<DataType> dataSyncOrder;
-
-    private DataType event = new DataType("event", DataType.Type.NON_MEDIA, 1);
-    private DataType client = new DataType("client", DataType.Type.NON_MEDIA, 2);
-    private DataType profilePic = new DataType("profile-pic", DataType.Type.MEDIA, 3);
 
     @Before
     public void setUp() throws Exception {
-        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application, "some password", "username"
+        P2PLibrary.init(new P2PLibrary.Options(RuntimeEnvironment.application, "somepassword", "username"
                 , authorizationService, receiverTransferDao, senderTransferDao));
 
         dataSyncOrder = new TreeSet<>();
@@ -154,7 +153,7 @@ public class SyncSenderHandlerTest {
         syncSenderHandler.sendNextManifest();
 
         Mockito.verify(syncSenderHandler, Mockito.times(1))
-                .sendJsonDataManifest(Mockito.any(DataType.class));
+                .sendJsonDataManifest(any(DataType.class));
     }
 
     @Test
@@ -169,7 +168,7 @@ public class SyncSenderHandlerTest {
         syncSenderHandler.sendNextManifest();
 
         Mockito.verify(syncSenderHandler, Mockito.times(1))
-                .sendMultimediaDataManifest(Mockito.any(DataType.class));
+                .sendMultimediaDataManifest(any(DataType.class));
     }
 
     @Test
@@ -206,7 +205,7 @@ public class SyncSenderHandlerTest {
                 .when(syncSenderHandler)
                 .sendNextPayload();
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
+        PayloadTransferUpdate payloadTransferUpdate = mock(PayloadTransferUpdate.class);
 
         Mockito.doReturn(payloadId)
                 .when(payloadTransferUpdate)
@@ -224,7 +223,7 @@ public class SyncSenderHandlerTest {
                 .sendNextPayload();
 
         assertFalse((boolean) ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestTransfer"));
-        assertEquals(0l, ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestId"));
+        assertEquals(Optional.of(0L), ReflectionHelpers.getField(syncSenderHandler, "awaitingManifestId"));
         assertNull(ReflectionHelpers.getField(syncSenderHandler, "payloadRetry"));
     }
 
@@ -237,7 +236,7 @@ public class SyncSenderHandlerTest {
                 .when(syncSenderHandler)
                 .sendNextPayload();
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
+        PayloadTransferUpdate payloadTransferUpdate = mock(PayloadTransferUpdate.class);
 
         Mockito.doReturn(payloadId)
                 .when(payloadTransferUpdate)
@@ -247,7 +246,7 @@ public class SyncSenderHandlerTest {
                 .when(payloadTransferUpdate)
                 .getStatus();
 
-        SyncPackageManifest syncPackageManifest = Mockito.mock(SyncPackageManifest.class);
+        SyncPackageManifest syncPackageManifest = mock(SyncPackageManifest.class);
 
         ReflectionHelpers.setField(syncSenderHandler, "awaitingManifestTransfer", true);
         ReflectionHelpers.setField(syncSenderHandler, "awaitingManifestId", payloadId);
@@ -270,7 +269,7 @@ public class SyncSenderHandlerTest {
                 .when(syncSenderHandler)
                 .sendNextPayload();
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
+        PayloadTransferUpdate payloadTransferUpdate = mock(PayloadTransferUpdate.class);
 
         Mockito.doReturn(payloadId)
                 .when(payloadTransferUpdate)
@@ -285,7 +284,7 @@ public class SyncSenderHandlerTest {
         syncSenderHandler.onPayloadTransferUpdate(payloadTransferUpdate);
 
         Mockito.verify(senderPresenter, Mockito.times(1))
-                .errorOccurredSync(Mockito.any(Exception.class));
+                .errorOccurredSync(any(Exception.class));
     }
 
     @Test
@@ -296,7 +295,7 @@ public class SyncSenderHandlerTest {
                 .when(syncSenderHandler)
                 .sendNextManifest();
 
-        Payload awaitingPayload = Mockito.mock(Payload.class);
+        Payload awaitingPayload = mock(Payload.class);
 
         Mockito.doReturn(payloadId)
                 .when(awaitingPayload)
@@ -329,7 +328,7 @@ public class SyncSenderHandlerTest {
         long payloadId = 9;
         int status = PayloadTransferUpdate.Status.FAILURE;
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
+        PayloadTransferUpdate payloadTransferUpdate = mock(PayloadTransferUpdate.class);
 
         Mockito.doReturn(payloadId)
                 .when(payloadTransferUpdate)
@@ -339,7 +338,7 @@ public class SyncSenderHandlerTest {
                 .when(payloadTransferUpdate)
                 .getStatus();
 
-        Payload awaitingPayload = Mockito.mock(Payload.class);
+        Payload awaitingPayload = mock(Payload.class);
 
         Mockito.doReturn(payloadId)
                 .when(awaitingPayload)
@@ -369,7 +368,7 @@ public class SyncSenderHandlerTest {
         long payloadId = 9;
         int status = PayloadTransferUpdate.Status.CANCELED;
 
-        PayloadTransferUpdate payloadTransferUpdate = Mockito.mock(PayloadTransferUpdate.class);
+        PayloadTransferUpdate payloadTransferUpdate = mock(PayloadTransferUpdate.class);
 
         Mockito.doReturn(payloadId)
                 .when(payloadTransferUpdate)
@@ -379,7 +378,7 @@ public class SyncSenderHandlerTest {
                 .when(payloadTransferUpdate)
                 .getStatus();
 
-        Payload awaitingPayload = Mockito.mock(Payload.class);
+        Payload awaitingPayload = mock(Payload.class);
 
         Mockito.doReturn(payloadId)
                 .when(awaitingPayload)
@@ -390,14 +389,14 @@ public class SyncSenderHandlerTest {
         syncSenderHandler.onPayloadTransferUpdate(payloadTransferUpdate);
 
         Mockito.verify(senderPresenter, Mockito.times(1))
-                .errorOccurredSync(Mockito.any(Exception.class));
+                .errorOccurredSync(any(Exception.class));
     }
 
     @Test
     public void sendMultimediaDataManifestShouldCallPresenterSendManifest() {
         DataType dataType = new DataType("pic", DataType.Type.MEDIA, 5);
 
-        File mockFile = Mockito.mock(File.class);
+        File mockFile = mock(File.class);
         MultiMediaData multiMediaData = new MultiMediaData(mockFile, 8923);
         HashMap<String, String> details = new HashMap<>();
         details.put("fileRecordId", "928");
@@ -407,7 +406,7 @@ public class SyncSenderHandlerTest {
         HashMap<String, Long> remainingLastRecords = ReflectionHelpers.getField(syncSenderHandler, "remainingLastRecordIds");
         remainingLastRecords.put("pic", 0L);
 
-        Payload payload = Mockito.mock(Payload.class);
+        Payload payload = mock(Payload.class);
         Mockito.doReturn(898L)
                 .when(payload)
                 .getId();
@@ -426,7 +425,7 @@ public class SyncSenderHandlerTest {
 
         syncSenderHandler.sendMultimediaDataManifest(dataType);
         Mockito.verify(senderPresenter, Mockito.times(1))
-                .sendManifest(Mockito.any(SyncPackageManifest.class));
+                .sendManifest(any(SyncPackageManifest.class));
     }
 
     @Test
@@ -434,7 +433,7 @@ public class SyncSenderHandlerTest {
         DataType dataType = new DataType("Person", DataType.Type.NON_MEDIA, 5);
         JsonData multiMediaData = new JsonData(new JSONArray(), 8923);
 
-        Payload payload = Mockito.mock(Payload.class);
+        Payload payload = mock(Payload.class);
         Mockito.doReturn(898L)
                 .when(payload)
                 .getId();

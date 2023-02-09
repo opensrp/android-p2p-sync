@@ -2,8 +2,8 @@ package org.smartregister.p2p.util;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
-import android.support.annotation.Nullable;
-import android.support.annotation.WorkerThread;
+import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import java.net.NetworkInterface;
 import java.net.SocketException;
